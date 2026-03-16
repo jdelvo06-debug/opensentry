@@ -685,27 +685,21 @@ export default function CameraPanel({
     return null;
   }, [track, allTracks, effectiveBearing, effectiveElevation]);
 
-  // Check if track is covered by an EO/IR sensor
+  // Check if track is covered by an EO/IR sensor (range only — camera can slew to any bearing)
   const isDegraded = useCallback(
     (t: TrackData): boolean => {
       const eoirSensors = sensorConfigs.filter(
         (s) => s.type === "eoir" && s.status === "active",
       );
+      if (eoirSensors.length === 0) return true; // no camera at all
       for (const sensor of eoirSensors) {
         const sx = sensor.x ?? 0;
         const sy = sensor.y ?? 0;
         const dist = Math.sqrt((t.x - sx) ** 2 + (t.y - sy) ** 2);
-        const range = sensor.range_km ?? 1.5;
-        if (dist > range) continue;
-        const fov = sensor.fov_deg ?? 360;
-        if (fov >= 360) return false;
-        const bearing =
-          ((Math.atan2(t.x - sx, t.y - sy) * 180) / Math.PI + 360) % 360;
-        const facing = sensor.facing_deg ?? 0;
-        const diff = Math.abs(((bearing - facing + 180) % 360) - 180);
-        if (diff <= fov / 2) return false;
+        const range = sensor.range_km ?? 5.0;
+        if (dist <= range) return false; // in range — camera can slew to it
       }
-      return true;
+      return true; // all cameras out of range
     },
     [sensorConfigs],
   );
