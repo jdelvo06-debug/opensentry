@@ -330,11 +330,13 @@ export default function RadialActionWheel({
   return (
     <div
       onClick={(e) => {
-        e.stopPropagation();
-        if (subMenu !== "none") {
-          setSubMenu("none");
-        } else {
-          onClose();
+        // Only close if clicking the backdrop itself, not children
+        if (e.target === e.currentTarget) {
+          if (subMenu !== "none") {
+            setSubMenu("none");
+          } else {
+            onClose();
+          }
         }
       }}
       onContextMenu={(e) => {
