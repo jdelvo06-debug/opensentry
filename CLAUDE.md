@@ -14,8 +14,8 @@ SKYSHIELD is an open-source, browser-based Counter-UAS (C-UAS) training simulato
 ```
 frontend/                  # React + Vite + TypeScript
   src/
-    App.tsx                # Main app — game state machine (waiting → running → debrief)
-    types.ts               # All TypeScript types/interfaces for WebSocket messages
+    App.tsx                # Main app — game state machine (scenario_select → loadout → placement → running → debrief)
+    types.ts               # All TypeScript types/interfaces for WebSocket messages + equipment + bases
     hooks/
       useWebSocket.ts      # WebSocket connection hook
     components/
@@ -27,6 +27,10 @@ frontend/                  # React + Vite + TypeScript
       EngagementPanel.tsx  # Right sidebar — action buttons based on current DTID phase
       EventLog.tsx         # Bottom bar — timestamped mission events
       DebriefScreen.tsx    # Post-mission scoring overlay
+      ScenarioSelect.tsx   # Scenario + base template selection screen
+      LoadoutScreen.tsx    # Equipment selection (sensors + effectors from catalog)
+      PlacementScreen.tsx  # Drag-and-drop sensor/effector placement on base map (1500 lines)
+      CameraPanel.tsx      # EO/IR camera simulation — thermal silhouettes for visual ID (590 lines)
 
 backend/
   app/
@@ -38,6 +42,13 @@ backend/
     detection.py           # Multi-sensor simulation (radar, RF, EO/IR, acoustic)
   scenarios/
     lone_wolf.json         # Single commercial quad, beginner difficulty
+  bases.py                 # Load base templates from backend/bases/
+  bases/
+    small_fob.json         # Compact FOB — tight perimeter, 2 protected assets
+    medium_airbase.json    # Airbase with runway, hangars, ATC tower
+    large_installation.json # Major installation, multiple assets, complex terrain
+  equipment/
+    catalog.json           # Full equipment catalog — 5 sensors + 10 effectors with stats
 ```
 
 ## Kill Chain: DTID
@@ -157,14 +168,36 @@ cd frontend && npm install && npm run dev
 - Countermeasure effectiveness based on published vendor data
 - When in doubt, sanitize harder
 
+## Training Flow (Cradle-to-Grave)
+The complete user flow:
+1. **SELECT SCENARIO** — Choose scenario (Lone Wolf, etc.) + base template (FOB, Airbase, Installation)
+2. **EQUIP** — Select sensors and effectors from the equipment catalog
+3. **PLAN** — Drag-and-drop place equipment on the base map, review coverage arcs/gaps
+4. **EXECUTE** — Run the DTID mission with your planned defense layout
+5. **DEBRIEF** — Score on both planning quality AND execution quality
+
+## EO/IR Camera Panel
+- Modal overlay with thermal/HUD aesthetic for visual drone identification
+- Canvas-drawn silhouettes: commercial quad, fixed-wing, micro, bird, weather balloon, improvised
+- Range-based clarity (closer = sharp, farther = grainy with noise)
+- Crosshairs, targeting data HUD, zoom indicator
+- Only available when target is within camera FOV (based on placement direction)
+
+## Equipment Catalog
+Stored in `backend/equipment/catalog.json`. Each item has: name, type, range_km, fov_deg, description, pros, cons, requires_los, collateral_risk (effectors), recharge_seconds, single_use.
+
+## Base Templates
+Stored in `backend/bases/` as JSON. Each has: boundary polygon, protected_assets (name, position, priority), terrain features (buildings, towers, berms, treelines with LOS blocking), approach corridors.
+
 ## Current Status
 - Phase 1 MVP complete — Lone Wolf scenario playable end-to-end
+- Phase 2 complete — Equipment loadout, base defense planner, EO/IR camera panel, full training flow
 - DTID kill chain implemented
 - Tactical map with MIL-STD-2525-lite symbology
 - Sensor fusion and effector management
-- Scoring and debrief system
+- Scoring and debrief system (planning + execution)
+- 3 base templates, full equipment catalog
 
-## Roadmap (see PLAN.md)
-- Phase 2: Multiple scenarios, multi-track, engagement zones on map, soft defeat options
-- Phase 3: Tutorial, leaderboard, Docker deployment, GitHub release
-- Phase 4: Multiplayer, community scenarios, mobile support
+## Roadmap
+- Phase 3: Multi-track scenarios, tutorial flow, placement UI polish, camera silhouette refinement
+- Phase 4: Multiplayer, community scenarios, Docker deployment, mobile support
