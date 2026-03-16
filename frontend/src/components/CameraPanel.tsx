@@ -685,21 +685,13 @@ export default function CameraPanel({
     return null;
   }, [track, allTracks, effectiveBearing, effectiveElevation]);
 
-  // Check if track is covered by an EO/IR sensor (range only — camera can slew to any bearing)
+  // Camera always works if an EO/IR sensor is equipped — range just affects image quality
   const isDegraded = useCallback(
-    (t: TrackData): boolean => {
+    (_t: TrackData): boolean => {
       const eoirSensors = sensorConfigs.filter(
         (s) => s.type === "eoir" && s.status === "active",
       );
-      if (eoirSensors.length === 0) return true; // no camera at all
-      for (const sensor of eoirSensors) {
-        const sx = sensor.x ?? 0;
-        const sy = sensor.y ?? 0;
-        const dist = Math.sqrt((t.x - sx) ** 2 + (t.y - sy) ** 2);
-        const range = sensor.range_km ?? 5.0;
-        if (dist <= range) return false; // in range — camera can slew to it
-      }
-      return true; // all cameras out of range
+      return eoirSensors.length === 0; // only degraded if no camera equipped at all
     },
     [sensorConfigs],
   );
