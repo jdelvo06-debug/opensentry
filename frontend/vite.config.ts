@@ -10,6 +10,18 @@ export default defineConfig({
         target: "ws://localhost:8000",
         ws: true,
       },
+      "/scenarios": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
+      "/bases": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
+      "/equipment": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
       "/api": {
         target: "http://localhost:8000",
         changeOrigin: true,
