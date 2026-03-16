@@ -344,6 +344,8 @@ async def game_websocket(ws: WebSocket):
                 for e in effector_configs_list
             ],
             "engagement_zones": scenario.engagement_zones.model_dump(),
+            "tutorial": scenario.tutorial,
+            "tutorial_prompts": scenario.tutorial_prompts or [],
         }
 
         # Include base template info if present
@@ -357,6 +359,18 @@ async def game_websocket(ws: WebSocket):
             }
 
         await ws.send_json(game_start_msg)
+
+        # Tutorial prompt tracking
+        tutorial_prompts_sent: set[str] = set()
+        if scenario.tutorial and scenario.tutorial_prompts:
+            # Send the "start" prompt immediately
+            for tp in scenario.tutorial_prompts:
+                if tp["trigger"] == "start":
+                    await ws.send_json({
+                        "type": "tutorial",
+                        "message": tp["message"],
+                    })
+                    tutorial_prompts_sent.add("start")
 
         while phase == GamePhase.RUNNING:
             elapsed = time.time() - start_time
@@ -517,6 +531,33 @@ async def game_websocket(ws: WebSocket):
             for event in events:
                 await ws.send_json(event)
 
+            # Tutorial prompt triggers
+            if scenario.tutorial and scenario.tutorial_prompts:
+                for tp in scenario.tutorial_prompts:
+                    trigger = tp["trigger"]
+                    if trigger in tutorial_prompts_sent:
+                        continue
+                    should_send = False
+                    if trigger == "detected":
+                        should_send = any(d.detected for d in drones)
+                    elif trigger == "tracked":
+                        should_send = any(d.dtid_phase == DTIDPhase.TRACKED for d in drones)
+                    elif trigger == "identify_ready":
+                        should_send = any(
+                            d.dtid_phase == DTIDPhase.TRACKED and d.confidence >= 0.4
+                            for d in drones
+                        )
+                    elif trigger == "identified":
+                        should_send = any(d.dtid_phase == DTIDPhase.IDENTIFIED for d in drones)
+                    elif trigger == "defeated":
+                        should_send = any(d.dtid_phase == DTIDPhase.DEFEATED for d in drones)
+                    if should_send:
+                        await ws.send_json({
+                            "type": "tutorial",
+                            "message": tp["message"],
+                        })
+                        tutorial_prompts_sent.add(trigger)
+
             # Check timeout
             if time_remaining <= 0:
                 phase = GamePhase.DEBRIEF
@@ -669,7 +710,6 @@ async def game_websocket(ws: WebSocket):
             )
         else:
             # Multi-drone: score each independently and average
-            from app.scoring import calculate_score_multi
             drones_reached = {d.id for d in drones if distance_to_base(d) < scenario.base_radius_km}
             score = calculate_score_multi(
                 scenario=scenario,
