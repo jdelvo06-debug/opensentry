@@ -31,7 +31,7 @@ from app.models import (
     SensorType,
 )
 from app.scenario import list_scenarios, load_scenario
-from app.scoring import calculate_score
+from app.scoring import calculate_score, calculate_score_multi
 
 app = FastAPI(title="SKYSHIELD", version="0.3.0")
 
@@ -669,10 +669,11 @@ async def game_websocket(ws: WebSocket):
             )
         else:
             # Multi-drone: score each independently and average
-            from app.scoring import calculate_multi_track_score
-            score = calculate_multi_track_score(
+            from app.scoring import calculate_score_multi
+            drones_reached = {d.id for d in drones if distance_to_base(d) < scenario.base_radius_km}
+            score = calculate_score_multi(
                 scenario=scenario,
-                drone_configs=drone_configs,
+                drone_configs=list(drone_configs.values()),
                 actions=actions,
                 detection_times=detection_times,
                 confirm_times=confirm_times,
@@ -681,8 +682,8 @@ async def game_websocket(ws: WebSocket):
                 classifications_given=classification_given,
                 affiliations_given=affiliation_given,
                 effectors_used=effector_used,
-                confidences_at_identify=confidence_at_identify,
-                drone_reached_base=drone_reached_base,
+                drones_reached_base=drones_reached,
+                confidence_at_identify=confidence_at_identify,
                 placement_config=placement_config,
                 base_template=base_template,
             )
