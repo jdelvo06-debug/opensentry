@@ -10,7 +10,7 @@ import {
   LayersControl,
 } from "react-leaflet";
 import L from "leaflet";
-import type { Affiliation, EffectorStatus, EngagementZones, TrackData } from "../types";
+import type { Affiliation, EffectorStatus, EngagementZones, SensorStatus, TrackData } from "../types";
 import { gameXYToLatLng } from "../utils/coordinates";
 import RadialActionWheel from "./RadialActionWheel";
 
@@ -31,6 +31,10 @@ interface Props {
   onIdentify?: (trackId: string, classification: string, affiliation: string) => void;
   onEngage?: (trackId: string, effectorId: string) => void;
   onSlewCamera?: (trackId: string) => void;
+  onHoldFire?: (trackId: string) => void;
+  onReleaseHoldFire?: (trackId: string) => void;
+  cameraTrackId?: string | null;
+  sensorConfigs?: SensorStatus[];
 }
 
 interface WheelState {
@@ -321,6 +325,10 @@ export default function TacticalMap({
   onIdentify,
   onEngage,
   onSlewCamera,
+  onHoldFire,
+  onReleaseHoldFire,
+  cameraTrackId,
+  sensorConfigs = [],
 }: Props) {
   const baseCenter: [number, number] = [baseLat, baseLng];
   const [wheelState, setWheelState] = useState<WheelState | null>(null);
@@ -627,10 +635,13 @@ export default function TacticalMap({
             screenX={wheelState.screenX}
             screenY={wheelState.screenY}
             effectors={effectors}
+            holdFire={wheelTrack.hold_fire}
             onConfirmTrack={onConfirmTrack}
             onIdentify={onIdentify}
             onEngage={onEngage}
             onSlewCamera={onSlewCamera}
+            onHoldFire={onHoldFire}
+            onReleaseHoldFire={onReleaseHoldFire}
             onClose={() => setWheelState(null)}
           />
         );

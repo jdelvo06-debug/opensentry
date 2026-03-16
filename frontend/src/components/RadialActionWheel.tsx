@@ -16,10 +16,13 @@ interface Props {
   screenX: number;
   screenY: number;
   effectors: EffectorStatus[];
+  holdFire?: boolean;
   onConfirmTrack: (trackId: string) => void;
   onIdentify: (trackId: string, classification: string, affiliation: string) => void;
   onEngage: (trackId: string, effectorId: string) => void;
   onSlewCamera: (trackId: string) => void;
+  onHoldFire?: (trackId: string) => void;
+  onReleaseHoldFire?: (trackId: string) => void;
   onClose: () => void;
 }
 
@@ -44,7 +47,7 @@ const EFFECTOR_COLORS: Record<string, string> = {
 
 type SubMenu = "none" | "identify" | "engage";
 
-function getActionsForPhase(dtidPhase: DTIDPhase): WheelAction[] {
+function getActionsForPhase(dtidPhase: DTIDPhase, holdFire?: boolean): WheelAction[] {
   switch (dtidPhase) {
     case "detected":
       return [
@@ -61,10 +64,12 @@ function getActionsForPhase(dtidPhase: DTIDPhase): WheelAction[] {
       ];
     case "identified":
       return [
-        { id: "engage", label: "ENGAGE", icon: "\u{1F3AF}", color: "#f85149" },
+        { id: "engage", label: "ENGAGE", icon: "\u{1F3AF}", color: holdFire ? "#484f58" : "#f85149", disabled: holdFire },
         { id: "slew_camera", label: "SLEW CAM", icon: "\u25CE", color: "#d29922" },
+        holdFire
+          ? { id: "release_hold_fire", label: "RLS HOLD", icon: "\u25B6", color: "#3fb950" }
+          : { id: "hold_fire", label: "HOLD FIRE", icon: "\u270B", color: "#d29922" },
         { id: "re_identify", label: "RE-ID", icon: "\u21BA", color: "#484f58", disabled: true },
-        { id: "monitor", label: "MONITOR", icon: "\u25C9", color: "#484f58", disabled: true },
       ];
     case "defeated":
       return [
@@ -201,10 +206,13 @@ export default function RadialActionWheel({
   screenX,
   screenY,
   effectors,
+  holdFire,
   onConfirmTrack,
   onIdentify,
   onEngage,
   onSlewCamera,
+  onHoldFire,
+  onReleaseHoldFire,
   onClose,
 }: Props) {
   const [subMenu, setSubMenu] = useState<SubMenu>("none");
@@ -248,11 +256,19 @@ export default function RadialActionWheel({
         case "engage":
           setSubMenu("engage");
           break;
+        case "hold_fire":
+          onHoldFire?.(trackId);
+          onClose();
+          break;
+        case "release_hold_fire":
+          onReleaseHoldFire?.(trackId);
+          onClose();
+          break;
         default:
           break;
       }
     },
-    [trackId, onConfirmTrack, onSlewCamera, onClose],
+    [trackId, onConfirmTrack, onSlewCamera, onHoldFire, onReleaseHoldFire, onClose],
   );
 
   const handleClassify = useCallback(
@@ -271,7 +287,7 @@ export default function RadialActionWheel({
     [trackId, onEngage, onClose],
   );
 
-  const actions = getActionsForPhase(dtidPhase);
+  const actions = getActionsForPhase(dtidPhase, holdFire);
 
   // Clamp position so wheel stays on screen
   const size = WHEEL_RADIUS * 2;

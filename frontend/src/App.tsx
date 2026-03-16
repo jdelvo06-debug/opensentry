@@ -436,6 +436,15 @@ export default function App() {
     soundEngine.play("camera_slew");
   };
 
+  const handleHoldFire = (trackId: string) => {
+    send({ type: "action", action: "hold_fire", target_id: trackId });
+    soundEngine.play("threat_orange"); // Warning tone for hold fire
+  };
+
+  const handleReleaseHoldFire = (trackId: string) => {
+    send({ type: "action", action: "release_hold_fire", target_id: trackId });
+  };
+
   // --- Phase: Waiting (title screen) ---
   if (phase === "waiting") {
     return (
@@ -691,6 +700,10 @@ export default function App() {
           onIdentify={identify}
           onEngage={engage}
           onSlewCamera={handleSlewCamera}
+          onHoldFire={handleHoldFire}
+          onReleaseHoldFire={handleReleaseHoldFire}
+          cameraTrackId={cameraTrackId}
+          sensorConfigs={sensorConfigs}
         />
 
         {/* Tutorial overlay banner */}
