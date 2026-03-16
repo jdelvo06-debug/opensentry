@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import type { TrackData } from "../types";
 
 interface Props {
@@ -9,19 +9,20 @@ interface Props {
 const CANVAS_W = 640;
 const CANVAS_H = 480;
 const RETICLE_COLOR = "#3fb95088";
-const HUD_COLOR = "#3fb950";
+const HUD_COLOR_THERMAL = "#3fb950";
+const HUD_COLOR_DAYLIGHT = "#58a6ff";
+
+type CameraMode = "thermal" | "daylight";
 
 function calcRange(x: number, y: number): number {
   return Math.sqrt(x * x + y * y);
 }
 
 function calcBearing(x: number, y: number): number {
-  // Bearing from origin (base) to target, 0=N, clockwise
   const rad = Math.atan2(x, -y);
   return ((rad * 180) / Math.PI + 360) % 360;
 }
 
-/** Noise density factor from 0 (clear) to 1 (heavy) based on range */
 function noiseFactor(rangeKm: number): number {
   if (rangeKm < 0.3) return 0.05;
   if (rangeKm < 0.8) return 0.25;
@@ -29,7 +30,6 @@ function noiseFactor(rangeKm: number): number {
   return 0.8;
 }
 
-/** Silhouette scale factor — closer = bigger */
 function silhouetteScale(rangeKm: number): number {
   if (rangeKm < 0.15) return 2.5;
   if (rangeKm < 0.3) return 2.0;
@@ -37,6 +37,14 @@ function silhouetteScale(rangeKm: number): number {
   if (rangeKm < 0.8) return 1.0;
   if (rangeKm < 1.5) return 0.6;
   return 0.35;
+}
+
+/** Camera shake amplitude increases with range */
+function shakeAmplitude(rangeKm: number): number {
+  if (rangeKm < 0.3) return 1;
+  if (rangeKm < 0.8) return 3;
+  if (rangeKm < 1.5) return 6;
+  return 10;
 }
 
 // ---------------------------------------------------------------------------
@@ -66,12 +74,10 @@ function drawCommercialQuad(ctx: CanvasRenderingContext2D, s: number) {
 }
 
 function drawFixedWing(ctx: CanvasRenderingContext2D, s: number) {
-  // Fuselage
   const fuseL = 40 * s;
   const fuseW = 6 * s;
   ctx.fillRect(-fuseL / 2, -fuseW / 2, fuseL, fuseW);
 
-  // Wings (swept)
   ctx.beginPath();
   ctx.moveTo(-4 * s, 0);
   ctx.lineTo(-22 * s, -28 * s);
@@ -88,7 +94,6 @@ function drawFixedWing(ctx: CanvasRenderingContext2D, s: number) {
   ctx.closePath();
   ctx.fill();
 
-  // Tail
   ctx.beginPath();
   ctx.moveTo(-fuseL / 2, 0);
   ctx.lineTo(-fuseL / 2 - 6 * s, -10 * s);
@@ -130,17 +135,14 @@ function drawMicro(ctx: CanvasRenderingContext2D, s: number) {
 }
 
 function drawBird(ctx: CanvasRenderingContext2D, s: number) {
-  // Body
   ctx.beginPath();
   ctx.ellipse(0, 0, 18 * s, 8 * s, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Head
   ctx.beginPath();
   ctx.arc(20 * s, -2 * s, 5 * s, 0, Math.PI * 2);
   ctx.fill();
 
-  // Left wing (arched)
   ctx.beginPath();
   ctx.moveTo(-4 * s, -6 * s);
   ctx.quadraticCurveTo(-12 * s, -34 * s, -28 * s, -18 * s);
@@ -148,7 +150,6 @@ function drawBird(ctx: CanvasRenderingContext2D, s: number) {
   ctx.closePath();
   ctx.fill();
 
-  // Right wing
   ctx.beginPath();
   ctx.moveTo(-4 * s, 6 * s);
   ctx.quadraticCurveTo(-12 * s, 34 * s, -28 * s, 18 * s);
@@ -158,23 +159,19 @@ function drawBird(ctx: CanvasRenderingContext2D, s: number) {
 }
 
 function drawBalloon(ctx: CanvasRenderingContext2D, s: number) {
-  // Balloon envelope
   ctx.beginPath();
   ctx.ellipse(0, -14 * s, 20 * s, 26 * s, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Tether
   ctx.beginPath();
   ctx.moveTo(0, 12 * s);
   ctx.lineTo(0, 36 * s);
   ctx.stroke();
 
-  // Payload box
   ctx.fillRect(-6 * s, 36 * s, 12 * s, 8 * s);
 }
 
 function drawImprovised(ctx: CanvasRenderingContext2D, s: number) {
-  // Irregular hexagon
   ctx.beginPath();
   const pts: [number, number][] = [
     [12 * s, -4 * s],
@@ -189,7 +186,6 @@ function drawImprovised(ctx: CanvasRenderingContext2D, s: number) {
   ctx.closePath();
   ctx.fill();
 
-  // Asymmetric protrusions
   ctx.fillRect(12 * s, -8 * s, 10 * s, 4 * s);
   ctx.fillRect(-16 * s, 4 * s, 8 * s, 3 * s);
   ctx.fillRect(-2 * s, 14 * s, 5 * s, 9 * s);
@@ -205,9 +201,15 @@ function drawSilhouette(
   ctx: CanvasRenderingContext2D,
   classification: string | null,
   scale: number,
+  mode: CameraMode,
 ) {
-  ctx.fillStyle = "rgba(230,230,230,0.9)";
-  ctx.strokeStyle = "rgba(230,230,230,0.9)";
+  if (mode === "thermal") {
+    ctx.fillStyle = "rgba(230,230,230,0.9)";
+    ctx.strokeStyle = "rgba(230,230,230,0.9)";
+  } else {
+    ctx.fillStyle = "rgba(40,50,60,0.85)";
+    ctx.strokeStyle = "rgba(40,50,60,0.85)";
+  }
   ctx.lineWidth = Math.max(1, 1.5 * scale);
 
   switch (classification) {
@@ -239,7 +241,7 @@ function drawSilhouette(
 // Reticle
 // ---------------------------------------------------------------------------
 
-function drawReticle(ctx: CanvasRenderingContext2D, w: number, h: number) {
+function drawReticle(ctx: CanvasRenderingContext2D, w: number, h: number, hudColor: string) {
   const cx = w / 2;
   const cy = h / 2;
   const gap = 18;
@@ -247,32 +249,26 @@ function drawReticle(ctx: CanvasRenderingContext2D, w: number, h: number) {
   const tickSpacing = 15;
   const tickSize = 4;
 
-  ctx.strokeStyle = RETICLE_COLOR;
+  ctx.strokeStyle = hudColor + "88";
   ctx.lineWidth = 1;
 
-  // Crosshair lines with gap
-  // Horizontal
   ctx.beginPath();
   ctx.moveTo(cx - lineLen, cy);
   ctx.lineTo(cx - gap, cy);
   ctx.moveTo(cx + gap, cy);
   ctx.lineTo(cx + lineLen, cy);
-  // Vertical
   ctx.moveTo(cx, cy - lineLen);
   ctx.lineTo(cx, cy - gap);
   ctx.moveTo(cx, cy + gap);
   ctx.lineTo(cx, cy + lineLen);
   ctx.stroke();
 
-  // Tick marks along crosshairs
   for (let d = tickSpacing; d <= lineLen; d += tickSpacing) {
-    // Horizontal ticks
     ctx.beginPath();
     ctx.moveTo(cx - d, cy - tickSize);
     ctx.lineTo(cx - d, cy + tickSize);
     ctx.moveTo(cx + d, cy - tickSize);
     ctx.lineTo(cx + d, cy + tickSize);
-    // Vertical ticks
     ctx.moveTo(cx - tickSize, cy - d);
     ctx.lineTo(cx + tickSize, cy - d);
     ctx.moveTo(cx - tickSize, cy + d);
@@ -280,7 +276,6 @@ function drawReticle(ctx: CanvasRenderingContext2D, w: number, h: number) {
     ctx.stroke();
   }
 
-  // Corner brackets
   const boxHalf = 80;
   const bracketLen = 20;
 
@@ -310,9 +305,12 @@ function drawNoise(
   w: number,
   h: number,
   density: number,
+  mode: CameraMode,
 ) {
   const count = Math.floor(w * h * density * 0.003);
-  ctx.fillStyle = "rgba(180,200,180,0.12)";
+  ctx.fillStyle = mode === "thermal"
+    ? "rgba(180,200,180,0.12)"
+    : "rgba(100,100,120,0.1)";
   for (let i = 0; i < count; i++) {
     const px = Math.random() * w;
     const py = Math.random() * h;
@@ -320,10 +318,11 @@ function drawNoise(
     ctx.fillRect(px, py, sz, sz);
   }
 
-  // Occasional scanlines
   if (density > 0.2) {
     const lineCount = Math.floor(density * 8);
-    ctx.strokeStyle = `rgba(160,200,160,${0.03 * density})`;
+    ctx.strokeStyle = mode === "thermal"
+      ? `rgba(160,200,160,${0.03 * density})`
+      : `rgba(120,130,160,${0.03 * density})`;
     ctx.lineWidth = 1;
     for (let i = 0; i < lineCount; i++) {
       const ly = Math.random() * h;
@@ -336,16 +335,57 @@ function drawNoise(
 }
 
 // ---------------------------------------------------------------------------
-// Background gradient (thermal sky)
+// Background
 // ---------------------------------------------------------------------------
 
-function drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number) {
+function drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number, mode: CameraMode) {
   const grad = ctx.createLinearGradient(0, 0, 0, h);
-  grad.addColorStop(0, "#0c0e10");
-  grad.addColorStop(0.5, "#15191d");
-  grad.addColorStop(1, "#1c2228");
+  if (mode === "thermal") {
+    grad.addColorStop(0, "#0c0e10");
+    grad.addColorStop(0.5, "#15191d");
+    grad.addColorStop(1, "#1c2228");
+  } else {
+    grad.addColorStop(0, "#8ba4c0");
+    grad.addColorStop(0.5, "#b0c4de");
+    grad.addColorStop(1, "#c8d8e8");
+  }
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, w, h);
+}
+
+// ---------------------------------------------------------------------------
+// Acquiring animation
+// ---------------------------------------------------------------------------
+
+function drawAcquiring(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  progress: number,
+  hudColor: string,
+) {
+  const cx = w / 2;
+  const cy = h / 2;
+
+  // Spinning arc
+  ctx.strokeStyle = hudColor;
+  ctx.lineWidth = 2;
+  const startAngle = progress * Math.PI * 4;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 50, startAngle, startAngle + Math.PI * 0.8);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy, 50, startAngle + Math.PI, startAngle + Math.PI * 1.8);
+  ctx.stroke();
+
+  // Text
+  const alpha = 0.5 + 0.5 * Math.sin(progress * Math.PI * 6);
+  ctx.fillStyle = hudColor;
+  ctx.globalAlpha = alpha;
+  ctx.font = "bold 14px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText("ACQUIRING...", cx, cy + 80);
+  ctx.globalAlpha = 1;
 }
 
 // ---------------------------------------------------------------------------
@@ -355,6 +395,28 @@ function drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number) {
 export default function CameraPanel({ track, onClose }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
+  const [mode, setMode] = useState<CameraMode>("thermal");
+  const [acquiring, setAcquiring] = useState(true);
+  const acquireStartRef = useRef(Date.now());
+  const prevTrackIdRef = useRef(track.id);
+
+  // Reset acquiring animation when target changes
+  useEffect(() => {
+    if (track.id !== prevTrackIdRef.current) {
+      setAcquiring(true);
+      acquireStartRef.current = Date.now();
+      prevTrackIdRef.current = track.id;
+    }
+  }, [track.id]);
+
+  // Auto-finish acquiring after 1.5s
+  useEffect(() => {
+    if (!acquiring) return;
+    const timer = setTimeout(() => setAcquiring(false), 1500);
+    return () => clearTimeout(timer);
+  }, [acquiring]);
+
+  const hudColor = mode === "thermal" ? HUD_COLOR_THERMAL : HUD_COLOR_DAYLIGHT;
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -369,37 +431,49 @@ export default function CameraPanel({ track, onClose }: Props) {
     const noise = noiseFactor(rangeKm);
     const scale = silhouetteScale(rangeKm);
 
-    // Jitter
-    const jx = (Math.random() - 0.5) * 3;
-    const jy = (Math.random() - 0.5) * 3;
+    // Range-based camera shake
+    const amp = shakeAmplitude(rangeKm);
+    const jx = (Math.random() - 0.5) * amp;
+    const jy = (Math.random() - 0.5) * amp;
 
-    // Clear
-    drawBackground(ctx, w, h);
+    // Background
+    drawBackground(ctx, w, h, mode);
 
-    // Silhouette
-    ctx.save();
-    ctx.translate(w / 2 + jx, h / 2 + jy);
+    if (acquiring) {
+      // Acquiring animation
+      const elapsed = (Date.now() - acquireStartRef.current) / 1500;
+      drawNoise(ctx, w, h, 0.9, mode);
+      drawAcquiring(ctx, w, h, elapsed, hudColor);
+      drawReticle(ctx, w, h, hudColor);
+    } else {
+      // Silhouette
+      ctx.save();
+      ctx.translate(w / 2 + jx, h / 2 + jy);
 
-    // At long range blur the silhouette via shadow
-    if (rangeKm > 0.8) {
-      ctx.shadowColor = "rgba(200,210,200,0.5)";
-      ctx.shadowBlur = 12;
-    } else if (rangeKm > 0.3) {
-      ctx.shadowColor = "rgba(200,210,200,0.3)";
-      ctx.shadowBlur = 5;
+      if (rangeKm > 0.8) {
+        ctx.shadowColor = mode === "thermal"
+          ? "rgba(200,210,200,0.5)"
+          : "rgba(40,40,60,0.5)";
+        ctx.shadowBlur = 12;
+      } else if (rangeKm > 0.3) {
+        ctx.shadowColor = mode === "thermal"
+          ? "rgba(200,210,200,0.3)"
+          : "rgba(40,40,60,0.3)";
+        ctx.shadowBlur = 5;
+      }
+
+      drawSilhouette(ctx, track.classification, scale, mode);
+      ctx.restore();
+
+      // Noise overlay
+      drawNoise(ctx, w, h, noise, mode);
+
+      // Reticle
+      drawReticle(ctx, w, h, hudColor);
     }
 
-    drawSilhouette(ctx, track.classification, scale);
-    ctx.restore();
-
-    // Noise overlay
-    drawNoise(ctx, w, h, noise);
-
-    // Reticle
-    drawReticle(ctx, w, h);
-
     rafRef.current = requestAnimationFrame(draw);
-  }, [track]);
+  }, [track, mode, acquiring, hudColor]);
 
   useEffect(() => {
     rafRef.current = requestAnimationFrame(draw);
@@ -408,6 +482,16 @@ export default function CameraPanel({ track, onClose }: Props) {
 
   const rangeKm = calcRange(track.x, track.y);
   const bearingDeg = calcBearing(track.x, track.y);
+
+  const hudStyle = (pos: Record<string, unknown>) => ({
+    position: "absolute" as const,
+    fontFamily: "monospace",
+    fontSize: 11,
+    color: hudColor,
+    textShadow: `0 0 6px ${hudColor}80`,
+    pointerEvents: "none" as const,
+    ...pos,
+  });
 
   return (
     <div
@@ -442,19 +526,57 @@ export default function CameraPanel({ track, onClose }: Props) {
             padding: "8px 14px",
             background: "#161b22",
             borderBottom: "1px solid #30363d",
+            gap: 12,
           }}
         >
           <span
             style={{
               fontFamily: "monospace",
               fontSize: 13,
-              color: HUD_COLOR,
+              color: hudColor,
               letterSpacing: 1.5,
               fontWeight: 600,
             }}
           >
             EO/IR CAMERA FEED
           </span>
+
+          {/* Thermal / Daylight toggle */}
+          <div style={{ display: "flex", gap: 4 }}>
+            <button
+              onClick={() => setMode("thermal")}
+              style={{
+                background: mode === "thermal" ? "#21262d" : "transparent",
+                border: `1px solid ${mode === "thermal" ? HUD_COLOR_THERMAL : "#30363d"}`,
+                color: mode === "thermal" ? HUD_COLOR_THERMAL : "#8b949e",
+                cursor: "pointer",
+                fontFamily: "monospace",
+                fontSize: 10,
+                padding: "2px 8px",
+                borderRadius: 3,
+                letterSpacing: 0.5,
+              }}
+            >
+              THERMAL
+            </button>
+            <button
+              onClick={() => setMode("daylight")}
+              style={{
+                background: mode === "daylight" ? "#21262d" : "transparent",
+                border: `1px solid ${mode === "daylight" ? HUD_COLOR_DAYLIGHT : "#30363d"}`,
+                color: mode === "daylight" ? HUD_COLOR_DAYLIGHT : "#8b949e",
+                cursor: "pointer",
+                fontFamily: "monospace",
+                fontSize: 10,
+                padding: "2px 8px",
+                borderRadius: 3,
+                letterSpacing: 0.5,
+              }}
+            >
+              DAYLIGHT
+            </button>
+          </div>
+
           <span
             style={{
               fontFamily: "monospace",
@@ -506,85 +628,29 @@ export default function CameraPanel({ track, onClose }: Props) {
           />
 
           {/* HUD Overlay */}
-          {/* Top-left */}
-          <span
-            style={{
-              position: "absolute",
-              top: 10,
-              left: 12,
-              fontFamily: "monospace",
-              fontSize: 11,
-              color: HUD_COLOR,
-              textShadow: "0 0 6px rgba(63,185,80,0.5)",
-              pointerEvents: "none",
-            }}
-          >
+          <span style={hudStyle({ top: 10, left: 12 })}>
             TGT: {track.id.toUpperCase()}
           </span>
-
-          {/* Top-right */}
-          <span
-            style={{
-              position: "absolute",
-              top: 10,
-              right: 12,
-              fontFamily: "monospace",
-              fontSize: 11,
-              color: HUD_COLOR,
-              textShadow: "0 0 6px rgba(63,185,80,0.5)",
-              pointerEvents: "none",
-            }}
-          >
+          <span style={hudStyle({ top: 10, right: 12 })}>
             RNG: {rangeKm.toFixed(2)} km
           </span>
-
-          {/* Bottom-left */}
-          <span
-            style={{
-              position: "absolute",
-              bottom: 10,
-              left: 12,
-              fontFamily: "monospace",
-              fontSize: 11,
-              color: HUD_COLOR,
-              textShadow: "0 0 6px rgba(63,185,80,0.5)",
-              pointerEvents: "none",
-            }}
-          >
+          <span style={hudStyle({ bottom: 10, left: 12 })}>
             BRG: {String(Math.round(bearingDeg)).padStart(3, "0")}&deg;
           </span>
-
-          {/* Bottom-right */}
-          <span
-            style={{
-              position: "absolute",
-              bottom: 10,
-              right: 12,
-              fontFamily: "monospace",
-              fontSize: 11,
-              color: HUD_COLOR,
-              textShadow: "0 0 6px rgba(63,185,80,0.5)",
-              pointerEvents: "none",
-            }}
-          >
+          <span style={hudStyle({ bottom: 10, right: 12 })}>
             ALT: {Math.round(track.altitude_ft)} ft
           </span>
-
-          {/* Center-bottom */}
           <span
-            style={{
-              position: "absolute",
+            style={hudStyle({
               bottom: 10,
               left: "50%",
               transform: "translateX(-50%)",
-              fontFamily: "monospace",
-              fontSize: 11,
-              color: HUD_COLOR,
-              textShadow: "0 0 6px rgba(63,185,80,0.5)",
-              pointerEvents: "none",
-            }}
+            })}
           >
-            ZOOM: 4x
+            ZOOM: 4x | {mode === "thermal" ? "IR" : "VIS"}
+          </span>
+          <span style={hudStyle({ top: 10, left: "50%" , transform: "translateX(-50%)" })}>
+            SPD: {Math.round(track.speed_kts)} kts | HDG: {String(Math.round(track.heading_deg)).padStart(3, "0")}&deg;
           </span>
         </div>
       </div>

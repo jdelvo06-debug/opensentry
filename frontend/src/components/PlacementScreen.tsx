@@ -366,6 +366,26 @@ export default function PlacementScreen({
 
   const coverage = computeCoverage();
 
+  // Compute coverage percentage and weakest corridor
+  const coveredCount = coverage.filter((c) => c.covered).length;
+  const coveragePct =
+    coverage.length > 0
+      ? Math.round((coveredCount / coverage.length) * 100)
+      : 0;
+
+  // Find weakest corridor (fewest covering sensors, among those with least coverage)
+  const weakestCorridor = (() => {
+    if (coverage.length === 0) return null;
+    let weakest = coverage[0];
+    for (const c of coverage) {
+      if (c.sensors.length < weakest.sensors.length) {
+        weakest = c;
+      }
+    }
+    // Only highlight if coverage is incomplete (at least one gap)
+    return weakest.sensors.length === 0 ? weakest : null;
+  })();
+
   // Canvas render
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -691,6 +711,38 @@ export default function PlacementScreen({
         h - 10
       );
 
+      // --- Weakest sector pulsing arc ---
+      if (weakestCorridor) {
+        const pulse = (Math.sin(Date.now() / 400) + 1) / 2; // 0..1 pulsing
+        const alpha = 0.15 + pulse * 0.45;
+        const bearingRadW = degToRad(90 - weakestCorridor.bearing_deg);
+        const corridorW = baseTemplate.approach_corridors.find(
+          (c) => c.name === weakestCorridor.name
+        );
+        const halfW = corridorW
+          ? degToRad(corridorW.width_deg / 2)
+          : degToRad(15);
+        const arcRadius = boundsKm * scale * 0.9;
+
+        ctx.save();
+        ctx.strokeStyle = `rgba(248, 81, 73, ${alpha})`;
+        ctx.fillStyle = `rgba(248, 81, 73, ${alpha * 0.3})`;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(
+          cx,
+          cy,
+          arcRadius,
+          -bearingRadW - halfW,
+          -bearingRadW + halfW
+        );
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+
       // --- Compass ---
       ctx.font = "500 10px 'Inter', sans-serif";
       ctx.textAlign = "center";
@@ -709,7 +761,7 @@ export default function PlacementScreen({
       running = false;
       cancelAnimationFrame(frameId);
     };
-  }, [baseTemplate, placedItems, selectedPlaced, selectedSensors, selectedEffectors, getCatalog]);
+  }, [baseTemplate, placedItems, selectedPlaced, selectedSensors, selectedEffectors, getCatalog, weakestCorridor]);
 
   // Build PlacementConfig and confirm
   const handleConfirm = useCallback(() => {
@@ -1116,6 +1168,74 @@ export default function PlacementScreen({
                 {facingDeg}°
               </span>
             </div>
+            {/* Rotation step buttons for directional sensors/effectors */}
+            {activeItem !== null &&
+              activeItem.catalog.fov_deg < 360 &&
+              selectedPlaced !== null && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    marginTop: 8,
+                  }}
+                >
+                  <button
+                    onClick={() =>
+                      handleFacingChange((facingDeg - 15 + 360) % 360)
+                    }
+                    style={{
+                      flex: 1,
+                      padding: "4px 0",
+                      background: "transparent",
+                      border: `1px solid ${COLORS.border}`,
+                      borderRadius: 4,
+                      color: COLORS.text,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      fontFamily: "'JetBrains Mono', monospace",
+                      cursor: "pointer",
+                      transition: "border-color 0.15s",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.borderColor =
+                        COLORS.accent;
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.borderColor =
+                        COLORS.border;
+                    }}
+                  >
+                    -15°
+                  </button>
+                  <button
+                    onClick={() => handleFacingChange((facingDeg + 15) % 360)}
+                    style={{
+                      flex: 1,
+                      padding: "4px 0",
+                      background: "transparent",
+                      border: `1px solid ${COLORS.border}`,
+                      borderRadius: 4,
+                      color: COLORS.text,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      fontFamily: "'JetBrains Mono', monospace",
+                      cursor: "pointer",
+                      transition: "border-color 0.15s",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.borderColor =
+                        COLORS.accent;
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.borderColor =
+                        COLORS.border;
+                    }}
+                  >
+                    +15°
+                  </button>
+                </div>
+              )}
             <div
               style={{
                 fontSize: 10,
@@ -1202,6 +1322,43 @@ export default function PlacementScreen({
             }}
           >
             Coverage Analysis
+          </div>
+
+          {/* Coverage percentage */}
+          <div
+            style={{
+              padding: "8px 16px 12px",
+              display: "flex",
+              alignItems: "baseline",
+              gap: 6,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 28,
+                fontWeight: 700,
+                fontFamily: "'JetBrains Mono', monospace",
+                color:
+                  coveragePct === 100
+                    ? COLORS.success
+                    : coveragePct >= 50
+                      ? COLORS.warning
+                      : COLORS.danger,
+              }}
+            >
+              {coveragePct}%
+            </span>
+            <span
+              style={{
+                fontSize: 11,
+                color: COLORS.muted,
+                fontFamily: "'JetBrains Mono', monospace",
+                textTransform: "uppercase",
+                letterSpacing: 1,
+              }}
+            >
+              Coverage
+            </span>
           </div>
 
           {/* Approach corridors */}
@@ -1374,6 +1531,42 @@ export default function PlacementScreen({
           }}
         >
           BACK
+        </button>
+
+        <button
+          onClick={() => {
+            setPlacedItems([]);
+            setSelectedPlaced(null);
+            setSelectedPalette(null);
+          }}
+          disabled={placedItems.length === 0}
+          style={{
+            padding: "8px 20px",
+            background: "transparent",
+            border: `1px solid ${placedItems.length > 0 ? COLORS.danger : COLORS.border}`,
+            borderRadius: 6,
+            color: placedItems.length > 0 ? COLORS.danger : COLORS.muted,
+            fontSize: 13,
+            fontWeight: 500,
+            fontFamily: "'Inter', sans-serif",
+            cursor: placedItems.length > 0 ? "pointer" : "not-allowed",
+            opacity: placedItems.length > 0 ? 1 : 0.4,
+            transition: "background 0.15s, border-color 0.15s",
+            letterSpacing: 1,
+            textTransform: "uppercase",
+          }}
+          onMouseEnter={(e) => {
+            if (placedItems.length > 0) {
+              (e.currentTarget as HTMLButtonElement).style.background =
+                "#f8514918";
+            }
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background =
+              "transparent";
+          }}
+        >
+          Reset Placement
         </button>
 
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>

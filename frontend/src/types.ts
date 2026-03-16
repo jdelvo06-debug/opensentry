@@ -70,12 +70,24 @@ export interface ScoreBreakdown {
 }
 
 // Server messages
+export interface TutorialPrompt {
+  trigger: string;
+  message: string;
+}
+
+export interface TutorialMsg {
+  type: "tutorial";
+  message: string;
+}
+
 export interface GameStartMsg {
   type: "game_start";
   scenario: { name: string; description: string; difficulty: string };
   sensors: SensorStatus[];
   effectors: EffectorStatus[];
   engagement_zones: EngagementZones;
+  tutorial?: boolean;
+  tutorial_prompts?: TutorialPrompt[];
   base?: {
     id: string;
     name: string;
@@ -120,7 +132,8 @@ export type ServerMessage =
   | StateMsg
   | EventMsg
   | EngagementResultMsg
-  | DebriefMsg;
+  | DebriefMsg
+  | TutorialMsg;
 
 // Phase 2: Base Defense Planner types
 

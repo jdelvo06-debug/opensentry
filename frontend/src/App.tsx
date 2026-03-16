@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import HeaderBar from "./components/HeaderBar";
 import SensorPanel from "./components/SensorPanel";
 import EffectorPanel from "./components/EffectorPanel";
@@ -71,6 +71,14 @@ export default function App() {
   // Camera panel
   const [cameraTrackId, setCameraTrackId] = useState<string | null>(null);
 
+  // Tutorial state
+  const [isTutorial, setIsTutorial] = useState(false);
+  const [tutorialMessage, setTutorialMessage] = useState<string | null>(null);
+  const tutorialTimeoutRef = useRef<number>(0);
+
+  // Pause state
+  const [paused, setPaused] = useState(false);
+
   const handleMessage = useCallback((msg: ServerMessage) => {
     switch (msg.type) {
       case "game_start":
@@ -80,6 +88,7 @@ export default function App() {
         setEffectors(msg.effectors);
         setEffectorConfigs(msg.effectors);
         setEngagementZones(msg.engagement_zones);
+        setIsTutorial(msg.tutorial ?? false);
         setPhase("running");
         setEvents([
           {
@@ -135,6 +144,15 @@ export default function App() {
         ]);
         break;
 
+      case "tutorial":
+        setTutorialMessage(msg.message);
+        // Auto-dismiss after 12 seconds
+        window.clearTimeout(tutorialTimeoutRef.current);
+        tutorialTimeoutRef.current = window.setTimeout(() => {
+          setTutorialMessage(null);
+        }, 12000);
+        break;
+
       case "debrief":
         setScore(msg.score);
         setDroneReachedBase(msg.drone_reached_base);
@@ -145,9 +163,91 @@ export default function App() {
 
   const { connect, send, connected } = useWebSocket(handleMessage);
 
+  // --- Refs for keyboard shortcut callbacks ---
+  const tracksRef = useRef(tracks);
+  tracksRef.current = tracks;
+  const selectedTrackIdRef = useRef(selectedTrackId);
+  selectedTrackIdRef.current = selectedTrackId;
+  const phaseRef = useRef(phase);
+  phaseRef.current = phase;
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
+
+  // --- Keyboard shortcuts ---
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Only active during running phase
+      if (phaseRef.current !== "running" && phaseRef.current !== "debrief")
+        return;
+      // Don't capture when typing in inputs
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.target instanceof HTMLSelectElement
+      )
+        return;
+
+      switch (e.code) {
+        case "Space": {
+          e.preventDefault();
+          setPaused((p) => !p);
+          break;
+        }
+        case "Digit1": {
+          // Confirm track (DETECT→TRACK)
+          const tid = selectedTrackIdRef.current;
+          if (tid) {
+            send({
+              type: "action",
+              action: "confirm_track",
+              target_id: tid,
+            });
+          }
+          break;
+        }
+        case "Digit2": {
+          // Open identify (handled by EngagementPanel, but we can trigger camera for visual ID)
+          const tid = selectedTrackIdRef.current;
+          if (tid) setCameraTrackId(tid);
+          break;
+        }
+        case "Digit3": {
+          // Quick engage with first ready effector - just a shortcut hint
+          // The actual engagement requires effector selection, so this is a no-op hint
+          break;
+        }
+        case "Digit4": {
+          // Close camera / clear selection
+          setCameraTrackId(null);
+          break;
+        }
+        case "Tab": {
+          e.preventDefault();
+          // Cycle through tracks
+          const currentTracks = tracksRef.current.filter(
+            (t) => !t.neutralized,
+          );
+          if (currentTracks.length === 0) break;
+          const currentId = selectedTrackIdRef.current;
+          const currentIdx = currentTracks.findIndex(
+            (t) => t.id === currentId,
+          );
+          const nextIdx = (currentIdx + 1) % currentTracks.length;
+          setSelectedTrackId(currentTracks[nextIdx].id);
+          break;
+        }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [send]);
+
   // --- Flow handlers ---
 
-  const handleScenarioSelect = async (selScenarioId: string, selBaseId: string) => {
+  const handleScenarioSelect = async (
+    selScenarioId: string,
+    selBaseId: string,
+  ) => {
     setScenarioId(selScenarioId);
     setBaseId(selBaseId);
 
@@ -191,6 +291,9 @@ export default function App() {
     setTimeRemaining(0);
     setThreatLevel("green");
     setCameraTrackId(null);
+    setTutorialMessage(null);
+    setIsTutorial(false);
+    setPaused(false);
 
     // Connect with placement data
     connect({
@@ -218,6 +321,9 @@ export default function App() {
     setThreatLevel("green");
     setCameraTrackId(null);
     setPlacementConfig(null);
+    setTutorialMessage(null);
+    setIsTutorial(false);
+    setPaused(false);
   };
 
   const confirmTrack = (trackId: string) => {
@@ -485,6 +591,7 @@ export default function App() {
           gridRow: "2",
           gridColumn: "2",
           overflow: "hidden",
+          position: "relative",
         }}
       >
         <TacticalMap
@@ -494,6 +601,93 @@ export default function App() {
           engagementZones={engagementZones}
           elapsed={elapsed}
         />
+
+        {/* Tutorial overlay banner */}
+        {isTutorial && tutorialMessage && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 100,
+              background: "rgba(88, 166, 255, 0.15)",
+              borderBottom: "1px solid rgba(88, 166, 255, 0.4)",
+              backdropFilter: "blur(4px)",
+              padding: "12px 20px",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "monospace",
+                fontSize: 10,
+                fontWeight: 700,
+                color: "#58a6ff",
+                letterSpacing: 1.5,
+                flexShrink: 0,
+              }}
+            >
+              TUTORIAL
+            </span>
+            <span
+              style={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 13,
+                color: "#e6edf3",
+                lineHeight: 1.5,
+              }}
+            >
+              {tutorialMessage}
+            </span>
+            <button
+              onClick={() => setTutorialMessage(null)}
+              style={{
+                marginLeft: "auto",
+                background: "none",
+                border: "1px solid rgba(88, 166, 255, 0.3)",
+                color: "#8b949e",
+                cursor: "pointer",
+                fontFamily: "monospace",
+                fontSize: 11,
+                padding: "2px 8px",
+                borderRadius: 3,
+                flexShrink: 0,
+              }}
+            >
+              OK
+            </button>
+          </div>
+        )}
+
+        {/* Pause overlay */}
+        {paused && phase === "running" && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 90,
+              background: "rgba(0,0,0,0.6)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <div
+              style={{
+                fontFamily: "monospace",
+                fontSize: 28,
+                color: "#d29922",
+                letterSpacing: 6,
+                fontWeight: 700,
+              }}
+            >
+              PAUSED
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Right sidebar */}
@@ -522,6 +716,24 @@ export default function App() {
 
       {/* Bottom: Event Log */}
       <EventLog events={events} />
+
+      {/* Keyboard shortcuts hint */}
+      {phase === "running" && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 6,
+            right: 8,
+            zIndex: 50,
+            fontFamily: "monospace",
+            fontSize: 9,
+            color: "#484f58",
+            letterSpacing: 0.5,
+          }}
+        >
+          SPACE:Pause TAB:Cycle 1:Confirm 2:Camera 4:Close
+        </div>
+      )}
 
       {/* Camera panel overlay */}
       {cameraTrack && (
