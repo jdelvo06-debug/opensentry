@@ -12,6 +12,7 @@ import LoadoutScreen from "./components/LoadoutScreen";
 import PlacementScreen from "./components/PlacementScreen";
 import CameraPanel from "./components/CameraPanel";
 import { useWebSocket } from "./hooks/useWebSocket";
+import { soundEngine } from "./audio/SoundEngine";
 import type {
   BaseTemplate,
   CatalogEffector,
@@ -79,6 +80,28 @@ export default function App() {
   // Pause state
   const [paused, setPaused] = useState(false);
 
+  // Audio state
+  const [audioMuted, setAudioMuted] = useState(soundEngine.muted);
+  const [audioVolume, setAudioVolume] = useState(soundEngine.volume);
+  const prevThreatLevelRef = useRef<ThreatLevel>("green");
+
+  const handleToggleMute = useCallback(() => {
+    soundEngine.init();
+    const next = !soundEngine.muted;
+    soundEngine.muted = next;
+    setAudioMuted(next);
+  }, []);
+
+  const handleVolumeChange = useCallback((v: number) => {
+    soundEngine.init();
+    soundEngine.volume = v;
+    setAudioVolume(v);
+    if (soundEngine.muted && v > 0) {
+      soundEngine.muted = false;
+      setAudioMuted(false);
+    }
+  }, []);
+
   const handleMessage = useCallback((msg: ServerMessage) => {
     switch (msg.type) {
       case "game_start":
@@ -127,14 +150,24 @@ export default function App() {
         }
         break;
 
-      case "event":
+      case "event": {
         setEvents((prev) => [
           ...prev,
           { timestamp: msg.timestamp, message: msg.message },
         ]);
+        // Trigger sounds based on event message content
+        const m = msg.message;
+        if (m.includes("New contact detected") || m.includes("New contact emerging")) {
+          soundEngine.play("detection_ping");
+        } else if (m.includes("Track") && m.includes("confirmed")) {
+          soundEngine.play("track_confirmed");
+        } else if (m.includes("identified as")) {
+          soundEngine.play("identification_complete");
+        }
         break;
+      }
 
-      case "engagement_result":
+      case "engagement_result": {
         setEvents((prev) => [
           ...prev,
           {
@@ -142,7 +175,22 @@ export default function App() {
             message: `ENGAGEMENT: ${msg.effector.toUpperCase()} → ${msg.target_id.toUpperCase()} — ${msg.effective ? "EFFECTIVE" : "INEFFECTIVE"} (${(msg.effectiveness * 100).toFixed(0)}%)`,
           },
         ]);
+        // Play engagement sound based on effector type, then success/fail
+        const eff = msg.effector.toLowerCase();
+        if (eff.includes("kinetic") || eff.includes("interceptor")) {
+          soundEngine.play("engagement_kinetic");
+        } else if (eff.includes("jammer") || eff.includes("rf")) {
+          soundEngine.play("engagement_electronic");
+        } else if (eff.includes("directed") || eff.includes("energy") || eff.includes("laser")) {
+          soundEngine.play("engagement_directed_energy");
+        } else {
+          soundEngine.play("engagement_electronic");
+        }
+        if (msg.effective) {
+          setTimeout(() => soundEngine.play("target_defeated"), 500);
+        }
         break;
+      }
 
       case "tutorial":
         setTutorialMessage(msg.message);
@@ -157,11 +205,29 @@ export default function App() {
         setScore(msg.score);
         setDroneReachedBase(msg.drone_reached_base);
         setPhase("debrief");
+        if (msg.drone_reached_base) {
+          soundEngine.play("mission_fail");
+        } else {
+          soundEngine.play("debrief_reveal");
+        }
         break;
     }
   }, []);
 
   const { connect, send, connected } = useWebSocket(handleMessage);
+
+  // Sound: threat level change
+  useEffect(() => {
+    const prev = prevThreatLevelRef.current;
+    if (threatLevel !== prev && phase === "running") {
+      prevThreatLevelRef.current = threatLevel;
+      if (threatLevel === "yellow") soundEngine.play("threat_yellow");
+      else if (threatLevel === "orange") soundEngine.play("threat_orange");
+      else if (threatLevel === "red") soundEngine.play("threat_red");
+    } else {
+      prevThreatLevelRef.current = threatLevel;
+    }
+  }, [threatLevel, phase]);
 
   // --- Refs for keyboard shortcut callbacks ---
   const tracksRef = useRef(tracks);
@@ -208,7 +274,10 @@ export default function App() {
         case "Digit2": {
           // Open identify (handled by EngagementPanel, but we can trigger camera for visual ID)
           const tid = selectedTrackIdRef.current;
-          if (tid) setCameraTrackId(tid);
+          if (tid) {
+            setCameraTrackId(tid);
+            soundEngine.play("camera_slew");
+          }
           break;
         }
         case "Digit3": {
@@ -219,6 +288,10 @@ export default function App() {
         case "Digit4": {
           // Close camera / clear selection
           setCameraTrackId(null);
+          break;
+        }
+        case "KeyM": {
+          handleToggleMute();
           break;
         }
         case "Tab": {
@@ -240,7 +313,7 @@ export default function App() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [send]);
+  }, [send, handleToggleMute]);
 
   // --- Flow handlers ---
 
@@ -355,6 +428,7 @@ export default function App() {
 
   const handleSlewCamera = (trackId: string) => {
     setCameraTrackId(trackId);
+    soundEngine.play("camera_slew");
   };
 
   // --- Phase: Waiting (title screen) ---
@@ -481,7 +555,7 @@ export default function App() {
           </div>
 
           <button
-            onClick={() => setPhase("scenario_select")}
+            onClick={() => { soundEngine.init(); setPhase("scenario_select"); }}
             style={{
               marginTop: 8,
               padding: "14px 56px",
@@ -567,6 +641,10 @@ export default function App() {
         timeRemaining={timeRemaining}
         threatLevel={threatLevel}
         scenarioName={scenarioName}
+        muted={audioMuted}
+        volume={audioVolume}
+        onToggleMute={handleToggleMute}
+        onVolumeChange={handleVolumeChange}
       />
 
       {/* Left sidebar */}
@@ -731,7 +809,7 @@ export default function App() {
             letterSpacing: 0.5,
           }}
         >
-          SPACE:Pause TAB:Cycle 1:Confirm 2:Camera 4:Close
+          SPACE:Pause TAB:Cycle 1:Confirm 2:Camera 4:Close M:Mute
         </div>
       )}
 

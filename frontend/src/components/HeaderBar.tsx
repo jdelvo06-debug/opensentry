@@ -5,6 +5,10 @@ interface Props {
   timeRemaining: number;
   threatLevel: ThreatLevel;
   scenarioName: string;
+  muted: boolean;
+  volume: number;
+  onToggleMute: () => void;
+  onVolumeChange: (v: number) => void;
 }
 
 const THREAT_COLORS: Record<ThreatLevel, string> = {
@@ -19,6 +23,10 @@ export default function HeaderBar({
   timeRemaining,
   threatLevel,
   scenarioName,
+  muted,
+  volume,
+  onToggleMute,
+  onVolumeChange,
 }: Props) {
   const threatColor = THREAT_COLORS[threatLevel];
   const mins = Math.floor(timeRemaining / 60);
@@ -87,8 +95,49 @@ export default function HeaderBar({
         </span>
       </div>
 
-      {/* Right: Threat level + time remaining */}
-      <div style={{ display: "flex", alignItems: "center", gap: 16, minWidth: 280, justifyContent: "flex-end" }}>
+      {/* Right: Volume + Threat level + time remaining */}
+      <div style={{ display: "flex", alignItems: "center", gap: 16, minWidth: 340, justifyContent: "flex-end" }}>
+        {/* Volume controls */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <button
+            onClick={onToggleMute}
+            title={muted ? "Unmute (M)" : "Mute (M)"}
+            style={{
+              background: "none",
+              border: "1px solid #30363d",
+              borderRadius: 4,
+              color: muted ? "#484f58" : "#8b949e",
+              cursor: "pointer",
+              padding: "2px 6px",
+              fontFamily: "monospace",
+              fontSize: 13,
+              lineHeight: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 28,
+              height: 24,
+            }}
+          >
+            {muted ? "\u2022\u2022" : "\u266A"}
+          </button>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={muted ? 0 : Math.round(volume * 100)}
+            onChange={(e) => onVolumeChange(Number(e.target.value) / 100)}
+            title={`Volume: ${Math.round(volume * 100)}%`}
+            style={{
+              width: 56,
+              height: 4,
+              accentColor: "#58a6ff",
+              cursor: "pointer",
+              opacity: muted ? 0.3 : 0.7,
+            }}
+          />
+        </div>
+
         {/* Threat Level Badge */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 10, color: "#8b949e", letterSpacing: 1 }}>THREAT</span>
