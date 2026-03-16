@@ -115,11 +115,12 @@ export default function LoadoutScreen({ maxSensors, maxEffectors, onConfirm, onB
 
   const containerStyle: React.CSSProperties = {
     background: COLORS.bg,
-    minHeight: "100vh",
+    height: "100vh",
     color: COLORS.text,
     fontFamily: "'Inter', sans-serif",
     display: "flex",
     flexDirection: "column",
+    overflow: "hidden",
   };
 
   const headerStyle: React.CSSProperties = {
