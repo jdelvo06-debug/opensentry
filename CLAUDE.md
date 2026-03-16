@@ -134,13 +134,12 @@ Server → Client:
 3. Set `correct_classification`, `correct_affiliation`, `optimal_effectors`, `roe_violations`
 4. The scenario engine auto-discovers all JSON files in the directory
 
-## Drone Behaviors
-Currently implemented:
-- `direct_approach` — Flies straight toward base (0,0)
-
-Planned:
-- `orbit` — Circles at standoff range
-- `coordinated` — Multi-drone coordinated approach
+## Scenario Files
+Stored in `backend/scenarios/` as JSON. Auto-discovered on startup.
+- `lone_wolf.json` — Single commercial quad, beginner (Easy)
+- `swarm_attack.json` — 5 drones from multiple directions, staggered spawns (Hard)
+- `recon_probe.json` — 3 sequential contacts including a bird false alarm (Medium)
+- `tutorial.json` — Single slow quad with guided prompts (Tutorial)
 
 ## Design Principles
 - **Dark theme throughout** — Dark backgrounds (#0d1117, #161b22), subtle borders (#30363d)
@@ -180,8 +179,29 @@ The complete user flow:
 - Modal overlay with thermal/HUD aesthetic for visual drone identification
 - Canvas-drawn silhouettes: commercial quad, fixed-wing, micro, bird, weather balloon, improvised
 - Range-based clarity (closer = sharp, farther = grainy with noise)
-- Crosshairs, targeting data HUD, zoom indicator
+- Range-based camera shake/jitter (more shake at longer range)
+- Thermal vs daylight toggle (color palette switch)
+- 'Acquiring...' spinning animation when slewing to new target
+- Crosshairs, targeting data HUD (speed, heading, bearing, altitude, zoom, mode)
 - Only available when target is within camera FOV (based on placement direction)
+
+## Drone Behaviors
+- `direct_approach` — Flies straight toward base (0,0)
+- `orbit` — Circles at standoff range around a configurable center point
+- `waypoint_path` — Follows a list of [x,y] waypoints in order
+- `evasive` — Direct approach until detected, then jinks heading ±30-60° and altitude every 2-4s
+
+## Keyboard Shortcuts (Running Phase)
+- `Space` — Pause/resume
+- `1` — Confirm track (DETECT→TRACK)
+- `2` — Open EO/IR camera on selected track
+- `4` — Close camera
+- `Tab` — Cycle through active tracks
+
+## Tutorial System
+- Scenarios with `tutorial: true` show guided overlay prompts
+- Prompts trigger on game events: start, detected, tracked, identify_ready, identified, defeated
+- Semi-transparent banner at top of tactical map, auto-dismisses after 12s
 
 ## Equipment Catalog
 Stored in `backend/equipment/catalog.json`. Each item has: name, type, range_km, fov_deg, description, pros, cons, requires_los, collateral_risk (effectors), recharge_seconds, single_use.
@@ -192,12 +212,16 @@ Stored in `backend/bases/` as JSON. Each has: boundary polygon, protected_assets
 ## Current Status
 - Phase 1 MVP complete — Lone Wolf scenario playable end-to-end
 - Phase 2 complete — Equipment loadout, base defense planner, EO/IR camera panel, full training flow
+- Phase 3 complete — Multi-track scenarios, drone behaviors, tutorial system, UI polish
 - DTID kill chain implemented
 - Tactical map with MIL-STD-2525-lite symbology
 - Sensor fusion and effector management
-- Scoring and debrief system (planning + execution)
+- Scoring and debrief system (planning + execution, multi-track weighted average)
 - 3 base templates, full equipment catalog
+- 4 scenarios: Lone Wolf, Swarm Attack (5 drones), Recon Probe (3 sequential), Tutorial
+- 4 drone behaviors: direct_approach, orbit, waypoint_path, evasive
+- Keyboard shortcuts, pause/resume, camera thermal/daylight modes
+- Placement polish: reset button, coverage %, weakest sector indicator, directional rotate
 
 ## Roadmap
-- Phase 3: Multi-track scenarios, tutorial flow, placement UI polish, camera silhouette refinement
 - Phase 4: Multiplayer, community scenarios, Docker deployment, mobile support
