@@ -10,8 +10,9 @@ import {
   LayersControl,
 } from "react-leaflet";
 import L from "leaflet";
-import type { Affiliation, EngagementZones, TrackData } from "../types";
+import type { Affiliation, EffectorStatus, EngagementZones, TrackData } from "../types";
 import { gameXYToLatLng } from "../utils/coordinates";
+import RadialActionWheel from "./RadialActionWheel";
 
 // Import leaflet CSS
 import "leaflet/dist/leaflet.css";
@@ -25,6 +26,17 @@ interface Props {
   baseLat?: number;
   baseLng?: number;
   defaultZoom?: number;
+  effectors?: EffectorStatus[];
+  onConfirmTrack?: (trackId: string) => void;
+  onIdentify?: (trackId: string, classification: string, affiliation: string) => void;
+  onEngage?: (trackId: string, effectorId: string) => void;
+  onSlewCamera?: (trackId: string) => void;
+}
+
+interface WheelState {
+  trackId: string;
+  screenX: number;
+  screenY: number;
 }
 
 const AFFILIATION_COLORS: Record<Affiliation, string> = {
@@ -168,31 +180,72 @@ function PulsingBaseCircle({
   );
 }
 
-// Track label tooltip shown next to marker
-function TrackLabel({
+const DTID_PHASE_LETTER: Record<string, string> = {
+  detected: "D",
+  tracked: "T",
+  identified: "I",
+  defeated: "F",
+};
+
+// Track data block (hook bubble) — persistent info label attached to each track
+function TrackDataBlock({
   track,
   position,
+  isSelected,
+  offsetIndex,
 }: {
   track: TrackData;
   position: [number, number];
+  isSelected: boolean;
+  offsetIndex: number;
 }) {
   const color = track.neutralized
     ? "#484f58"
     : AFFILIATION_COLORS[track.affiliation];
-  const html = `<div style="white-space:nowrap;pointer-events:none;">
-    <span style="color:${color};font:600 10px 'JetBrains Mono',monospace;">${track.id.toUpperCase()}</span>
-    ${
-      !track.neutralized
-        ? `<br/><span style="color:${color}99;font:400 9px 'JetBrains Mono',monospace;">${Math.round(track.confidence * 100)}%</span>`
-        : ""
-    }
+  const phaseChar = DTID_PHASE_LETTER[track.dtid_phase] || "?";
+  const range = Math.sqrt(track.x * track.x + track.y * track.y);
+  const bearing = ((Math.atan2(track.x, track.y) * 180) / Math.PI + 360) % 360;
+
+  // Offset to avoid overlaps: alternate right/left for stacked tracks
+  const yOff = offsetIndex * 18;
+
+  const html = `<div style="
+    pointer-events:none;
+    background:rgba(13,17,23,${isSelected ? "0.92" : "0.78"});
+    border:1px solid ${isSelected ? color : "#30363d"};
+    border-radius:3px;
+    padding:2px 5px;
+    white-space:nowrap;
+    font-family:'JetBrains Mono',monospace;
+    line-height:1.35;
+    position:relative;
+  ">
+    <div style="
+      position:absolute;
+      left:-9px;
+      top:8px;
+      width:8px;
+      height:1px;
+      background:${isSelected ? color : "#30363d"};
+    "></div>
+    <div style="color:${color};font-size:${isSelected ? "10px" : "9px"};font-weight:600;letter-spacing:0.5px;">
+      ${track.id.toUpperCase()} <span style="opacity:0.6;font-weight:400;">${phaseChar}</span>
+    </div>
+    ${!track.neutralized ? `
+    <div style="color:#8b949e;font-size:8px;opacity:${isSelected ? 0.9 : 0.65};">
+      SPD:${Math.round(track.speed_kts)} | ALT:${Math.round(track.altitude_ft)}
+    </div>
+    <div style="color:#8b949e;font-size:8px;opacity:${isSelected ? 0.9 : 0.65};">
+      BRG:${Math.round(bearing)}\u00B0 | RNG:${range.toFixed(1)}km
+    </div>` : `
+    <div style="color:#484f58;font-size:8px;">NEUTRALIZED</div>`}
   </div>`;
 
   const icon = L.divIcon({
     html,
     className: "",
-    iconSize: [80, 24],
-    iconAnchor: [-14, 12],
+    iconSize: [120, 48],
+    iconAnchor: [-18, 12 - yOff],
   });
 
   return <Marker position={position} icon={icon} interactive={false} />;
@@ -206,8 +259,14 @@ export default function TacticalMap({
   baseLat = 32.5,
   baseLng = 45.5,
   defaultZoom = 13,
+  effectors = [],
+  onConfirmTrack,
+  onIdentify,
+  onEngage,
+  onSlewCamera,
 }: Props) {
   const baseCenter: [number, number] = [baseLat, baseLng];
+  const [wheelState, setWheelState] = useState<WheelState | null>(null);
 
   // Compute zoom from engagement zones to fit detection range
   const zoom = useMemo(() => {
@@ -434,11 +493,26 @@ export default function TacticalMap({
                     L.DomEvent.stopPropagation(e.originalEvent);
                     onSelectTrack(track.id);
                   },
+                  contextmenu: (e) => {
+                    L.DomEvent.stopPropagation(e.originalEvent);
+                    e.originalEvent.preventDefault();
+                    onSelectTrack(track.id);
+                    setWheelState({
+                      trackId: track.id,
+                      screenX: e.originalEvent.clientX,
+                      screenY: e.originalEvent.clientY,
+                    });
+                  },
                 }}
               />
 
-              {/* Track label */}
-              <TrackLabel track={track} position={pos} />
+              {/* Track data block (hook bubble) */}
+              <TrackDataBlock
+                track={track}
+                position={pos}
+                isSelected={isSelected}
+                offsetIndex={0}
+              />
             </span>
           );
         })}
@@ -479,6 +553,26 @@ export default function TacticalMap({
           ))}
         </div>
       )}
+
+      {/* Radial action wheel */}
+      {wheelState && onConfirmTrack && onIdentify && onEngage && onSlewCamera && (() => {
+        const wheelTrack = tracks.find((t) => t.id === wheelState.trackId);
+        if (!wheelTrack || wheelTrack.neutralized) return null;
+        return (
+          <RadialActionWheel
+            trackId={wheelTrack.id}
+            dtidPhase={wheelTrack.dtid_phase}
+            screenX={wheelState.screenX}
+            screenY={wheelState.screenY}
+            effectors={effectors}
+            onConfirmTrack={onConfirmTrack}
+            onIdentify={onIdentify}
+            onEngage={onEngage}
+            onSlewCamera={onSlewCamera}
+            onClose={() => setWheelState(null)}
+          />
+        );
+      })()}
     </div>
   );
 }

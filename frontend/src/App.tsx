@@ -686,6 +686,11 @@ export default function App() {
           baseLat={baseTemplate?.center_lat}
           baseLng={baseTemplate?.center_lng}
           defaultZoom={baseTemplate?.default_zoom}
+          effectors={effectors}
+          onConfirmTrack={confirmTrack}
+          onIdentify={identify}
+          onEngage={engage}
+          onSlewCamera={handleSlewCamera}
         />
 
         {/* Tutorial overlay banner */}
