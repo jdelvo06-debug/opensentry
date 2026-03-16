@@ -915,7 +915,7 @@ export default function CameraPanel({
                 marginBottom: 4,
               }}
             >
-              NO EO/IR COVERAGE
+              TARGET OUT OF CAMERA RANGE
             </div>
             <div
               style={{
@@ -925,7 +925,7 @@ export default function CameraPanel({
                 letterSpacing: 0.5,
               }}
             >
-              SENSOR DATA ONLY
+              MOVE CAMERA CLOSER OR WAIT FOR APPROACH
             </div>
           </div>
         )}

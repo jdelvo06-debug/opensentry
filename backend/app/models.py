@@ -94,6 +94,13 @@ class DroneState(BaseModel):
     trail: list[list[float]] = []
     sensors_detecting: list[str] = []
     rf_emitting: bool = True
+    # Track coasting: when sensors lose contact, extrapolate position
+    coasting: bool = False
+    coast_start_time: float = 0.0  # elapsed seconds when coasting began
+    last_known_heading: float = 0.0  # heading at time of sensor loss
+    last_known_speed: float = 0.0  # speed at time of sensor loss
+    # Hold fire
+    hold_fire: bool = False
 
 
 class SensorConfig(BaseModel):

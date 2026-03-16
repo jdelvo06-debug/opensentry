@@ -306,6 +306,14 @@ async def game_websocket(ws: WebSocket):
         # Previously detected set (for event tracking)
         previously_detected: dict[str, set[str]] = {}
 
+        # Track coasting state: {drone_id: elapsed_time_when_sensors_lost}
+        coast_sensor_loss_time: dict[str, float] = {}
+        COAST_DELAY = 2.0  # seconds without sensor contact before coasting starts
+        COAST_DROP_TIME = 24.0  # seconds of coasting before track is dropped
+
+        # Hold fire state
+        hold_fire_tracks: set[str] = set()
+
         # Send game_start
         game_start_msg: dict = {
             "type": "game_start",
@@ -468,13 +476,100 @@ async def game_websocket(ws: WebSocket):
 
                     previously_detected[drones[i].id] = set(detecting_ids)
 
-                    # Update drone state
-                    detected = len(detecting_ids) > 0
-                    drones[i] = drones[i].model_copy(update={
-                        "detected": detected,
-                        "sensors_detecting": detecting_ids,
-                        "confidence": confidence,
-                    })
+                    # --- Track coasting logic ---
+                    drone_id = drones[i].id
+                    was_detected = drones[i].detected
+                    now_detecting = len(detecting_ids) > 0
+
+                    if now_detecting:
+                        # Sensors have contact — clear any coasting state
+                        coast_sensor_loss_time.pop(drone_id, None)
+                        if drones[i].coasting:
+                            events.append({
+                                "type": "event",
+                                "timestamp": round(elapsed, 1),
+                                "message": f"TRACK: {drone_id.upper()} — Sensor contact reacquired",
+                            })
+                        drones[i] = drones[i].model_copy(update={
+                            "detected": True,
+                            "sensors_detecting": detecting_ids,
+                            "confidence": confidence,
+                            "coasting": False,
+                            "coast_start_time": 0.0,
+                        })
+                    elif was_detected or drones[i].coasting:
+                        # Was previously detected but now no sensors — start/continue coasting
+                        if drone_id not in coast_sensor_loss_time:
+                            coast_sensor_loss_time[drone_id] = elapsed
+                            # Store last known heading/speed for extrapolation
+                            drones[i] = drones[i].model_copy(update={
+                                "last_known_heading": drones[i].heading,
+                                "last_known_speed": drones[i].speed,
+                            })
+
+                        time_without_sensors = elapsed - coast_sensor_loss_time[drone_id]
+
+                        if time_without_sensors >= COAST_DROP_TIME:
+                            # Drop the track entirely after 24s
+                            drones[i] = drones[i].model_copy(update={
+                                "detected": False,
+                                "coasting": False,
+                                "sensors_detecting": [],
+                                "confidence": 0.0,
+                            })
+                            coast_sensor_loss_time.pop(drone_id, None)
+                            events.append({
+                                "type": "event",
+                                "timestamp": round(elapsed, 1),
+                                "message": f"TRACK: {drone_id.upper()} — Track dropped (coast timeout)",
+                            })
+                        elif time_without_sensors >= COAST_DELAY:
+                            # Coasting: extrapolate position
+                            if not drones[i].coasting:
+                                events.append({
+                                    "type": "event",
+                                    "timestamp": round(elapsed, 1),
+                                    "message": f"TRACK: {drone_id.upper()} — Coasting (extrapolating)",
+                                })
+
+                            # Extrapolate position based on last known heading and speed
+                            heading_rad = math.radians(drones[i].last_known_heading)
+                            speed_kms = drones[i].last_known_speed * 0.000514  # knots to km/s
+                            ext_dx = math.sin(heading_rad) * speed_kms * tick_rate
+                            ext_dy = math.cos(heading_rad) * speed_kms * tick_rate
+                            new_x = drones[i].x + ext_dx
+                            new_y = drones[i].y + ext_dy
+
+                            # Update trail for extrapolated position
+                            new_trail = list(drones[i].trail)
+                            new_trail.append([round(new_x, 3), round(new_y, 3)])
+                            if len(new_trail) > 20:
+                                new_trail = new_trail[-20:]
+
+                            drones[i] = drones[i].model_copy(update={
+                                "detected": True,
+                                "coasting": True,
+                                "coast_start_time": coast_sensor_loss_time[drone_id],
+                                "sensors_detecting": [],
+                                "confidence": max(0.0, confidence - 0.1),
+                                "x": new_x,
+                                "y": new_y,
+                                "trail": new_trail,
+                            })
+                        else:
+                            # Brief gap — keep detected state but no sensors
+                            drones[i] = drones[i].model_copy(update={
+                                "detected": True,
+                                "sensors_detecting": detecting_ids,
+                                "confidence": confidence,
+                            })
+                    else:
+                        # Never detected — keep as is
+                        drones[i] = drones[i].model_copy(update={
+                            "detected": False,
+                            "sensors_detecting": detecting_ids,
+                            "confidence": confidence,
+                        })
 
                     # Update sensor runtime detecting lists
                     for sr in sensor_runtime:
@@ -501,6 +596,8 @@ async def game_websocket(ws: WebSocket):
                         "trail": drone.trail,
                         "sensors_detecting": drone.sensors_detecting,
                         "neutralized": drone.neutralized,
+                        "coasting": drone.coasting,
+                        "hold_fire": drone.id in hold_fire_tracks,
                     })
 
             state_msg = {
@@ -625,11 +722,49 @@ async def game_websocket(ws: WebSocket):
                                     "message": f"OPERATOR: {target_id.upper()} identified as {classification} ({affiliation})",
                                 })
 
-                    elif action_name == "engage":
-                        effector_id = msg.get("effector", "")
-                        eff_state = _find_effector_config(effector_states, effector_id)
+                    elif action_name == "hold_fire":
+                        for j, d in enumerate(drones):
+                            if d.id == target_id:
+                                hold_fire_tracks.add(target_id)
+                                actions.append(PlayerAction(
+                                    action="hold_fire",
+                                    target_id=target_id,
+                                    timestamp=elapsed,
+                                ))
+                                await ws.send_json({
+                                    "type": "event",
+                                    "timestamp": round(elapsed, 1),
+                                    "message": f"OPERATOR: HOLD FIRE on {target_id.upper()}",
+                                })
+                                break
 
-                        if eff_state and eff_state["status"] == "ready":
+                    elif action_name == "release_hold_fire":
+                        if target_id in hold_fire_tracks:
+                            hold_fire_tracks.discard(target_id)
+                            actions.append(PlayerAction(
+                                action="release_hold_fire",
+                                target_id=target_id,
+                                timestamp=elapsed,
+                            ))
+                            await ws.send_json({
+                                "type": "event",
+                                "timestamp": round(elapsed, 1),
+                                "message": f"OPERATOR: Hold fire RELEASED on {target_id.upper()}",
+                            })
+
+                    elif action_name == "engage":
+                        # Block engagement if hold fire is active
+                        if target_id in hold_fire_tracks:
+                            await ws.send_json({
+                                "type": "event",
+                                "timestamp": round(elapsed, 1),
+                                "message": f"ENGAGEMENT: BLOCKED — Hold fire active on {target_id.upper()}",
+                            })
+                        else:
+                          effector_id = msg.get("effector", "")
+                          eff_state = _find_effector_config(effector_states, effector_id)
+
+                          if eff_state and eff_state["status"] == "ready":
                             for j, d in enumerate(drones):
                                 if d.id == target_id:
                                     # Check range
