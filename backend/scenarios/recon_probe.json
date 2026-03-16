@@ -11,21 +11,18 @@
     "engagement_range_km": 2.5
   },
   "sensors": [
-    {"id": "radar", "name": "RADAR", "type": "radar", "range_km": 5.0, "status": "active"},
-    {"id": "rf_detector", "name": "RF DETECTOR", "type": "rf", "range_km": 3.0, "status": "active"},
-    {"id": "eoir", "name": "EO/IR CAMERA", "type": "eoir", "range_km": 1.5, "status": "active"},
-    {"id": "acoustic", "name": "ACOUSTIC", "type": "acoustic", "range_km": 0.8, "status": "active"}
+    {"id": "radar", "name": "AN/TPQ-50 Radar", "type": "radar", "range_km": 10.0, "status": "active"},
+    {"id": "kurfs", "name": "KURFS Radar", "type": "radar", "range_km": 8.0, "status": "active"},
+    {"id": "eoir", "name": "Nighthawk EO/IR Camera", "type": "eoir", "range_km": 8.0, "status": "active"}
   ],
   "effectors": [
-    {"id": "jammer", "name": "RF JAMMER", "type": "rf_jam", "range_km": 2.0, "status": "ready", "recharge_seconds": 10},
-    {"id": "kinetic", "name": "KINETIC", "type": "kinetic", "range_km": 1.5, "status": "ready", "recharge_seconds": 0},
-    {"id": "interceptor", "name": "INTERCEPTOR DRONE", "type": "net_interceptor", "range_km": 2.5, "status": "ready", "recharge_seconds": 0},
-    {"id": "de_weapon", "name": "DIRECTED ENERGY", "type": "directed_energy", "range_km": 1.0, "status": "ready", "recharge_seconds": 15}
+    {"id": "jammer", "name": "RF/PNT Jammer", "type": "electronic", "range_km": 3.0, "status": "ready", "recharge_seconds": 10},
+    {"id": "coyote", "name": "Coyote Block 2C Pallet", "type": "kinetic", "range_km": 5.0, "status": "ready", "recharge_seconds": 0, "single_use": true, "ammo_count": 4, "ammo_remaining": 4}
   ],
   "correct_classification": "commercial_quad",
   "correct_affiliation": "hostile",
-  "optimal_effectors": ["rf_jam", "net_interceptor"],
-  "acceptable_effectors": ["rf_jam", "net_interceptor", "directed_energy"],
+  "optimal_effectors": ["electronic"],
+  "acceptable_effectors": ["electronic", "kinetic"],
   "roe_violations": [],
   "drones": [
     {
@@ -45,7 +42,7 @@
       "correct_affiliation": "neutral",
       "optimal_effectors": [],
       "acceptable_effectors": [],
-      "roe_violations": ["rf_jam", "kinetic", "net_interceptor", "directed_energy"],
+      "roe_violations": ["electronic", "kinetic"],
       "should_engage": false
     },
     {
@@ -62,8 +59,8 @@
       "waypoints": [[-2.0, 1.0], [0.0, 0.5], [2.0, -0.5], [4.5, -2.0]],
       "correct_classification": "fixed_wing",
       "correct_affiliation": "hostile",
-      "optimal_effectors": ["directed_energy", "net_interceptor"],
-      "acceptable_effectors": ["directed_energy", "net_interceptor", "kinetic"],
+      "optimal_effectors": ["kinetic"],
+      "acceptable_effectors": ["kinetic", "electronic"],
       "roe_violations": [],
       "should_engage": true
     },
@@ -80,8 +77,8 @@
       "spawn_delay": 90,
       "correct_classification": "commercial_quad",
       "correct_affiliation": "hostile",
-      "optimal_effectors": ["rf_jam", "net_interceptor"],
-      "acceptable_effectors": ["rf_jam", "net_interceptor", "directed_energy"],
+      "optimal_effectors": ["electronic"],
+      "acceptable_effectors": ["electronic", "kinetic"],
       "roe_violations": [],
       "should_engage": true
     }

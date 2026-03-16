@@ -21,6 +21,7 @@ const CLASSIFICATIONS = [
 const EFFECTOR_COLORS: Record<string, string> = {
   jammer: "#58a6ff",
   rf_jam: "#58a6ff",
+  electronic: "#58a6ff",
   kinetic: "#f85149",
   interceptor: "#3fb950",
   net_interceptor: "#3fb950",
@@ -217,7 +218,8 @@ export default function EngagementPanel({
                 EFFECTOR_COLORS[eff.type || ""] ||
                 "#58a6ff";
               const name = eff.name || eff.id.toUpperCase();
-              const isReady = eff.status === "ready";
+              const isDepleted = eff.ammo_remaining != null && eff.ammo_remaining <= 0;
+              const isReady = eff.status === "ready" && !isDepleted;
 
               return (
                 <button
@@ -260,7 +262,11 @@ export default function EngagementPanel({
                       opacity: 0.7,
                     }}
                   >
-                    {eff.status.toUpperCase()}
+                    {isDepleted
+                      ? "DEPLETED"
+                      : eff.ammo_remaining != null
+                        ? `${eff.ammo_remaining}/${eff.ammo_count} — ${eff.status.toUpperCase()}`
+                        : eff.status.toUpperCase()}
                   </span>
                 </button>
               );

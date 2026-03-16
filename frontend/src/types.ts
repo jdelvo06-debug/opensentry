@@ -45,6 +45,8 @@ export interface EffectorStatus {
   y?: number;
   fov_deg?: number;
   facing_deg?: number;
+  ammo_count?: number;
+  ammo_remaining?: number;
 }
 
 export interface EngagementZones {
@@ -204,6 +206,7 @@ export interface CatalogEffector {
   cons: string[];
   requires_los: boolean;
   collateral_risk: string;
+  ammo_count?: number;
 }
 
 export interface EquipmentCatalog {

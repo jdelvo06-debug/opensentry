@@ -30,7 +30,7 @@ const TYPE_COLORS: Record<string, string> = {
   rf: COLORS.purple,
   eoir: COLORS.yellow,
   acoustic: COLORS.green,
-  jammer: COLORS.purple,
+  electronic: COLORS.purple,
   kinetic: COLORS.red,
   interceptor: COLORS.blue,
   directed_energy: COLORS.yellow,
@@ -43,14 +43,13 @@ const COLLATERAL_COLORS: Record<string, string> = {
   very_high: COLORS.red,
 };
 
-export default function LoadoutScreen({ maxSensors, maxEffectors, onConfirm, onBack }: Props) {
+export default function LoadoutScreen({ maxSensors: _maxSensors, maxEffectors: _maxEffectors, onConfirm, onBack }: Props) {
   const [catalog, setCatalog] = useState<EquipmentCatalog | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedSensorIds, setSelectedSensorIds] = useState<Set<string>>(new Set());
-  const [selectedEffectorIds, setSelectedEffectorIds] = useState<Set<string>>(new Set());
-  const [sensorWarning, setSensorWarning] = useState(false);
-  const [effectorWarning, setEffectorWarning] = useState(false);
+  // Quantity maps: catalog_id -> count
+  const [sensorQty, setSensorQty] = useState<Record<string, number>>({});
+  const [effectorQty, setEffectorQty] = useState<Record<string, number>>({});
 
   useEffect(() => {
     fetch(`${API_BASE}/equipment`)
@@ -68,48 +67,38 @@ export default function LoadoutScreen({ maxSensors, maxEffectors, onConfirm, onB
       });
   }, []);
 
-  const toggleSensor = (id: string) => {
-    setSelectedSensorIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-        setSensorWarning(false);
-      } else if (next.size < maxSensors) {
-        next.add(id);
-        setSensorWarning(false);
-      } else {
-        setSensorWarning(true);
-        setTimeout(() => setSensorWarning(false), 2000);
-      }
-      return next;
+  const adjustQty = (
+    setter: React.Dispatch<React.SetStateAction<Record<string, number>>>,
+    id: string,
+    delta: number,
+  ) => {
+    setter((prev) => {
+      const current = prev[id] || 0;
+      const next = Math.max(0, Math.min(current + delta, 10));
+      return { ...prev, [id]: next };
     });
   };
 
-  const toggleEffector = (id: string) => {
-    setSelectedEffectorIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-        setEffectorWarning(false);
-      } else if (next.size < maxEffectors) {
-        next.add(id);
-        setEffectorWarning(false);
-      } else {
-        setEffectorWarning(true);
-        setTimeout(() => setEffectorWarning(false), 2000);
-      }
-      return next;
-    });
-  };
+  const totalSensors = Object.values(sensorQty).reduce((a, b) => a + b, 0);
+  const totalEffectors = Object.values(effectorQty).reduce((a, b) => a + b, 0);
 
   const handleConfirm = () => {
     if (!catalog) return;
-    const sensors = catalog.sensors.filter((s) => selectedSensorIds.has(s.catalog_id));
-    const effectors = catalog.effectors.filter((e) => selectedEffectorIds.has(e.catalog_id));
+    // Build arrays with duplicates for each quantity
+    const sensors: CatalogSensor[] = [];
+    for (const s of catalog.sensors) {
+      const qty = sensorQty[s.catalog_id] || 0;
+      for (let i = 0; i < qty; i++) sensors.push(s);
+    }
+    const effectors: CatalogEffector[] = [];
+    for (const e of catalog.effectors) {
+      const qty = effectorQty[e.catalog_id] || 0;
+      for (let i = 0; i < qty; i++) effectors.push(e);
+    }
     onConfirm(sensors, effectors);
   };
 
-  const canConfirm = selectedSensorIds.size > 0 && selectedEffectorIds.size > 0;
+  const canConfirm = totalSensors > 0 && totalEffectors > 0;
 
   // --- Styles ---
 
@@ -149,13 +138,6 @@ export default function LoadoutScreen({ maxSensors, maxEffectors, onConfirm, onB
     alignItems: "center",
   };
 
-  const counterStyle = (count: number, max: number, warn: boolean): React.CSSProperties => ({
-    fontFamily: "'JetBrains Mono', monospace",
-    fontSize: "13px",
-    color: warn ? COLORS.red : count >= max ? COLORS.yellow : COLORS.muted,
-    transition: "color 0.2s",
-  });
-
   const sectionStyle: React.CSSProperties = {
     padding: "24px 32px 8px",
   };
@@ -176,12 +158,11 @@ export default function LoadoutScreen({ maxSensors, maxEffectors, onConfirm, onB
     gap: "16px",
   };
 
-  const cardStyle = (selected: boolean): React.CSSProperties => ({
-    background: selected ? COLORS.blueBg : COLORS.card,
-    border: `1px solid ${selected ? COLORS.blueBorder : COLORS.border}`,
+  const cardStyle = (qty: number): React.CSSProperties => ({
+    background: qty > 0 ? COLORS.blueBg : COLORS.card,
+    border: `1px solid ${qty > 0 ? COLORS.blueBorder : COLORS.border}`,
     borderRadius: "8px",
     padding: "20px",
-    cursor: "pointer",
     transition: "border-color 0.15s, background 0.15s",
     userSelect: "none" as const,
   });
@@ -284,13 +265,6 @@ export default function LoadoutScreen({ maxSensors, maxEffectors, onConfirm, onB
     opacity: canConfirm ? 1 : 0.6,
   };
 
-  const warningStyle: React.CSSProperties = {
-    fontSize: "12px",
-    fontFamily: "'JetBrains Mono', monospace",
-    color: COLORS.red,
-    marginLeft: "8px",
-  };
-
   const collateralBadgeStyle = (risk: string): React.CSSProperties => {
     const color = COLLATERAL_COLORS[risk] || COLORS.muted;
     return {
@@ -305,6 +279,32 @@ export default function LoadoutScreen({ maxSensors, maxEffectors, onConfirm, onB
       border: `1px solid ${color}33`,
     };
   };
+
+  const qtyControlStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    marginTop: "12px",
+    paddingTop: "12px",
+    borderTop: `1px solid ${COLORS.border}`,
+  };
+
+  const qtyBtnStyle = (disabled: boolean): React.CSSProperties => ({
+    width: 32,
+    height: 32,
+    borderRadius: 6,
+    border: `1px solid ${COLORS.border}`,
+    background: disabled ? COLORS.bg : COLORS.card,
+    color: disabled ? COLORS.border : COLORS.text,
+    fontFamily: "'JetBrains Mono', monospace",
+    fontSize: 16,
+    fontWeight: 700,
+    cursor: disabled ? "not-allowed" : "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "all 0.15s",
+  });
 
   // --- Render ---
 
@@ -335,15 +335,21 @@ export default function LoadoutScreen({ maxSensors, maxEffectors, onConfirm, onB
       <div style={headerStyle}>
         <h1 style={titleStyle}>EQUIPMENT LOADOUT</h1>
         <div style={counterContainerStyle}>
-          <span style={counterStyle(selectedSensorIds.size, maxSensors, sensorWarning)}>
-            SENSORS: {selectedSensorIds.size}/{maxSensors} selected
+          <span style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: "13px",
+            color: totalSensors > 0 ? COLORS.blue : COLORS.muted,
+          }}>
+            SENSORS: {totalSensors} selected
           </span>
-          {sensorWarning && <span style={warningStyle}>MAX REACHED</span>}
           <span style={{ color: COLORS.border }}>|</span>
-          <span style={counterStyle(selectedEffectorIds.size, maxEffectors, effectorWarning)}>
-            EFFECTORS: {selectedEffectorIds.size}/{maxEffectors} selected
+          <span style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: "13px",
+            color: totalEffectors > 0 ? COLORS.blue : COLORS.muted,
+          }}>
+            EFFECTORS: {totalEffectors} selected
           </span>
-          {effectorWarning && <span style={warningStyle}>MAX REACHED</span>}
         </div>
       </div>
 
@@ -354,13 +360,12 @@ export default function LoadoutScreen({ maxSensors, maxEffectors, onConfirm, onB
           <div style={sectionTitleStyle}>SENSORS</div>
           <div style={gridStyle}>
             {catalog.sensors.map((sensor) => {
-              const selected = selectedSensorIds.has(sensor.catalog_id);
+              const qty = sensorQty[sensor.catalog_id] || 0;
               const typeColor = TYPE_COLORS[sensor.type] || COLORS.muted;
               return (
                 <div
                   key={sensor.catalog_id}
-                  style={cardStyle(selected)}
-                  onClick={() => toggleSensor(sensor.catalog_id)}
+                  style={cardStyle(qty)}
                 >
                   <div style={nameStyle}>
                     <span>{sensor.name}</span>
@@ -394,6 +399,42 @@ export default function LoadoutScreen({ maxSensors, maxEffectors, onConfirm, onB
                       </ul>
                     )}
                   </div>
+                  {/* Quantity controls */}
+                  <div style={qtyControlStyle}>
+                    <button
+                      style={qtyBtnStyle(qty <= 0)}
+                      onClick={() => adjustQty(setSensorQty, sensor.catalog_id, -1)}
+                      disabled={qty <= 0}
+                    >
+                      -
+                    </button>
+                    <span style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 18,
+                      fontWeight: 700,
+                      color: qty > 0 ? COLORS.blue : COLORS.muted,
+                      minWidth: 32,
+                      textAlign: "center",
+                    }}>
+                      {qty}
+                    </span>
+                    <button
+                      style={qtyBtnStyle(false)}
+                      onClick={() => adjustQty(setSensorQty, sensor.catalog_id, 1)}
+                    >
+                      +
+                    </button>
+                    {qty > 0 && (
+                      <span style={{
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: 11,
+                        color: COLORS.blue,
+                        marginLeft: 4,
+                      }}>
+                        {qty}x SELECTED
+                      </span>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -405,13 +446,12 @@ export default function LoadoutScreen({ maxSensors, maxEffectors, onConfirm, onB
           <div style={sectionTitleStyle}>EFFECTORS</div>
           <div style={gridStyle}>
             {catalog.effectors.map((effector) => {
-              const selected = selectedEffectorIds.has(effector.catalog_id);
+              const qty = effectorQty[effector.catalog_id] || 0;
               const typeColor = TYPE_COLORS[effector.type] || COLORS.muted;
               return (
                 <div
                   key={effector.catalog_id}
-                  style={cardStyle(selected)}
-                  onClick={() => toggleEffector(effector.catalog_id)}
+                  style={cardStyle(qty)}
                 >
                   <div style={nameStyle}>
                     <span>{effector.name}</span>
@@ -436,6 +476,11 @@ export default function LoadoutScreen({ maxSensors, maxEffectors, onConfirm, onB
                         Recharge: <span style={statValueStyle}>{effector.recharge_seconds}s</span>
                       </span>
                     )}
+                    {effector.ammo_count != null && (
+                      <span style={statStyle}>
+                        Ammo: <span style={statValueStyle}>{effector.ammo_count} per unit</span>
+                      </span>
+                    )}
                     {effector.requires_los && (
                       <span style={tagStyle(COLORS.muted)}>LOS</span>
                     )}
@@ -454,6 +499,42 @@ export default function LoadoutScreen({ maxSensors, maxEffectors, onConfirm, onB
                           <li key={i} style={{ color: COLORS.red }}>- {c}</li>
                         ))}
                       </ul>
+                    )}
+                  </div>
+                  {/* Quantity controls */}
+                  <div style={qtyControlStyle}>
+                    <button
+                      style={qtyBtnStyle(qty <= 0)}
+                      onClick={() => adjustQty(setEffectorQty, effector.catalog_id, -1)}
+                      disabled={qty <= 0}
+                    >
+                      -
+                    </button>
+                    <span style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 18,
+                      fontWeight: 700,
+                      color: qty > 0 ? COLORS.blue : COLORS.muted,
+                      minWidth: 32,
+                      textAlign: "center",
+                    }}>
+                      {qty}
+                    </span>
+                    <button
+                      style={qtyBtnStyle(false)}
+                      onClick={() => adjustQty(setEffectorQty, effector.catalog_id, 1)}
+                    >
+                      +
+                    </button>
+                    {qty > 0 && (
+                      <span style={{
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: 11,
+                        color: COLORS.blue,
+                        marginLeft: 4,
+                      }}>
+                        {qty}x SELECTED
+                      </span>
                     )}
                   </div>
                 </div>

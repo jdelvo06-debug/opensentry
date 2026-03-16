@@ -45,6 +45,7 @@ class SensorType(str, Enum):
 
 class EffectorType(str, Enum):
     RF_JAM = "rf_jam"
+    ELECTRONIC = "electronic"
     KINETIC = "kinetic"
     NET_INTERCEPTOR = "net_interceptor"
     DIRECTED_ENERGY = "directed_energy"
@@ -132,6 +133,9 @@ class EffectorConfig(BaseModel):
     facing_deg: float = 0.0
     requires_los: bool = False
     single_use: bool = False
+    # Ammo management (e.g. Coyote pallets with 4 interceptors)
+    ammo_count: int | None = None
+    ammo_remaining: int | None = None
 
 
 class EngagementZones(BaseModel):
@@ -282,6 +286,7 @@ class CatalogEffector(BaseModel):
     cons: list[str]
     requires_los: bool
     collateral_risk: str
+    ammo_count: int | None = None
 
 
 class EquipmentCatalog(BaseModel):

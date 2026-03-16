@@ -445,6 +445,71 @@ export default function App() {
     send({ type: "action", action: "release_hold_fire", target_id: trackId });
   };
 
+  // --- Quick Start handler ---
+  const handleQuickStart = async () => {
+    soundEngine.init();
+    const qsScenarioId = "lone_wolf";
+    const qsBaseId = "medium_airbase";
+
+    try {
+      // Fetch base template
+      const res = await fetch(`${API_BASE}/bases/${qsBaseId}`);
+      const base = await res.json();
+      setBaseTemplate(base);
+      setScenarioId(qsScenarioId);
+      setBaseId(qsBaseId);
+
+      // Pre-defined placement: spread equipment around base for coverage
+      // 1x TPQ-50 (center-ish, 360° coverage)
+      // 1x KURFS (facing north — primary threat axis)
+      // 2x Nighthawk (offset positions for cross-coverage)
+      // 2x Coyote Pallet (near KURFS for intercept)
+      const quickPlacement: PlacementConfig = {
+        base_id: qsBaseId,
+        sensors: [
+          { catalog_id: "tpq50", x: 0.0, y: -0.1, facing_deg: 0 },
+          { catalog_id: "kurfs", x: 0.2, y: 0.1, facing_deg: 0 },
+          { catalog_id: "nighthawk", x: -0.3, y: 0.15, facing_deg: 0 },
+          { catalog_id: "nighthawk", x: 0.4, y: -0.2, facing_deg: 180 },
+        ],
+        effectors: [
+          { catalog_id: "coyote_pallet", x: 0.15, y: 0.0, facing_deg: 0 },
+          { catalog_id: "coyote_pallet", x: -0.15, y: 0.0, facing_deg: 180 },
+        ],
+      };
+
+      // Reset running state
+      setScore(null);
+      setTracks([]);
+      setSelectedTrackId(null);
+      setEvents([]);
+      setSensors([]);
+      setSensorConfigs([]);
+      setEffectors([]);
+      setEffectorConfigs([]);
+      setEngagementZones(null);
+      setElapsed(0);
+      setTimeRemaining(0);
+      setThreatLevel("green");
+      setCameraTrackId(null);
+      autoOpenedCameraRef.current.clear();
+      setTutorialMessage(null);
+      setIsTutorial(false);
+      setPaused(false);
+      setPlacementConfig(quickPlacement);
+
+      // Connect directly — skip scenario select, loadout, placement
+      connect({
+        scenarioId: qsScenarioId,
+        baseId: qsBaseId,
+        placement: quickPlacement,
+      });
+    } catch {
+      // Fallback to normal flow if quick start fails
+      setPhase("scenario_select");
+    }
+  };
+
   // --- Phase: Waiting (title screen) ---
   if (phase === "waiting") {
     return (
@@ -568,36 +633,70 @@ export default function App() {
             </div>
           </div>
 
-          <button
-            onClick={() => { soundEngine.init(); setPhase("scenario_select"); }}
-            style={{
-              marginTop: 8,
-              padding: "14px 56px",
-              background: "#58a6ff",
-              border: "none",
-              borderRadius: 6,
-              color: "#0d1117",
-              fontFamily: "'Inter', sans-serif",
-              fontSize: 14,
-              fontWeight: 700,
-              letterSpacing: 2,
-              cursor: "pointer",
-              transition: "all 0.15s",
-              boxShadow: "0 4px 16px rgba(88, 166, 255, 0.3)",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background = "#79b8ff";
-              (e.currentTarget as HTMLElement).style.boxShadow =
-                "0 6px 24px rgba(88, 166, 255, 0.45)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.background = "#58a6ff";
-              (e.currentTarget as HTMLElement).style.boxShadow =
-                "0 4px 16px rgba(88, 166, 255, 0.3)";
-            }}
-          >
-            BEGIN TRAINING
-          </button>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8, alignItems: "center" }}>
+            <button
+              onClick={handleQuickStart}
+              style={{
+                padding: "16px 56px",
+                background: "#3fb950",
+                border: "none",
+                borderRadius: 6,
+                color: "#0d1117",
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 15,
+                fontWeight: 700,
+                letterSpacing: 2,
+                cursor: "pointer",
+                transition: "all 0.15s",
+                boxShadow: "0 4px 16px rgba(63, 185, 80, 0.3)",
+                width: "100%",
+                maxWidth: 320,
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "#56d364";
+                (e.currentTarget as HTMLElement).style.boxShadow =
+                  "0 6px 24px rgba(63, 185, 80, 0.45)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "#3fb950";
+                (e.currentTarget as HTMLElement).style.boxShadow =
+                  "0 4px 16px rgba(63, 185, 80, 0.3)";
+              }}
+            >
+              QUICK START
+            </button>
+            <div style={{ fontSize: 10, color: "#8b949e", letterSpacing: 0.5 }}>
+              Lone Wolf + Medium Airbase — pre-configured loadout
+            </div>
+            <button
+              onClick={() => { soundEngine.init(); setPhase("scenario_select"); }}
+              style={{
+                padding: "12px 40px",
+                background: "transparent",
+                border: "1px solid #30363d",
+                borderRadius: 6,
+                color: "#8b949e",
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 13,
+                fontWeight: 600,
+                letterSpacing: 2,
+                cursor: "pointer",
+                transition: "all 0.15s",
+                width: "100%",
+                maxWidth: 320,
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = "#58a6ff";
+                (e.currentTarget as HTMLElement).style.color = "#58a6ff";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = "#30363d";
+                (e.currentTarget as HTMLElement).style.color = "#8b949e";
+              }}
+            >
+              CUSTOM MISSION
+            </button>
+          </div>
         </div>
       </div>
     );

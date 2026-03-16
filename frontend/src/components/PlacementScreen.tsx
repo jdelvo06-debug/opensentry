@@ -292,6 +292,27 @@ export default function PlacementScreen({
     })),
   ];
 
+  // Build instance labels for duplicate items (e.g., "Nighthawk #1", "Nighthawk #2")
+  const sensorInstanceLabels = useMemo(() => {
+    const counts: Record<string, number> = {};
+    selectedSensors.forEach((s) => { counts[s.catalog_id] = (counts[s.catalog_id] || 0) + 1; });
+    const seen: Record<string, number> = {};
+    return selectedSensors.map((s) => {
+      seen[s.catalog_id] = (seen[s.catalog_id] || 0) + 1;
+      return counts[s.catalog_id] > 1 ? `${s.name} #${seen[s.catalog_id]}` : s.name;
+    });
+  }, [selectedSensors]);
+
+  const effectorInstanceLabels = useMemo(() => {
+    const counts: Record<string, number> = {};
+    selectedEffectors.forEach((e) => { counts[e.catalog_id] = (counts[e.catalog_id] || 0) + 1; });
+    const seen: Record<string, number> = {};
+    return selectedEffectors.map((e) => {
+      seen[e.catalog_id] = (seen[e.catalog_id] || 0) + 1;
+      return counts[e.catalog_id] > 1 ? `${e.name} #${seen[e.catalog_id]}` : e.name;
+    });
+  }, [selectedEffectors]);
+
   // Track which palette items are placed
   const placedSet = new Set(
     placedItems.map((p) => `${p.kind}-${p.catalogIndex}`),
@@ -646,7 +667,7 @@ export default function PlacementScreen({
                             color: COLORS.text,
                           }}
                         >
-                          {sensor.name}
+                          {sensorInstanceLabels[i]}
                         </span>
                       </div>
                       {isPlaced && (
@@ -764,7 +785,7 @@ export default function PlacementScreen({
                           color: COLORS.text,
                         }}
                       >
-                        {effector.name}
+                        {effectorInstanceLabels[i]}
                       </span>
                       {isPlaced && (
                         <span

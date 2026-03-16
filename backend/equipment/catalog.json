@@ -1,331 +1,68 @@
 {
   "sensors": [
     {
-      "catalog_id": "radar_tpq50",
+      "catalog_id": "tpq50",
       "name": "AN/TPQ-50 Radar",
       "type": "radar",
-      "range_km": 5.0,
+      "range_km": 10.0,
       "fov_deg": 360,
-      "description": "Long-range surveillance radar with 360-degree coverage. All-weather capability. Primary detection sensor.",
-      "pros": [
-        "Long range",
-        "360\u00b0 coverage",
-        "All-weather",
-        "Speed/altitude data"
-      ],
-      "cons": [
-        "Large signature",
-        "No classification data",
-        "Power hungry"
-      ],
+      "description": "Lightweight counter-fire/counter-UAS radar. 360° rotating antenna provides persistent surveillance. Primary detection sensor for Group 1-3 UAS.",
+      "pros": ["Long range", "360° coverage", "All-weather", "Altitude data"],
+      "cons": ["Large signature", "Requires power generator", "Ground clutter in urban terrain"],
       "requires_los": false
     },
     {
-      "catalog_id": "rf_300",
-      "name": "RF-300 Direction Finder",
-      "type": "rf",
-      "range_km": 3.0,
-      "fov_deg": 360,
-      "description": "Passive RF detection system. Detects control links and telemetry from RF-emitting UAS. Silent operation.",
-      "pros": [
-        "Passive detection",
-        "Identifies RF protocol",
-        "360\u00b0 coverage"
-      ],
-      "cons": [
-        "RF-emitting targets only",
-        "Medium range",
-        "No altitude data"
-      ],
-      "requires_los": false
-    },
-    {
-      "catalog_id": "eoir_cam",
-      "name": "EO/IR Camera System",
-      "type": "eoir",
-      "range_km": 5.0,
-      "fov_deg": 60,
-      "description": "Electro-optical/infrared camera with zoom. Provides visual identification capability at up to 5km. Must be slewed to target.",
-      "pros": [
-        "Visual ID capability",
-        "Day/night operation",
-        "Classification data"
-      ],
-      "cons": [
-        "Short range",
-        "Limited FOV",
-        "Requires LOS",
-        "Weather dependent"
-      ],
+      "catalog_id": "kurfs",
+      "name": "KURFS Radar",
+      "type": "radar",
+      "range_km": 8.0,
+      "fov_deg": 90,
+      "description": "Ku-band Radio Frequency Sensor. Precision fire-control radar that guides Coyote interceptors to target. Provides high-accuracy track data for engagement.",
+      "pros": ["Fire-control quality tracks", "Guides Coyote intercepts", "High accuracy"],
+      "cons": ["Limited 90° sector", "Must be oriented toward threat", "Single target track"],
       "requires_los": true
     },
     {
-      "catalog_id": "acoustic_array",
-      "name": "Acoustic Array",
-      "type": "acoustic",
-      "range_km": 0.8,
-      "fov_deg": 360,
-      "description": "Passive acoustic detection array. Detects all drones by sound signature regardless of RF emissions.",
-      "pros": [
-        "Detects all drones",
-        "Passive",
-        "360\u00b0 coverage",
-        "Works against RF-silent"
-      ],
-      "cons": [
-        "Very short range",
-        "Noise interference",
-        "No altitude data"
-      ],
-      "requires_los": false
-    },
-    {
-      "catalog_id": "adsb_receiver",
-      "name": "ADS-B Receiver",
-      "type": "radar",
+      "catalog_id": "nighthawk",
+      "name": "Nighthawk EO/IR Camera",
+      "type": "eoir",
       "range_km": 8.0,
       "fov_deg": 360,
-      "description": "Receives ADS-B transponder signals from cooperative aircraft. Very long range but only detects compliant targets.",
-      "pros": [
-        "Very long range",
-        "Precise position data",
-        "Low power"
-      ],
-      "cons": [
-        "Cooperative targets only",
-        "Easily spoofed",
-        "Most threat UAS non-cooperative"
-      ],
-      "requires_los": false
+      "description": "Pan/tilt/zoom electro-optical and infrared camera. 360° continuous rotation gimbal with thermal and daylight imaging. Used for visual identification of UAS targets.",
+      "pros": ["Visual ID capability", "Day/night thermal", "360° pan", "Zoom 1x-40x"],
+      "cons": ["Weather dependent", "Operator intensive", "Requires LOS"],
+      "requires_los": true
     }
   ],
   "effectors": [
     {
       "catalog_id": "rf_jammer",
-      "name": "RF Jammer",
-      "type": "rf_jam",
-      "range_km": 2.0,
+      "name": "RF/PNT Jammer",
+      "type": "electronic",
+      "range_km": 3.0,
       "fov_deg": 360,
       "recharge_seconds": 10,
       "single_use": false,
-      "description": "Broadband RF jammer disrupts control links and telemetry. Effective against commercial drones.",
-      "pros": [
-        "Rechargeable",
-        "Low collateral",
-        "Good vs commercial UAS"
-      ],
-      "cons": [
-        "Ineffective vs autonomous",
-        "May jam friendly comms",
-        "Medium range"
-      ],
-      "requires_los": false,
-      "collateral_risk": "low"
-    },
-    {
-      "catalog_id": "gps_spoofer",
-      "name": "GPS Spoofer",
-      "type": "rf_jam",
-      "range_km": 2.5,
-      "fov_deg": 360,
-      "recharge_seconds": 12,
-      "single_use": false,
-      "description": "Broadcasts false GPS signals to redirect GPS-dependent UAS. Can divert drones to safe zone.",
-      "pros": [
-        "Redirects rather than destroys",
-        "Rechargeable",
-        "Good range"
-      ],
-      "cons": [
-        "GPS-dependent targets only",
-        "Collateral GPS disruption",
-        "Sophisticated UAS immune"
-      ],
+      "description": "Radio frequency and Position/Navigation/Timing jammer. Disrupts UAS command links and GPS navigation. Effective against commercial drones.",
+      "pros": ["Rechargeable", "Low collateral", "Effective vs commercial UAS"],
+      "cons": ["Limited range", "Ineffective vs autonomous UAS", "Can affect friendly GPS"],
       "requires_los": false,
       "collateral_risk": "medium"
     },
     {
-      "catalog_id": "coyote_blk3",
-      "name": "Coyote Block 3",
+      "catalog_id": "coyote_pallet",
+      "name": "Coyote Block 2C Pallet",
       "type": "kinetic",
-      "range_km": 3.0,
+      "range_km": 5.0,
       "fov_deg": 360,
       "recharge_seconds": 0,
       "single_use": true,
-      "description": "Small kinetic interceptor missile. High probability of kill against all UAS types. Single-use expendable.",
-      "pros": [
-        "High effectiveness",
-        "All target types",
-        "Good range"
-      ],
-      "cons": [
-        "Single-use",
-        "Expensive",
-        "Collateral debris risk",
-        "ROE restrictions"
-      ],
+      "description": "Tube-launched interceptor guided by KURFS radar. Proximity-fused warhead. 4 interceptors per pallet. Requires KURFS for mid-course guidance.",
+      "pros": ["High Pk against all UAS types", "Fire-and-forget after launch", "Works vs autonomous UAS"],
+      "cons": ["Single-use (4 per pallet)", "Requires KURFS radar", "Self-destructs if intercept fails"],
       "requires_los": false,
-      "collateral_risk": "high"
-    },
-    {
-      "catalog_id": "madis_stinger",
-      "name": "MADIS Stinger",
-      "type": "kinetic",
-      "range_km": 2.0,
-      "fov_deg": 360,
-      "recharge_seconds": 0,
-      "single_use": true,
-      "description": "Man-portable shoulder-launched surface-to-air missile. Infrared homing. Requires skilled operator.",
-      "pros": [
-        "Proven system",
-        "High kill probability",
-        "Mobile"
-      ],
-      "cons": [
-        "Single-use",
-        "Requires trained gunner",
-        "Minimum range",
-        "ROE restrictions"
-      ],
-      "requires_los": true,
-      "collateral_risk": "high"
-    },
-    {
-      "catalog_id": "net_interceptor",
-      "name": "Drone Interceptor / Net Gun",
-      "type": "net_interceptor",
-      "range_km": 1.5,
-      "fov_deg": 360,
-      "recharge_seconds": 0,
-      "single_use": true,
-      "description": "Counter-drone interceptor that captures targets with deployed net. Low collateral, preserves evidence.",
-      "pros": [
-        "Low collateral",
-        "Captures target intact",
-        "Evidence preservation"
-      ],
-      "cons": [
-        "Single-use",
-        "Short range",
-        "Less effective vs fast targets"
-      ],
-      "requires_los": false,
-      "collateral_risk": "low"
-    },
-    {
-      "catalog_id": "helws",
-      "name": "HELWS / Directed Energy",
-      "type": "directed_energy",
-      "range_km": 1.0,
-      "fov_deg": 90,
-      "recharge_seconds": 15,
-      "single_use": false,
-      "description": "High-Energy Laser Weapon System. Burns through UAS components. Requires line of sight and dwell time.",
-      "pros": [
-        "Rechargeable",
-        "Low cost per shot",
-        "Precise",
-        "All target types"
-      ],
-      "cons": [
-        "Short range",
-        "Requires LOS",
-        "Weather dependent",
-        "Slow engagement"
-      ],
-      "requires_los": true,
-      "collateral_risk": "low"
-    },
-    {
-      "catalog_id": "lmadis_ew",
-      "name": "LMADIS EW Suite",
-      "type": "rf_jam",
-      "range_km": 3.0,
-      "fov_deg": 360,
-      "recharge_seconds": 8,
-      "single_use": false,
-      "description": "Light Marine Air Defense Integrated System. Combined jamming and spoofing electronic warfare package.",
-      "pros": [
-        "Jam + spoof combo",
-        "Good range",
-        "Rechargeable",
-        "Mobile"
-      ],
-      "cons": [
-        "Electronic targets only",
-        "Friendly comms disruption",
-        "Large footprint"
-      ],
-      "requires_los": false,
-      "collateral_risk": "medium"
-    },
-    {
-      "catalog_id": "prox_30mm",
-      "name": "30mm Proximity Round",
-      "type": "kinetic",
-      "range_km": 2.0,
-      "fov_deg": 120,
-      "recharge_seconds": 3,
-      "single_use": false,
-      "description": "Autocannon firing proximity-fused rounds. Area effect engagement. High collateral risk.",
-      "pros": [
-        "Multi-shot",
-        "Area effect",
-        "Fast engagement"
-      ],
-      "cons": [
-        "High collateral risk",
-        "Requires LOS",
-        "Noisy",
-        "Debris field"
-      ],
-      "requires_los": true,
-      "collateral_risk": "very_high"
-    },
-    {
-      "catalog_id": "hmg_50cal",
-      "name": ".50 Cal HMG",
-      "type": "kinetic",
-      "range_km": 1.5,
-      "fov_deg": 180,
-      "recharge_seconds": 2,
-      "single_use": false,
-      "description": "Heavy machine gun with optical sight. Direct fire weapon requiring skilled gunner. Last-resort defense.",
-      "pros": [
-        "Multi-shot",
-        "Proven weapon",
-        "Cheap ammo"
-      ],
-      "cons": [
-        "Requires skilled gunner",
-        "Direct fire only",
-        "High collateral",
-        "Short effective range vs UAS"
-      ],
-      "requires_los": true,
-      "collateral_risk": "very_high"
-    },
-    {
-      "catalog_id": "shotgun_shell",
-      "name": "Counter-Drone Shotgun",
-      "type": "kinetic",
-      "range_km": 0.3,
-      "fov_deg": 120,
-      "recharge_seconds": 2,
-      "single_use": false,
-      "description": "12-gauge with specialized counter-drone shells. Very short range last resort. Requires manual aiming.",
-      "pros": [
-        "Very cheap",
-        "Easy to use",
-        "Multi-shot"
-      ],
-      "cons": [
-        "Very short range",
-        "Last resort only",
-        "Low kill probability at range"
-      ],
-      "requires_los": true,
-      "collateral_risk": "medium"
+      "collateral_risk": "low",
+      "ammo_count": 4
     }
   ]
 }

@@ -80,6 +80,12 @@ def _effector_effectiveness(effector_type: str, drone_type: str) -> float:
             "micro": 0.7,
             "swarm": 0.6,
         },
+        "electronic": {
+            "commercial_quad": 0.9,
+            "fixed_wing": 0.4,
+            "micro": 0.7,
+            "swarm": 0.6,
+        },
         "kinetic": {
             "commercial_quad": 0.95,
             "fixed_wing": 0.8,
@@ -100,6 +106,28 @@ def _effector_effectiveness(effector_type: str, drone_type: str) -> float:
         },
     }
     return matrix.get(effector_type, {}).get(drone_type, 0.5)
+
+
+def _check_kurfs_tracking(sensor_configs: list[SensorConfig], drone: "DroneState") -> bool:
+    """Check if any KURFS radar has the drone in its sector."""
+    for s in sensor_configs:
+        if s.type != SensorType.RADAR:
+            continue
+        # KURFS has limited FOV (< 360)
+        if s.fov_deg >= 360:
+            continue
+        # Check range
+        dist = math.sqrt((drone.x - s.x) ** 2 + (drone.y - s.y) ** 2)
+        if dist > s.range_km:
+            continue
+        # Check FOV
+        dx = drone.x - s.x
+        dy = drone.y - s.y
+        bearing = math.degrees(math.atan2(dx, dy)) % 360
+        diff = abs(((bearing - s.facing_deg) + 180) % 360 - 180)
+        if diff <= s.fov_deg / 2:
+            return True
+    return False
 
 
 def _threat_level(drones: list[DroneState]) -> str:
@@ -180,6 +208,8 @@ def _build_effectors_from_placement(
             facing_deg=placed.facing_deg,
             requires_los=cat.requires_los,
             single_use=cat.single_use,
+            ammo_count=cat.ammo_count,
+            ammo_remaining=cat.ammo_count,
         ))
     return effectors
 
@@ -273,6 +303,8 @@ async def game_websocket(ws: WebSocket):
                 "facing_deg": eff.facing_deg,
                 "requires_los": eff.requires_los,
                 "single_use": eff.single_use,
+                "ammo_count": eff.ammo_count,
+                "ammo_remaining": eff.ammo_remaining,
             })
 
         # Sensor runtime state (for detecting lists)
@@ -348,6 +380,8 @@ async def game_websocket(ws: WebSocket):
                     "y": e.y,
                     "fov_deg": e.fov_deg,
                     "facing_deg": e.facing_deg,
+                    **({"ammo_count": e.ammo_count} if e.ammo_count is not None else {}),
+                    **({"ammo_remaining": e.ammo_remaining} if e.ammo_remaining is not None else {}),
                 }
                 for e in effector_configs_list
             ],
@@ -618,6 +652,8 @@ async def game_websocket(ws: WebSocket):
                     {
                         "id": es["id"],
                         "status": es["status"],
+                        **({"ammo_count": es["ammo_count"]} if es.get("ammo_count") is not None else {}),
+                        **({"ammo_remaining": es["ammo_remaining"]} if es.get("ammo_remaining") is not None else {}),
                     }
                     for es in effector_states
                 ],
@@ -765,7 +801,15 @@ async def game_websocket(ws: WebSocket):
                             eff_state = _find_effector_config(effector_states, effector_id)
 
                             if eff_state and eff_state["status"] == "ready":
-                              for j, d in enumerate(drones):
+                              # Check ammo for pallet-based effectors
+                              if eff_state.get("ammo_remaining") is not None and eff_state["ammo_remaining"] <= 0:
+                                  await ws.send_json({
+                                      "type": "event",
+                                      "timestamp": round(elapsed, 1),
+                                      "message": f"ENGAGEMENT: {eff_state['name']} — DEPLETED (no ammo remaining)",
+                                  })
+                              else:
+                               for j, d in enumerate(drones):
                                 if d.id == target_id:
                                     # Check range
                                     if not _check_effector_in_range(eff_state, d):
@@ -775,6 +819,16 @@ async def game_websocket(ws: WebSocket):
                                             "message": f"ENGAGEMENT: {eff_state['name']} — Target out of range",
                                         })
                                         break
+
+                                    # Coyote requires KURFS radar tracking
+                                    if eff_state.get("ammo_count") is not None and eff_state["type"] == "kinetic":
+                                        if not _check_kurfs_tracking(sensor_configs, d):
+                                            await ws.send_json({
+                                                "type": "event",
+                                                "timestamp": round(elapsed, 1),
+                                                "message": "ENGAGEMENT: NO KURFS TRACK \u2014 CANNOT GUIDE INTERCEPTOR",
+                                            })
+                                            break
 
                                     effectiveness = _effector_effectiveness(
                                         eff_state["type"], d.drone_type.value
@@ -793,8 +847,13 @@ async def game_websocket(ws: WebSocket):
                                         timestamp=elapsed,
                                     ))
 
-                                    # Handle effector recharge/single-use
-                                    if eff_state.get("single_use") or eff_state["recharge_seconds"] == 0:
+                                    # Decrement ammo if applicable
+                                    if eff_state.get("ammo_remaining") is not None:
+                                        eff_state["ammo_remaining"] -= 1
+                                        if eff_state["ammo_remaining"] <= 0:
+                                            eff_state["status"] = "depleted"
+                                    # Handle effector recharge/single-use (non-ammo)
+                                    elif eff_state.get("single_use") or eff_state["recharge_seconds"] == 0:
                                         eff_state["status"] = "offline"
                                     elif eff_state["recharge_seconds"] > 0:
                                         eff_state["status"] = "recharging"
