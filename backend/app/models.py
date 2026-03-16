@@ -33,6 +33,7 @@ class ThreatClassification(str, Enum):
     BIRD = "bird"
     WEATHER_BALLOON = "weather_balloon"
     IMPROVISED = "improvised"
+    PASSENGER_AIRCRAFT = "passenger_aircraft"
 
 
 class SensorType(str, Enum):

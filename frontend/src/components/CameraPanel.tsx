@@ -69,152 +69,538 @@ function angleDiff(a: number, b: number): number {
 }
 
 // ---------------------------------------------------------------------------
-// Silhouette drawing helpers
+// Silhouette drawing helpers — all accept `time` (seconds) for animation
 // ---------------------------------------------------------------------------
 
-function drawCommercialQuad(ctx: CanvasRenderingContext2D, s: number) {
+function drawCommercialQuad(ctx: CanvasRenderingContext2D, s: number, time: number) {
+  // Hover wobble
+  const wobbleY = Math.sin(time * 3.2) * 1.5 * s;
+  const wobbleRot = Math.sin(time * 2.1) * 0.04;
+  ctx.save();
+  ctx.translate(0, wobbleY);
+  ctx.rotate(wobbleRot);
+
   const armLen = 28 * s;
-  const rotorR = 8 * s;
-  const bodyW = 12 * s;
-  const bodyH = 8 * s;
+  const armW = Math.max(1, 2.5 * s);
+  const bodyW = 14 * s;
+  const bodyH = 10 * s;
+  const rotorR = 10 * s;
 
-  ctx.fillRect(-bodyW / 2, -bodyH / 2, bodyW, bodyH);
+  // Landing gear legs
+  ctx.lineWidth = Math.max(1, 2 * s);
+  ctx.beginPath();
+  ctx.moveTo(-bodyW * 0.6, bodyH / 2);
+  ctx.lineTo(-bodyW * 0.8, bodyH / 2 + 12 * s);
+  ctx.moveTo(bodyW * 0.6, bodyH / 2);
+  ctx.lineTo(bodyW * 0.8, bodyH / 2 + 12 * s);
+  ctx.stroke();
+  // Landing skids
+  ctx.lineWidth = Math.max(1, 2.5 * s);
+  ctx.beginPath();
+  ctx.moveTo(-bodyW * 1.1, bodyH / 2 + 12 * s);
+  ctx.lineTo(-bodyW * 0.4, bodyH / 2 + 12 * s);
+  ctx.moveTo(bodyW * 0.4, bodyH / 2 + 12 * s);
+  ctx.lineTo(bodyW * 1.1, bodyH / 2 + 12 * s);
+  ctx.stroke();
 
-  const angles = [Math.PI / 4, (3 * Math.PI) / 4, (5 * Math.PI) / 4, (7 * Math.PI) / 4];
-  for (const a of angles) {
+  // Central body (rounded rectangle)
+  const cr = 3 * s;
+  ctx.beginPath();
+  ctx.moveTo(-bodyW / 2 + cr, -bodyH / 2);
+  ctx.lineTo(bodyW / 2 - cr, -bodyH / 2);
+  ctx.quadraticCurveTo(bodyW / 2, -bodyH / 2, bodyW / 2, -bodyH / 2 + cr);
+  ctx.lineTo(bodyW / 2, bodyH / 2 - cr);
+  ctx.quadraticCurveTo(bodyW / 2, bodyH / 2, bodyW / 2 - cr, bodyH / 2);
+  ctx.lineTo(-bodyW / 2 + cr, bodyH / 2);
+  ctx.quadraticCurveTo(-bodyW / 2, bodyH / 2, -bodyW / 2, bodyH / 2 - cr);
+  ctx.lineTo(-bodyW / 2, -bodyH / 2 + cr);
+  ctx.quadraticCurveTo(-bodyW / 2, -bodyH / 2, -bodyW / 2 + cr, -bodyH / 2);
+  ctx.closePath();
+  ctx.fill();
+
+  // Camera/gimbal bump underneath
+  ctx.beginPath();
+  ctx.ellipse(0, bodyH / 2 + 3 * s, 4 * s, 3 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Arms + spinning rotors
+  const armAngles = [Math.PI / 4, (3 * Math.PI) / 4, (5 * Math.PI) / 4, (7 * Math.PI) / 4];
+  for (let i = 0; i < armAngles.length; i++) {
+    const a = armAngles[i];
     const ex = Math.cos(a) * armLen;
     const ey = Math.sin(a) * armLen;
+
+    // Arm
+    ctx.lineWidth = armW;
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.lineTo(ex, ey);
     ctx.stroke();
+
+    // Motor hub
+    ctx.beginPath();
+    ctx.arc(ex, ey, 3 * s, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Spinning rotor blades (2 blades per rotor, different phase per rotor)
+    const rotorSpeed = 18; // rad/s
+    const phase = time * rotorSpeed + i * (Math.PI / 2);
+    ctx.lineWidth = Math.max(1, 2.2 * s);
+    ctx.globalAlpha = 0.7;
+    for (let b = 0; b < 2; b++) {
+      const bladeAngle = phase + b * Math.PI;
+      const bx1 = ex + Math.cos(bladeAngle) * rotorR;
+      const by1 = ey + Math.sin(bladeAngle) * rotorR;
+      const bx2 = ex - Math.cos(bladeAngle) * rotorR;
+      const by2 = ey - Math.sin(bladeAngle) * rotorR;
+      ctx.beginPath();
+      ctx.moveTo(bx1, by1);
+      ctx.lineTo(bx2, by2);
+      ctx.stroke();
+    }
+    // Rotor disc (motion blur circle)
+    ctx.globalAlpha = 0.15;
     ctx.beginPath();
     ctx.arc(ex, ey, rotorR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.restore();
+}
+
+function drawFixedWing(ctx: CanvasRenderingContext2D, s: number, time: number) {
+  // Slight bank/roll oscillation
+  const bankAngle = Math.sin(time * 1.5) * 0.06;
+  ctx.save();
+  ctx.rotate(bankAngle);
+
+  // Narrow fuselage
+  const fuseL = 44 * s;
+  const fuseW = 5 * s;
+  ctx.beginPath();
+  ctx.moveTo(fuseL / 2 + 4 * s, 0); // nose point
+  ctx.lineTo(fuseL / 2, -fuseW / 2);
+  ctx.lineTo(-fuseL / 2, -fuseW / 2);
+  ctx.lineTo(-fuseL / 2 - 2 * s, 0);
+  ctx.lineTo(-fuseL / 2, fuseW / 2);
+  ctx.lineTo(fuseL / 2, fuseW / 2);
+  ctx.closePath();
+  ctx.fill();
+
+  // Delta/swept wings
+  ctx.beginPath();
+  ctx.moveTo(8 * s, 0);
+  ctx.lineTo(-12 * s, -32 * s);
+  ctx.lineTo(-18 * s, -30 * s);
+  ctx.lineTo(-6 * s, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(8 * s, 0);
+  ctx.lineTo(-12 * s, 32 * s);
+  ctx.lineTo(-18 * s, 30 * s);
+  ctx.lineTo(-6 * s, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  // V-tail
+  ctx.beginPath();
+  ctx.moveTo(-fuseL / 2, 0);
+  ctx.lineTo(-fuseL / 2 - 8 * s, -12 * s);
+  ctx.lineTo(-fuseL / 2 - 4 * s, -11 * s);
+  ctx.lineTo(-fuseL / 2 + 2 * s, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(-fuseL / 2, 0);
+  ctx.lineTo(-fuseL / 2 - 8 * s, 12 * s);
+  ctx.lineTo(-fuseL / 2 - 4 * s, 11 * s);
+  ctx.lineTo(-fuseL / 2 + 2 * s, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  // Rear propeller (spinning)
+  const propR = 7 * s;
+  const propPhase = time * 22;
+  const px = -fuseL / 2 - 2 * s;
+  ctx.lineWidth = Math.max(1, 2 * s);
+  ctx.globalAlpha = 0.7;
+  for (let b = 0; b < 3; b++) {
+    const ba = propPhase + b * (Math.PI * 2 / 3);
+    ctx.beginPath();
+    ctx.moveTo(px + Math.cos(ba) * propR, Math.sin(ba) * propR);
+    ctx.lineTo(px - Math.cos(ba) * propR, -Math.sin(ba) * propR);
     ctx.stroke();
   }
+  // Prop disc blur
+  ctx.globalAlpha = 0.12;
+  ctx.beginPath();
+  ctx.arc(px, 0, propR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  ctx.restore();
 }
 
-function drawFixedWing(ctx: CanvasRenderingContext2D, s: number) {
-  const fuseL = 40 * s;
-  const fuseW = 6 * s;
-  ctx.fillRect(-fuseL / 2, -fuseW / 2, fuseL, fuseW);
+function drawPassengerAircraft(ctx: CanvasRenderingContext2D, s: number, time: number) {
+  // Very steady — large aircraft, minimal movement
+  const drift = Math.sin(time * 0.5) * 0.01;
+  ctx.save();
+  ctx.rotate(drift);
 
+  // Scale up — much larger than drones
+  const sc = s * 1.8;
+
+  // Tube fuselage
+  const fuseL = 55 * sc;
+  const fuseW = 7 * sc;
   ctx.beginPath();
-  ctx.moveTo(-4 * s, 0);
-  ctx.lineTo(-22 * s, -28 * s);
-  ctx.lineTo(-16 * s, -28 * s);
-  ctx.lineTo(4 * s, 0);
+  ctx.moveTo(fuseL / 2 + 6 * sc, 0); // nose cone
+  ctx.quadraticCurveTo(fuseL / 2 + 2 * sc, -fuseW / 2, fuseL / 2, -fuseW / 2);
+  ctx.lineTo(-fuseL / 2, -fuseW / 2);
+  ctx.lineTo(-fuseL / 2 - 3 * sc, 0);
+  ctx.lineTo(-fuseL / 2, fuseW / 2);
+  ctx.lineTo(fuseL / 2, fuseW / 2);
+  ctx.quadraticCurveTo(fuseL / 2 + 2 * sc, fuseW / 2, fuseL / 2 + 6 * sc, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  // Swept wings
+  ctx.beginPath();
+  ctx.moveTo(6 * sc, -fuseW / 2);
+  ctx.lineTo(-10 * sc, -38 * sc);
+  ctx.lineTo(-16 * sc, -38 * sc);
+  ctx.lineTo(-8 * sc, -fuseW / 2);
   ctx.closePath();
   ctx.fill();
 
   ctx.beginPath();
-  ctx.moveTo(-4 * s, 0);
-  ctx.lineTo(-22 * s, 28 * s);
-  ctx.lineTo(-16 * s, 28 * s);
-  ctx.lineTo(4 * s, 0);
+  ctx.moveTo(6 * sc, fuseW / 2);
+  ctx.lineTo(-10 * sc, 38 * sc);
+  ctx.lineTo(-16 * sc, 38 * sc);
+  ctx.lineTo(-8 * sc, fuseW / 2);
+  ctx.closePath();
+  ctx.fill();
+
+  // Engine nacelles (under wings)
+  const engY1 = -16 * sc;
+  const engY2 = 16 * sc;
+  const engX = -2 * sc;
+  const engL = 10 * sc;
+  const engW = 4 * sc;
+
+  // Left engine
+  ctx.beginPath();
+  ctx.ellipse(engX, engY1, engL / 2, engW / 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Pylon
+  ctx.fillRect(engX - 1 * sc, engY1 + engW / 2, 2 * sc, Math.abs(engY1) - fuseW / 2 - engW / 2);
+
+  // Right engine
+  ctx.beginPath();
+  ctx.ellipse(engX, engY2, engL / 2, engW / 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Pylon
+  ctx.fillRect(engX - 1 * sc, fuseW / 2, 2 * sc, engY2 - fuseW / 2 - engW / 2);
+
+  // T-tail vertical stabilizer
+  ctx.beginPath();
+  ctx.moveTo(-fuseL / 2, -fuseW / 2);
+  ctx.lineTo(-fuseL / 2 - 5 * sc, -fuseW / 2 - 14 * sc);
+  ctx.lineTo(-fuseL / 2 - 2 * sc, -fuseW / 2 - 14 * sc);
+  ctx.lineTo(-fuseL / 2 + 3 * sc, -fuseW / 2);
+  ctx.closePath();
+  ctx.fill();
+
+  // T-tail horizontal stabilizer
+  const tailY = -fuseW / 2 - 13 * sc;
+  ctx.beginPath();
+  ctx.moveTo(-fuseL / 2 - 3 * sc, tailY);
+  ctx.lineTo(-fuseL / 2 - 8 * sc, tailY - 8 * sc);
+  ctx.lineTo(-fuseL / 2 - 6 * sc, tailY - 8 * sc);
+  ctx.lineTo(-fuseL / 2 - 1 * sc, tailY);
   ctx.closePath();
   ctx.fill();
 
   ctx.beginPath();
-  ctx.moveTo(-fuseL / 2, 0);
-  ctx.lineTo(-fuseL / 2 - 6 * s, -10 * s);
-  ctx.lineTo(-fuseL / 2 - 3 * s, -10 * s);
-  ctx.lineTo(-fuseL / 2 + 2 * s, 0);
+  ctx.moveTo(-fuseL / 2 - 3 * sc, tailY);
+  ctx.lineTo(-fuseL / 2 - 8 * sc, tailY + 8 * sc);
+  ctx.lineTo(-fuseL / 2 - 6 * sc, tailY + 8 * sc);
+  ctx.lineTo(-fuseL / 2 - 1 * sc, tailY);
   ctx.closePath();
   ctx.fill();
 
+  // Cockpit windows (subtle bright spot)
+  ctx.globalAlpha = 0.4;
   ctx.beginPath();
-  ctx.moveTo(-fuseL / 2, 0);
-  ctx.lineTo(-fuseL / 2 - 6 * s, 10 * s);
-  ctx.lineTo(-fuseL / 2 - 3 * s, 10 * s);
-  ctx.lineTo(-fuseL / 2 + 2 * s, 0);
-  ctx.closePath();
+  ctx.ellipse(fuseL / 2 + 2 * sc, -1 * sc, 3 * sc, 2 * sc, 0.2, 0, Math.PI * 2);
   ctx.fill();
+  ctx.globalAlpha = 1;
+
+  ctx.restore();
 }
 
-function drawMicro(ctx: CanvasRenderingContext2D, s: number) {
-  const armLen = 14 * s;
+function drawMicro(ctx: CanvasRenderingContext2D, s: number, time: number) {
+  // Fast jitter — micro drones are twitchy
+  const jitterX = (Math.sin(time * 25) + Math.sin(time * 37)) * 1.2 * s;
+  const jitterY = (Math.cos(time * 31) + Math.cos(time * 19)) * 1.0 * s;
+  const jitterRot = Math.sin(time * 15) * 0.08;
+  ctx.save();
+  ctx.translate(jitterX, jitterY);
+  ctx.rotate(jitterRot);
+
+  const armLen = 12 * s;
   const rotorR = 4 * s;
-  const bodyR = 4 * s;
+  const bodyR = 3 * s;
 
+  // Tiny central body
   ctx.beginPath();
   ctx.arc(0, 0, bodyR, 0, Math.PI * 2);
   ctx.fill();
 
+  // X-frame arms + spinning rotors
   const angles = [Math.PI / 4, (3 * Math.PI) / 4, (5 * Math.PI) / 4, (7 * Math.PI) / 4];
-  for (const a of angles) {
+  ctx.lineWidth = Math.max(1, 1.5 * s);
+  for (let i = 0; i < angles.length; i++) {
+    const a = angles[i];
     const ex = Math.cos(a) * armLen;
     const ey = Math.sin(a) * armLen;
+
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.lineTo(ex, ey);
     ctx.stroke();
+
+    // Motor dot
+    ctx.beginPath();
+    ctx.arc(ex, ey, 1.5 * s, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Spinning blades
+    const phase = time * 24 + i * 1.2;
+    ctx.globalAlpha = 0.6;
+    for (let b = 0; b < 2; b++) {
+      const ba = phase + b * Math.PI;
+      ctx.beginPath();
+      ctx.moveTo(ex + Math.cos(ba) * rotorR, ey + Math.sin(ba) * rotorR);
+      ctx.lineTo(ex - Math.cos(ba) * rotorR, ey - Math.sin(ba) * rotorR);
+      ctx.stroke();
+    }
+    // Blur disc
+    ctx.globalAlpha = 0.1;
     ctx.beginPath();
     ctx.arc(ex, ey, rotorR, 0, Math.PI * 2);
-    ctx.stroke();
+    ctx.fill();
+    ctx.globalAlpha = 1;
   }
+
+  ctx.restore();
 }
 
-function drawBird(ctx: CanvasRenderingContext2D, s: number) {
+function drawBird(ctx: CanvasRenderingContext2D, s: number, time: number) {
+  // Wing flapping cycle ~3 Hz
+  const flapPhase = time * Math.PI * 6; // 3 Hz full cycle
+  const flapAngle = Math.sin(flapPhase) * 0.6; // wing deflection in radians
+  // Slight body wobble from flapping
+  const bodyBob = Math.sin(flapPhase) * 2 * s;
+  const bodyTilt = Math.sin(flapPhase + 0.5) * 0.05;
+
+  ctx.save();
+  ctx.translate(0, bodyBob);
+  ctx.rotate(bodyTilt);
+
+  // Streamlined body
   ctx.beginPath();
-  ctx.ellipse(0, 0, 18 * s, 8 * s, 0, 0, Math.PI * 2);
+  ctx.ellipse(0, 0, 14 * s, 6 * s, 0, 0, Math.PI * 2);
   ctx.fill();
 
+  // Head
   ctx.beginPath();
-  ctx.arc(20 * s, -2 * s, 5 * s, 0, Math.PI * 2);
+  ctx.ellipse(16 * s, -1.5 * s, 5 * s, 4 * s, 0, 0, Math.PI * 2);
   ctx.fill();
 
+  // Beak
   ctx.beginPath();
-  ctx.moveTo(-4 * s, -6 * s);
-  ctx.quadraticCurveTo(-12 * s, -34 * s, -28 * s, -18 * s);
-  ctx.lineTo(-8 * s, -6 * s);
+  ctx.moveTo(20 * s, -2 * s);
+  ctx.lineTo(25 * s, -1.5 * s);
+  ctx.lineTo(20 * s, 0);
   ctx.closePath();
   ctx.fill();
 
+  // Tail feathers
   ctx.beginPath();
-  ctx.moveTo(-4 * s, 6 * s);
-  ctx.quadraticCurveTo(-12 * s, 34 * s, -28 * s, 18 * s);
-  ctx.lineTo(-8 * s, 6 * s);
+  ctx.moveTo(-14 * s, -2 * s);
+  ctx.lineTo(-24 * s, -5 * s);
+  ctx.lineTo(-22 * s, 0);
+  ctx.lineTo(-24 * s, 5 * s);
+  ctx.lineTo(-14 * s, 2 * s);
   ctx.closePath();
   ctx.fill();
+
+  // Left wing (flapping)
+  ctx.save();
+  ctx.translate(0, -5 * s);
+  ctx.rotate(-flapAngle);
+  ctx.beginPath();
+  ctx.moveTo(4 * s, 0);
+  ctx.quadraticCurveTo(0, -18 * s, -10 * s, -30 * s);
+  ctx.lineTo(-14 * s, -28 * s);
+  ctx.quadraticCurveTo(-6 * s, -14 * s, -8 * s, 0);
+  ctx.closePath();
+  ctx.fill();
+  // Feather tips
+  ctx.lineWidth = Math.max(1, 1.2 * s);
+  ctx.beginPath();
+  ctx.moveTo(-10 * s, -28 * s);
+  ctx.lineTo(-16 * s, -32 * s);
+  ctx.moveTo(-7 * s, -24 * s);
+  ctx.lineTo(-14 * s, -30 * s);
+  ctx.stroke();
+  ctx.restore();
+
+  // Right wing (flapping — mirrored)
+  ctx.save();
+  ctx.translate(0, 5 * s);
+  ctx.rotate(flapAngle);
+  ctx.beginPath();
+  ctx.moveTo(4 * s, 0);
+  ctx.quadraticCurveTo(0, 18 * s, -10 * s, 30 * s);
+  ctx.lineTo(-14 * s, 28 * s);
+  ctx.quadraticCurveTo(-6 * s, 14 * s, -8 * s, 0);
+  ctx.closePath();
+  ctx.fill();
+  // Feather tips
+  ctx.lineWidth = Math.max(1, 1.2 * s);
+  ctx.beginPath();
+  ctx.moveTo(-10 * s, 28 * s);
+  ctx.lineTo(-16 * s, 32 * s);
+  ctx.moveTo(-7 * s, 24 * s);
+  ctx.lineTo(-14 * s, 30 * s);
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.restore();
 }
 
-function drawBalloon(ctx: CanvasRenderingContext2D, s: number) {
+function drawBalloon(ctx: CanvasRenderingContext2D, s: number, time: number) {
+  // Gentle sway
+  const swayX = Math.sin(time * 0.8) * 3 * s;
+  const swayRot = Math.sin(time * 0.6) * 0.04;
+  ctx.save();
+  ctx.translate(swayX, 0);
+  ctx.rotate(swayRot);
+
+  // Large balloon envelope
   ctx.beginPath();
-  ctx.ellipse(0, -14 * s, 20 * s, 26 * s, 0, 0, Math.PI * 2);
+  ctx.ellipse(0, -16 * s, 22 * s, 28 * s, 0, 0, Math.PI * 2);
   ctx.fill();
 
+  // Balloon highlight (thermal hotspot)
+  ctx.globalAlpha = 0.15;
   ctx.beginPath();
-  ctx.moveTo(0, 12 * s);
-  ctx.lineTo(0, 36 * s);
+  ctx.ellipse(-5 * s, -22 * s, 8 * s, 12 * s, -0.3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // Neck/skirt at bottom of balloon
+  ctx.beginPath();
+  ctx.moveTo(-6 * s, 11 * s);
+  ctx.lineTo(-4 * s, 16 * s);
+  ctx.lineTo(4 * s, 16 * s);
+  ctx.lineTo(6 * s, 11 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // Tether lines (slight sway)
+  const tetherSway = Math.sin(time * 1.2 + 1) * 2 * s;
+  ctx.lineWidth = Math.max(1, 1 * s);
+  ctx.beginPath();
+  ctx.moveTo(-2 * s, 16 * s);
+  ctx.quadraticCurveTo(tetherSway, 28 * s, 0, 40 * s);
+  ctx.moveTo(2 * s, 16 * s);
+  ctx.quadraticCurveTo(tetherSway * 0.7, 28 * s, 0, 40 * s);
   ctx.stroke();
 
-  ctx.fillRect(-6 * s, 36 * s, 12 * s, 8 * s);
+  // Payload box
+  ctx.fillRect(-7 * s, 40 * s, 14 * s, 9 * s);
+
+  // Payload antenna
+  ctx.lineWidth = Math.max(1, 0.8 * s);
+  ctx.beginPath();
+  ctx.moveTo(0, 40 * s);
+  ctx.lineTo(0, 36 * s);
+  ctx.moveTo(-3 * s, 36 * s);
+  ctx.lineTo(3 * s, 36 * s);
+  ctx.stroke();
+
+  ctx.restore();
 }
 
-function drawImprovised(ctx: CanvasRenderingContext2D, s: number) {
+function drawImprovised(ctx: CanvasRenderingContext2D, s: number, time: number) {
+  // Slight wobble — improvised drones are unstable
+  const wobble = Math.sin(time * 4.5) * 0.06;
+  const drift = Math.sin(time * 2.3) * 1.5 * s;
+  ctx.save();
+  ctx.translate(drift, 0);
+  ctx.rotate(wobble);
+
+  // Irregular body
   ctx.beginPath();
   const pts: [number, number][] = [
-    [12 * s, -4 * s],
-    [8 * s, -16 * s],
-    [-6 * s, -14 * s],
-    [-16 * s, -2 * s],
-    [-10 * s, 12 * s],
-    [6 * s, 14 * s],
+    [14 * s, -5 * s],
+    [10 * s, -16 * s],
+    [-4 * s, -15 * s],
+    [-18 * s, -3 * s],
+    [-12 * s, 13 * s],
+    [8 * s, 15 * s],
   ];
   ctx.moveTo(pts[0][0], pts[0][1]);
   for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
   ctx.closePath();
   ctx.fill();
 
-  ctx.fillRect(12 * s, -8 * s, 10 * s, 4 * s);
-  ctx.fillRect(-16 * s, 4 * s, 8 * s, 3 * s);
-  ctx.fillRect(-2 * s, 14 * s, 5 * s, 9 * s);
+  // Strapped-on appendages
+  ctx.fillRect(14 * s, -9 * s, 12 * s, 5 * s);
+  ctx.fillRect(-18 * s, 5 * s, 10 * s, 4 * s);
+  ctx.fillRect(-3 * s, 15 * s, 6 * s, 10 * s);
+
+  // Spinning rotors (taped-on look, uneven)
+  const rotorPositions: [number, number][] = [
+    [-12 * s, -14 * s],
+    [10 * s, -14 * s],
+    [-14 * s, 12 * s],
+    [8 * s, 13 * s],
+  ];
+  ctx.lineWidth = Math.max(1, 1.5 * s);
+  for (let i = 0; i < rotorPositions.length; i++) {
+    const [rx, ry] = rotorPositions[i];
+    const rr = 6 * s;
+    const phase = time * (16 + i * 3) + i * 2; // uneven speeds
+    ctx.globalAlpha = 0.5;
+    for (let b = 0; b < 2; b++) {
+      const ba = phase + b * Math.PI;
+      ctx.beginPath();
+      ctx.moveTo(rx + Math.cos(ba) * rr, ry + Math.sin(ba) * rr);
+      ctx.lineTo(rx - Math.cos(ba) * rr, ry - Math.sin(ba) * rr);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 0.1;
+    ctx.beginPath();
+    ctx.arc(rx, ry, rr, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.restore();
 }
 
-function drawUnknownBlob(ctx: CanvasRenderingContext2D, s: number) {
+function drawUnknownBlob(ctx: CanvasRenderingContext2D, s: number, time: number) {
+  const pulse = 1 + Math.sin(time * 3) * 0.08;
   ctx.beginPath();
-  ctx.ellipse(0, 0, 16 * s, 12 * s, 0.3, 0, Math.PI * 2);
+  ctx.ellipse(0, 0, 16 * s * pulse, 12 * s * pulse, 0.3, 0, Math.PI * 2);
   ctx.fill();
 }
 
@@ -223,6 +609,7 @@ function drawSilhouette(
   classification: string | null,
   scale: number,
   mode: CameraMode,
+  time: number,
 ) {
   if (mode === "thermal") {
     ctx.fillStyle = "rgba(230,230,230,0.9)";
@@ -235,25 +622,28 @@ function drawSilhouette(
 
   switch (classification) {
     case "commercial_quad":
-      drawCommercialQuad(ctx, scale);
+      drawCommercialQuad(ctx, scale, time);
       break;
     case "fixed_wing":
-      drawFixedWing(ctx, scale);
+      drawFixedWing(ctx, scale, time);
+      break;
+    case "passenger_aircraft":
+      drawPassengerAircraft(ctx, scale, time);
       break;
     case "micro":
-      drawMicro(ctx, scale);
+      drawMicro(ctx, scale, time);
       break;
     case "bird":
-      drawBird(ctx, scale);
+      drawBird(ctx, scale, time);
       break;
     case "weather_balloon":
-      drawBalloon(ctx, scale);
+      drawBalloon(ctx, scale, time);
       break;
     case "improvised":
-      drawImprovised(ctx, scale);
+      drawImprovised(ctx, scale, time);
       break;
     default:
-      drawUnknownBlob(ctx, scale);
+      drawUnknownBlob(ctx, scale, time);
       break;
   }
 }
@@ -836,7 +1226,7 @@ export default function CameraPanel({
         ctx.shadowBlur = 5;
       }
 
-      drawSilhouette(ctx, vt.classification, scale, mode);
+      drawSilhouette(ctx, vt.classification, scale, mode, time);
       ctx.restore();
 
       drawNoise(ctx, w, h, noise, mode);
