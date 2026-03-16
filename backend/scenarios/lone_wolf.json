@@ -1,0 +1,43 @@
+{
+  "id": "lone_wolf",
+  "name": "Lone Wolf",
+  "description": "A single commercial quadcopter (DJI-class) on direct approach toward the protected asset. Low altitude, single target. Work through the DTID kill chain: detect, track, identify, and defeat the threat.",
+  "difficulty": "Easy",
+  "duration_seconds": 120,
+  "base_radius_km": 0.1,
+  "engagement_zones": {
+    "detection_range_km": 5.0,
+    "identification_range_km": 1.5,
+    "engagement_range_km": 2.5
+  },
+  "sensors": [
+    {"id": "radar", "name": "RADAR", "type": "radar", "range_km": 5.0, "status": "active"},
+    {"id": "rf_detector", "name": "RF DETECTOR", "type": "rf", "range_km": 3.0, "status": "active"},
+    {"id": "eoir", "name": "EO/IR CAMERA", "type": "eoir", "range_km": 1.5, "status": "active"},
+    {"id": "acoustic", "name": "ACOUSTIC", "type": "acoustic", "range_km": 0.8, "status": "active"}
+  ],
+  "effectors": [
+    {"id": "jammer", "name": "RF JAMMER", "type": "rf_jam", "range_km": 2.0, "status": "ready", "recharge_seconds": 10},
+    {"id": "kinetic", "name": "KINETIC", "type": "kinetic", "range_km": 1.5, "status": "ready", "recharge_seconds": 0},
+    {"id": "interceptor", "name": "INTERCEPTOR DRONE", "type": "net_interceptor", "range_km": 2.5, "status": "ready", "recharge_seconds": 0},
+    {"id": "de_weapon", "name": "DIRECTED ENERGY", "type": "directed_energy", "range_km": 1.0, "status": "ready", "recharge_seconds": 15}
+  ],
+  "correct_classification": "commercial_quad",
+  "correct_affiliation": "hostile",
+  "optimal_effectors": ["rf_jam", "net_interceptor"],
+  "acceptable_effectors": ["rf_jam", "net_interceptor", "directed_energy"],
+  "roe_violations": ["kinetic"],
+  "drones": [
+    {
+      "id": "bogey-1",
+      "drone_type": "commercial_quad",
+      "start_x": 3.5,
+      "start_y": 2.0,
+      "altitude": 150,
+      "speed": 35,
+      "heading": 225,
+      "behavior": "direct_approach",
+      "rf_emitting": true
+    }
+  ]
+}
