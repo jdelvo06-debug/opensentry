@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import HeaderBar from "./components/HeaderBar";
 import SensorPanel from "./components/SensorPanel";
 import EffectorPanel from "./components/EffectorPanel";
@@ -32,6 +32,96 @@ import type {
 } from "./types";
 
 const API_BASE = window.location.origin;
+
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { error: Error | null; errorInfo: React.ErrorInfo | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { error: null, errorInfo: null };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    this.setState({ error, errorInfo });
+    console.error("[ErrorBoundary] Caught render error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "#1a0000",
+            color: "#ff6b6b",
+            padding: 32,
+            overflow: "auto",
+            fontFamily: "monospace",
+          }}
+        >
+          <h2 style={{ color: "#ff4444", margin: "0 0 16px" }}>
+            RENDER ERROR
+          </h2>
+          <div
+            style={{
+              background: "#2d0000",
+              border: "1px solid #ff4444",
+              borderRadius: 6,
+              padding: 16,
+              marginBottom: 16,
+            }}
+          >
+            <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>
+              {this.state.error.message}
+            </div>
+            <pre
+              style={{
+                fontSize: 11,
+                color: "#cc8888",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+                margin: 0,
+              }}
+            >
+              {this.state.error.stack}
+            </pre>
+          </div>
+          {this.state.errorInfo && (
+            <div
+              style={{
+                background: "#2d0000",
+                border: "1px solid #662222",
+                borderRadius: 6,
+                padding: 16,
+              }}
+            >
+              <div
+                style={{ fontSize: 12, fontWeight: 700, marginBottom: 8, color: "#ff6b6b" }}
+              >
+                Component Stack
+              </div>
+              <pre
+                style={{
+                  fontSize: 11,
+                  color: "#cc8888",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  margin: 0,
+                }}
+              >
+                {this.state.errorInfo.componentStack}
+              </pre>
+            </div>
+          )}
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 export default function App() {
   // --- Flow state ---
@@ -128,21 +218,27 @@ export default function App() {
   const handleMessage = useCallback((msg: ServerMessage) => {
     switch (msg.type) {
       case "game_start":
-        setScenarioName(msg.scenario.name);
-        setSensors(msg.sensors);
-        setSensorConfigs(msg.sensors);
-        setEffectors(msg.effectors);
-        setEffectorConfigs(msg.effectors);
-        setEngagementZones(msg.engagement_zones);
-        setProtectedArea(msg.protected_area ?? null);
-        setIsTutorial(msg.tutorial ?? false);
-        setPhase("running");
-        setEvents([
-          {
-            timestamp: 0,
-            message: `SCENARIO LOADED: ${msg.scenario.name}`,
-          },
-        ]);
+        try {
+          console.log("[game_start] Received:", JSON.stringify(msg, null, 2));
+          setScenarioName(msg.scenario.name);
+          setSensors(msg.sensors);
+          setSensorConfigs(msg.sensors);
+          setEffectors(msg.effectors);
+          setEffectorConfigs(msg.effectors);
+          setEngagementZones(msg.engagement_zones);
+          setProtectedArea(msg.protected_area ?? null);
+          setIsTutorial(msg.tutorial ?? false);
+          setPhase("running");
+          setEvents([
+            {
+              timestamp: 0,
+              message: `SCENARIO LOADED: ${msg.scenario.name}`,
+            },
+          ]);
+        } catch (err) {
+          console.error("[game_start] Error processing game_start message:", err);
+          console.error("[game_start] Message was:", msg);
+        }
         break;
 
       case "state":
@@ -920,6 +1016,7 @@ export default function App() {
     cameraTrackId ? tracks.find((t) => t.id === cameraTrackId) || null : null;
 
   return (
+    <ErrorBoundary>
     <div
       style={{
         height: "100vh",
@@ -1142,5 +1239,6 @@ export default function App() {
         />
       )}
     </div>
+    </ErrorBoundary>
   );
 }
