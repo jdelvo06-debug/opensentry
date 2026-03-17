@@ -19,6 +19,7 @@ export interface TrackData {
   neutralized: boolean;
   coasting?: boolean;
   hold_fire?: boolean;
+  eta_protected?: number | null;
 }
 
 export interface SensorStatus {
@@ -84,6 +85,13 @@ export interface TutorialMsg {
   message: string;
 }
 
+export interface ProtectedAreaInfo {
+  center_x: number;
+  center_y: number;
+  radius_km: number;
+  warning_radius_km: number;
+}
+
 export interface GameStartMsg {
   type: "game_start";
   scenario: { name: string; description: string; difficulty: string };
@@ -92,6 +100,7 @@ export interface GameStartMsg {
   engagement_zones: EngagementZones;
   tutorial?: boolean;
   tutorial_prompts?: TutorialPrompt[];
+  protected_area?: ProtectedAreaInfo;
   base?: {
     id: string;
     name: string;

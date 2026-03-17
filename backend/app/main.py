@@ -390,6 +390,22 @@ async def game_websocket(ws: WebSocket):
             "tutorial_prompts": scenario.tutorial_prompts or [],
         }
 
+        # Compute protected area from base template assets
+        protected_area_center: tuple[float, float] = (0.0, 0.0)
+        protected_area_radius: float = 0.3  # default 300m
+        if base_template and base_template.protected_assets:
+            assets = base_template.protected_assets
+            cx = sum(a.x for a in assets) / len(assets)
+            cy = sum(a.y for a in assets) / len(assets)
+            protected_area_center = (cx, cy)
+            max_dist = max(
+                math.sqrt((a.x - cx) ** 2 + (a.y - cy) ** 2) for a in assets
+            )
+            protected_area_radius = max_dist + 0.15  # 150m buffer around outermost asset
+            protected_area_radius = max(protected_area_radius, 0.2)  # minimum 200m
+
+        warning_area_radius = protected_area_radius * 1.5
+
         # Include base template info if present
         if base_template:
             game_start_msg["base"] = {
@@ -399,6 +415,14 @@ async def game_websocket(ws: WebSocket):
                 "protected_assets": [a.model_dump() for a in base_template.protected_assets],
                 "terrain": [t.model_dump() for t in base_template.terrain],
             }
+
+        # Always include protected/warning area info
+        game_start_msg["protected_area"] = {
+            "center_x": protected_area_center[0],
+            "center_y": protected_area_center[1],
+            "radius_km": round(protected_area_radius, 3),
+            "warning_radius_km": round(warning_area_radius, 3),
+        }
 
         await ws.send_json(game_start_msg)
 
@@ -616,6 +640,17 @@ async def game_websocket(ws: WebSocket):
             tracks = []
             for drone in drones:
                 if drone.detected or drone.neutralized:
+                    # Calculate ETA to protected area edge
+                    eta_seconds: float | None = None
+                    if not drone.neutralized and drone.speed > 0:
+                        dx = drone.x - protected_area_center[0]
+                        dy = drone.y - protected_area_center[1]
+                        dist_to_center = math.sqrt(dx * dx + dy * dy)
+                        dist_to_edge = max(0.0, dist_to_center - protected_area_radius)
+                        speed_kms = drone.speed * 0.000514444  # knots to km/s
+                        if speed_kms > 0:
+                            eta_seconds = dist_to_edge / speed_kms
+
                     tracks.append({
                         "id": drone.id,
                         "dtid_phase": drone.dtid_phase.value,
@@ -632,6 +667,7 @@ async def game_websocket(ws: WebSocket):
                         "neutralized": drone.neutralized,
                         "coasting": drone.coasting,
                         "hold_fire": drone.id in hold_fire_tracks,
+                        "eta_protected": round(eta_seconds, 1) if eta_seconds is not None else None,
                     })
 
             state_msg = {

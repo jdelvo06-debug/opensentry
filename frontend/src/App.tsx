@@ -22,6 +22,7 @@ import type {
   EventEntry,
   GamePhase,
   PlacementConfig,
+  ProtectedAreaInfo,
   ScoreBreakdown,
   SensorStatus,
   ServerMessage,
@@ -68,6 +69,7 @@ export default function App() {
   const [droneReachedBase, setDroneReachedBase] = useState(false);
   const [engagementZones, setEngagementZones] =
     useState<EngagementZones | null>(null);
+  const [protectedArea, setProtectedArea] = useState<ProtectedAreaInfo | null>(null);
 
   // Camera panel
   const [cameraTrackId, setCameraTrackId] = useState<string | null>(null);
@@ -114,6 +116,7 @@ export default function App() {
         setEffectors(msg.effectors);
         setEffectorConfigs(msg.effectors);
         setEngagementZones(msg.engagement_zones);
+        setProtectedArea(msg.protected_area ?? null);
         setIsTutorial(msg.tutorial ?? false);
         setPhase("running");
         setEvents([
@@ -387,6 +390,7 @@ export default function App() {
     setEffectors([]);
     setEffectorConfigs([]);
     setEngagementZones(null);
+    setProtectedArea(null);
     setElapsed(0);
     setTimeRemaining(0);
     setThreatLevel("green");
@@ -417,6 +421,7 @@ export default function App() {
     setEffectors([]);
     setEffectorConfigs([]);
     setEngagementZones(null);
+    setProtectedArea(null);
     setElapsed(0);
     setTimeRemaining(0);
     setThreatLevel("green");
@@ -512,6 +517,7 @@ export default function App() {
       setEffectors([]);
       setEffectorConfigs([]);
       setEngagementZones(null);
+      setProtectedArea(null);
       setElapsed(0);
       setTimeRemaining(0);
       setThreatLevel("green");
@@ -827,6 +833,7 @@ export default function App() {
           onReleaseHoldFire={handleReleaseHoldFire}
           cameraTrackId={cameraTrackId}
           sensorConfigs={sensorConfigs}
+          protectedArea={protectedArea}
         />
 
         {/* Tutorial overlay banner */}

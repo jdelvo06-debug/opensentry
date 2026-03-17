@@ -11,7 +11,7 @@ import {
   LayersControl,
 } from "react-leaflet";
 import L from "leaflet";
-import type { Affiliation, EffectorStatus, EngagementZones, SensorStatus, TrackData } from "../types";
+import type { Affiliation, EffectorStatus, EngagementZones, ProtectedAreaInfo, SensorStatus, TrackData } from "../types";
 import { gameXYToLatLng } from "../utils/coordinates";
 import RadialActionWheel from "./RadialActionWheel";
 
@@ -36,6 +36,7 @@ interface Props {
   onReleaseHoldFire?: (trackId: string) => void;
   cameraTrackId?: string | null;
   sensorConfigs?: SensorStatus[];
+  protectedArea?: ProtectedAreaInfo | null;
 }
 
 interface WheelState {
@@ -291,6 +292,14 @@ function TrackDataBlock({
     ? `<span style="color:#f85149;font-size:7px;font-weight:700;margin-left:4px;">HF</span>`
     : "";
 
+  // ETA to protected area
+  const eta = track.eta_protected;
+  let etaLabel = "";
+  if (eta != null && !track.neutralized) {
+    const etaColor = eta <= 15 ? "#f85149" : eta <= 30 ? "#db6d28" : "#bc8cff";
+    etaLabel = `<div style="color:${etaColor};font-size:8px;font-weight:600;">ETA: ${Math.round(eta)}s</div>`;
+  }
+
   const html = `<div style="
     pointer-events:none;
     background:rgba(13,17,23,${isSelected ? "0.92" : "0.78"});
@@ -321,7 +330,8 @@ function TrackDataBlock({
     </div>
     <div style="color:#8b949e;font-size:8px;opacity:${isSelected ? 0.9 : 0.65};">
       BRG:${Math.round(bearing)}\u00B0 | RNG:${range.toFixed(1)}km
-    </div>` : `
+    </div>
+    ${etaLabel}` : `
     <div style="color:#484f58;font-size:8px;">NEUTRALIZED</div>`}
   </div>`;
 
@@ -352,6 +362,7 @@ export default function TacticalMap({
   onReleaseHoldFire,
   cameraTrackId,
   sensorConfigs = [],
+  protectedArea,
 }: Props) {
   const baseCenter: [number, number] = [baseLat, baseLng];
   const [wheelState, setWheelState] = useState<WheelState | null>(null);
@@ -499,6 +510,78 @@ export default function TacticalMap({
             />
           </>
         )}
+
+        {/* Protected Area overlay (purple) */}
+        {protectedArea && (() => {
+          const paCenter = gameXYToLatLng(
+            protectedArea.center_x, protectedArea.center_y, baseLat, baseLng
+          );
+          // Check if any track is within 30s of reaching protected area
+          const anyWithin30s = tracks.some(
+            (t) => !t.neutralized && t.eta_protected != null && t.eta_protected <= 30
+          );
+          return (
+            <>
+              {/* Warning Area (outer, amber dashed) */}
+              <Circle
+                center={paCenter}
+                radius={protectedArea.warning_radius_km * 1000}
+                pathOptions={{
+                  color: "#db6d28",
+                  fillColor: "#db6d28",
+                  fillOpacity: 0.03,
+                  weight: 1.5,
+                  opacity: 0.5,
+                  dashArray: "8,6",
+                }}
+              />
+              {/* Warning Area label */}
+              <Marker
+                position={gameXYToLatLng(
+                  protectedArea.center_x,
+                  protectedArea.center_y + protectedArea.warning_radius_km,
+                  baseLat, baseLng
+                )}
+                icon={L.divIcon({
+                  html: `<span style="font:600 8px 'JetBrains Mono',monospace;color:#db6d28;white-space:nowrap;pointer-events:none;background:rgba(13,17,23,0.75);padding:1px 5px;border-radius:2px;">WARNING AREA</span>`,
+                  className: "",
+                  iconSize: [90, 14],
+                  iconAnchor: [45, 7],
+                })}
+                interactive={false}
+              />
+              {/* Protected Area (inner, purple) */}
+              <Circle
+                center={paCenter}
+                radius={protectedArea.radius_km * 1000}
+                pathOptions={{
+                  color: anyWithin30s ? "#da3633" : "#bc8cff",
+                  fillColor: "#bc8cff",
+                  fillOpacity: 0.06,
+                  weight: anyWithin30s ? 2.5 : 2,
+                  opacity: anyWithin30s ? 0.9 : 0.7,
+                  dashArray: anyWithin30s ? undefined : "4,4",
+                  className: anyWithin30s ? "protected-area-pulse" : undefined,
+                }}
+              />
+              {/* Protected Area label */}
+              <Marker
+                position={gameXYToLatLng(
+                  protectedArea.center_x,
+                  protectedArea.center_y + protectedArea.radius_km,
+                  baseLat, baseLng
+                )}
+                icon={L.divIcon({
+                  html: `<span style="font:600 8px 'JetBrains Mono',monospace;color:#bc8cff;white-space:nowrap;pointer-events:none;background:rgba(13,17,23,0.75);padding:1px 5px;border-radius:2px;">PROTECTED AREA</span>`,
+                  className: "",
+                  iconSize: [100, 14],
+                  iconAnchor: [50, 7],
+                })}
+                interactive={false}
+              />
+            </>
+          );
+        })()}
 
         {/* Range rings at 1km intervals */}
         {Array.from({ length: 10 }, (_, i) => i + 1).map((r) => (

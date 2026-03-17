@@ -18,6 +18,57 @@
       ::-webkit-scrollbar { width: 6px; }
       ::-webkit-scrollbar-track { background: #161b22; }
       ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+
+      /* Protected area pulse animation */
+      .protected-area-pulse {
+        animation: pa-pulse 1s ease-in-out infinite;
+      }
+      @keyframes pa-pulse {
+        0%, 100% { stroke-opacity: 0.9; stroke-width: 2.5; }
+        50% { stroke-opacity: 0.4; stroke-width: 1.5; }
+      }
+
+      /* Track blink animations */
+      .track-blink-slow {
+        animation: track-blink 1s ease-in-out 3;
+      }
+      .track-blink-fast {
+        animation: track-blink 0.5s ease-in-out infinite;
+      }
+      .track-blink-rapid {
+        animation: track-blink 0.25s ease-in-out infinite;
+      }
+      .track-blink-engaged {
+        animation: track-blink 0.4s ease-in-out infinite;
+      }
+      .track-flash-green {
+        animation: flash-green 0.3s ease-out 2;
+      }
+      .track-flash-red {
+        animation: flash-red 0.3s ease-out 3;
+      }
+      @keyframes track-blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.15; }
+      }
+      @keyframes flash-green {
+        0% { opacity: 1; filter: brightness(2) drop-shadow(0 0 6px #3fb950); }
+        100% { opacity: 1; filter: none; }
+      }
+      @keyframes flash-red {
+        0% { opacity: 1; filter: brightness(2) drop-shadow(0 0 8px #f85149); }
+        100% { opacity: 1; filter: none; }
+      }
+
+      /* New contact banner */
+      .new-contact-banner {
+        animation: banner-fade 3s ease-out forwards;
+      }
+      @keyframes banner-fade {
+        0% { opacity: 1; }
+        70% { opacity: 1; }
+        100% { opacity: 0; }
+      }
     </style>
   </head>
   <body>
