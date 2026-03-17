@@ -758,21 +758,6 @@ export default function TacticalMap({
     center: [number, number];
     zoom: number;
   }
-  const [savedLocations, setSavedLocations] = useState<SavedLocation[]>(() => {
-    // Pre-populate with base center and protected assets
-    const locs: SavedLocation[] = [
-      { label: "BASE CENTER", center: [baseLat, baseLng], zoom: zoom },
-    ];
-    for (const asset of baseAssets) {
-      const pos = gameXYToLatLng(asset.x, asset.y, baseLat, baseLng);
-      locs.push({ label: asset.name.toUpperCase(), center: pos, zoom: Math.max(zoom, 14) });
-    }
-    return locs;
-  });
-  const [showSavedLocs, setShowSavedLocs] = useState(false);
-  const [savingNewLoc, setSavingNewLoc] = useState(false);
-  const [newLocLabel, setNewLocLabel] = useState("");
-
   // Compute zoom from engagement zones to fit detection range
   const zoom = useMemo(() => {
     if (!engagementZones) return defaultZoom;
@@ -783,6 +768,22 @@ export default function TacticalMap({
     if (rangeKm <= 10) return 13;
     return 12;
   }, [engagementZones, defaultZoom]);
+
+  const [savedLocations, setSavedLocations] = useState<SavedLocation[]>(() => {
+    // Pre-populate with base center and protected assets
+    const defaultZoomVal = 13;
+    const locs: SavedLocation[] = [
+      { label: "BASE CENTER", center: [baseLat ?? 33.0, baseLng ?? 44.5], zoom: defaultZoomVal },
+    ];
+    for (const asset of baseAssets) {
+      const pos = gameXYToLatLng(asset.x, asset.y, baseLat ?? 33.0, baseLng ?? 44.5);
+      locs.push({ label: asset.name.toUpperCase(), center: pos, zoom: Math.max(defaultZoomVal, 14) });
+    }
+    return locs;
+  });
+  const [showSavedLocs, setShowSavedLocs] = useState(false);
+  const [savingNewLoc, setSavingNewLoc] = useState(false);
+  const [newLocLabel, setNewLocLabel] = useState("");
 
   const baseIcon = useMemo(() => createBaseIcon(), []);
 
