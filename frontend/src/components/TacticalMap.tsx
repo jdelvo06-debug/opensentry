@@ -15,6 +15,7 @@ import type { Affiliation, EffectorStatus, EngagementZones, ProtectedAreaInfo, S
 import { gameXYToLatLng } from "../utils/coordinates";
 import RadialActionWheel from "./RadialActionWheel";
 import DeviceWheel from "./DeviceWheel";
+import SelectionList, { findNearbySelectables } from "./SelectionList";
 
 // Import leaflet CSS
 import "leaflet/dist/leaflet.css";
@@ -53,6 +54,13 @@ interface DeviceWheelState {
   deviceType: "sensor" | "effector";
   screenX: number;
   screenY: number;
+}
+
+interface SelectionListState {
+  items: { id: string; type: "track" | "sensor" | "effector"; label: string; status: string; color: string; icon: string }[];
+  screenX: number;
+  screenY: number;
+  isRightClick: boolean;
 }
 
 // Per-system range ring styling by name/type pattern
@@ -230,17 +238,35 @@ function createEffectorIcon(name: string): L.DivIcon {
 // Component to handle map click for deselecting tracks
 function MapClickHandler({
   onSelectTrack,
+  onMapClick,
+  onMapContextMenu,
 }: {
   onSelectTrack: (id: string | null) => void;
+  onMapClick?: (e: L.LeafletMouseEvent) => void;
+  onMapContextMenu?: (e: L.LeafletMouseEvent) => void;
 }) {
   const map = useMap();
   useEffect(() => {
-    const handler = () => onSelectTrack(null);
-    map.on("click", handler);
-    return () => {
-      map.off("click", handler);
+    const clickHandler = (e: L.LeafletMouseEvent) => {
+      if (onMapClick) {
+        onMapClick(e);
+      } else {
+        onSelectTrack(null);
+      }
     };
-  }, [map, onSelectTrack]);
+    const ctxHandler = (e: L.LeafletMouseEvent) => {
+      if (onMapContextMenu) {
+        L.DomEvent.preventDefault(e.originalEvent);
+        onMapContextMenu(e);
+      }
+    };
+    map.on("click", clickHandler);
+    map.on("contextmenu", ctxHandler);
+    return () => {
+      map.off("click", clickHandler);
+      map.off("contextmenu", ctxHandler);
+    };
+  }, [map, onSelectTrack, onMapClick, onMapContextMenu]);
   return null;
 }
 
@@ -260,6 +286,16 @@ function MapViewController({
       initialized.current = true;
     }
   }, [map, center, zoom]);
+  return null;
+}
+
+// Component to capture map ref
+function MapRefCapture({ mapRef }: { mapRef: React.MutableRefObject<L.Map | null> }) {
+  const map = useMap();
+  useEffect(() => {
+    mapRef.current = map;
+    return () => { mapRef.current = null; };
+  }, [map, mapRef]);
   return null;
 }
 
@@ -403,6 +439,8 @@ export default function TacticalMap({
   const [deviceWheelState, setDeviceWheelState] = useState<DeviceWheelState | null>(null);
   const [showRangeRings, setShowRangeRings] = useState(true);
   const [hiddenRings, setHiddenRings] = useState<Set<string>>(new Set());
+  const [selectionList, setSelectionList] = useState<SelectionListState | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
 
   // Compute zoom from engagement zones to fit detection range
   const zoom = useMemo(() => {
@@ -459,6 +497,68 @@ export default function TacticalMap({
     [baseLat, baseLng],
   );
 
+  // Helper: convert game XY to screen pixel using map ref
+  const gameXYToScreen = useCallback(
+    (x: number, y: number): { x: number; y: number } | null => {
+      const map = mapRef.current;
+      if (!map) return null;
+      const ll = gameXYToLatLng(x, y, baseLat, baseLng);
+      const pt = map.latLngToContainerPoint(L.latLng(ll[0], ll[1]));
+      const container = map.getContainer();
+      const rect = container.getBoundingClientRect();
+      return { x: pt.x + rect.left, y: pt.y + rect.top };
+    },
+    [baseLat, baseLng],
+  );
+
+  // Disambiguation: check if click is near multiple objects
+  const checkDisambiguation = useCallback(
+    (screenX: number, screenY: number, isRightClick: boolean): boolean => {
+      const toScreen = (obj: { x?: number; y?: number }) =>
+        obj.x != null ? gameXYToScreen(obj.x ?? 0, obj.y ?? 0) : null;
+
+      const items = findNearbySelectables(
+        screenX,
+        screenY,
+        tracks,
+        sensorConfigs,
+        effectors,
+        (t) => gameXYToScreen(t.x, t.y),
+        (s) => toScreen(s),
+        (e) => toScreen(e),
+        30,
+      );
+
+      if (items.length > 1) {
+        setSelectionList({ items, screenX, screenY, isRightClick });
+        return true; // disambiguation shown
+      }
+      return false; // no disambiguation needed
+    },
+    [tracks, sensorConfigs, effectors, gameXYToScreen],
+  );
+
+  // Map-level click handler with disambiguation
+  const handleMapClick = useCallback(
+    (e: L.LeafletMouseEvent) => {
+      const sx = e.originalEvent.clientX;
+      const sy = e.originalEvent.clientY;
+      if (!checkDisambiguation(sx, sy, false)) {
+        onSelectTrack(null);
+      }
+    },
+    [checkDisambiguation, onSelectTrack],
+  );
+
+  const handleMapContextMenu = useCallback(
+    (e: L.LeafletMouseEvent) => {
+      const sx = e.originalEvent.clientX;
+      const sy = e.originalEvent.clientY;
+      checkDisambiguation(sx, sy, true);
+    },
+    [checkDisambiguation],
+  );
+
   return (
     <div
       style={{
@@ -483,7 +583,12 @@ export default function TacticalMap({
         }}
       >
         <MapViewController center={baseCenter} zoom={zoom} />
-        <MapClickHandler onSelectTrack={onSelectTrack} />
+        <MapRefCapture mapRef={mapRef} />
+        <MapClickHandler
+          onSelectTrack={onSelectTrack}
+          onMapClick={handleMapClick}
+          onMapContextMenu={handleMapContextMenu}
+        />
         <ScaleControl position="bottomleft" />
 
         {/* Layer switcher */}
@@ -1127,6 +1232,27 @@ export default function TacticalMap({
           />
         );
       })()}
+
+      {/* Selection disambiguation list */}
+      {selectionList && (
+        <SelectionList
+          items={selectionList.items}
+          screenX={selectionList.screenX}
+          screenY={selectionList.screenY}
+          isRightClick={selectionList.isRightClick}
+          onSelectTrack={(trackId) => {
+            onSelectTrack(trackId);
+          }}
+          onRightClickTrack={(trackId, sx, sy) => {
+            onSelectTrack(trackId);
+            setWheelState({ trackId, screenX: sx, screenY: sy });
+          }}
+          onRightClickDevice={(deviceId, deviceType, sx, sy) => {
+            setDeviceWheelState({ deviceId, deviceType, screenX: sx, screenY: sy });
+          }}
+          onClose={() => setSelectionList(null)}
+        />
+      )}
     </div>
   );
 }
