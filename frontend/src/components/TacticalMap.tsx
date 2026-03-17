@@ -216,6 +216,54 @@ function createTrackIcon(
   });
 }
 
+function createInterceptorIcon(
+  isSelected: boolean,
+  neutralized: boolean,
+  headingDeg?: number,
+  blinkClass?: string,
+): L.DivIcon {
+  const size = 32;
+  const cx = 16;
+  const cy = 16;
+  const color = "#3fb950"; // green
+
+  if (neutralized) {
+    const svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+      <line x1="${cx - 5}" y1="${cy - 5}" x2="${cx + 5}" y2="${cy + 5}" stroke="#484f58" stroke-width="2"/>
+      <line x1="${cx + 5}" y1="${cy - 5}" x2="${cx - 5}" y2="${cy + 5}" stroke="#484f58" stroke-width="2"/>
+    </svg>`;
+    return L.divIcon({ html: svg, className: "", iconSize: [size, size], iconAnchor: [cx, cy] });
+  }
+
+  const headingRad = headingDeg != null ? ((headingDeg) * Math.PI) / 180 : 0;
+  // Triangle pointing in heading direction
+  const triSize = 8;
+  const p1x = cx + Math.sin(headingRad) * triSize;
+  const p1y = cy - Math.cos(headingRad) * triSize;
+  const p2x = cx + Math.sin(headingRad + 2.4) * triSize * 0.65;
+  const p2y = cy - Math.cos(headingRad + 2.4) * triSize * 0.65;
+  const p3x = cx + Math.sin(headingRad - 2.4) * triSize * 0.65;
+  const p3y = cy - Math.cos(headingRad - 2.4) * triSize * 0.65;
+
+  const fill = `${color}44`;
+  const sw = isSelected ? 2.5 : 1.5;
+  const selectedRing = isSelected
+    ? `<circle cx="${cx}" cy="${cy}" r="11" fill="none" stroke="${color}" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>`
+    : "";
+
+  const svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="${p1x},${p1y} ${p2x},${p2y} ${p3x},${p3y}" fill="${fill}" stroke="${color}" stroke-width="${sw}"/>
+    ${selectedRing}
+  </svg>`;
+
+  return L.divIcon({
+    html: svg,
+    className: blinkClass || "",
+    iconSize: [size, size],
+    iconAnchor: [cx, cy],
+  });
+}
+
 function createBaseIcon(): L.DivIcon {
   const svg = `<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
     <circle cx="16" cy="16" r="6" fill="#58a6ff"/>
@@ -648,10 +696,11 @@ function TrackDataBlock({
   isSelected: boolean;
   offsetIndex: number;
 }) {
+  const isInterceptor = !!track.is_interceptor;
   const color = track.neutralized
     ? "#484f58"
-    : AFFILIATION_COLORS[track.affiliation];
-  const phaseChar = DTID_PHASE_LETTER[track.dtid_phase] || "?";
+    : isInterceptor ? "#3fb950" : AFFILIATION_COLORS[track.affiliation];
+  const phaseChar = isInterceptor ? "I" : (DTID_PHASE_LETTER[track.dtid_phase] || "?");
   const range = Math.sqrt(track.x * track.x + track.y * track.y);
   const bearing = ((Math.atan2(track.x, track.y) * 180) / Math.PI + 360) % 360;
 
@@ -669,6 +718,9 @@ function TrackDataBlock({
     : "";
   const jamLabel = isJammed
     ? `<span style="color:#d29922;font-size:7px;font-weight:700;margin-left:4px;animation:track-blink 1s ease-in-out infinite;">JAMMED</span>`
+    : "";
+  const interceptPhaseLabel = isInterceptor && track.intercept_phase && !track.neutralized
+    ? `<span style="color:#3fb950;font-size:7px;font-weight:700;margin-left:4px;">${track.intercept_phase.toUpperCase()}</span>`
     : "";
 
   // ETA to protected area
@@ -701,7 +753,7 @@ function TrackDataBlock({
       background:${isSelected ? color : "#30363d"};
     "></div>
     <div style="color:${color};font-size:${isSelected ? "10px" : "9px"};font-weight:600;letter-spacing:0.5px;">
-      ${track.id.toUpperCase()} <span style="opacity:0.6;font-weight:400;">${phaseChar}</span>${coastLabel}${hfLabel}${jamLabel}
+      ${track.id.toUpperCase()} <span style="opacity:0.6;font-weight:400;">${phaseChar}</span>${coastLabel}${hfLabel}${jamLabel}${interceptPhaseLabel}
     </div>
     ${!track.neutralized ? `
     <div style="color:#8b949e;font-size:8px;opacity:${isSelected ? 0.9 : 0.65};">
@@ -1352,8 +1404,19 @@ export default function TacticalMap({
         {/* Tracks */}
         {tracks.map((track) => {
           const pos = trackPosition(track);
-          const color = AFFILIATION_COLORS[track.affiliation];
           const isSelected = track.id === selectedTrackId;
+          const isInterceptor = !!track.is_interceptor;
+          const color = isInterceptor ? "#3fb950" : AFFILIATION_COLORS[track.affiliation];
+
+          // Find target track for intercept vector line
+          const interceptTarget = isInterceptor && !track.neutralized && track.interceptor_target
+            ? tracks.find((t) => t.id === track.interceptor_target)
+            : null;
+
+          // Terminal phase blink for interceptors
+          const blinkClass = isInterceptor && track.intercept_phase === "terminal"
+            ? "coyote-terminal-blink"
+            : trackBlinkStates[track.id];
 
           return (
             <span key={track.id}>
@@ -1364,14 +1427,27 @@ export default function TacticalMap({
                   pathOptions={{
                     color,
                     weight: 1,
-                    opacity: track.coasting ? 0.2 : 0.5,
-                    dashArray: track.coasting ? "4,4" : undefined,
+                    opacity: isInterceptor ? 0.6 : (track.coasting ? 0.2 : 0.5),
+                    dashArray: isInterceptor ? "4,3" : (track.coasting ? "4,4" : undefined),
                   }}
                 />
               )}
 
-              {/* Projected path (dashed) */}
-              {projectedEnd(track) && (
+              {/* Intercept vector line (Coyote to target) */}
+              {interceptTarget && (
+                <Polyline
+                  positions={[pos, trackPosition(interceptTarget)]}
+                  pathOptions={{
+                    color: "#3fb950",
+                    weight: 1,
+                    opacity: 0.5,
+                    dashArray: "3,3",
+                  }}
+                />
+              )}
+
+              {/* Projected path (dashed) — skip for interceptors */}
+              {!isInterceptor && projectedEnd(track) && (
                 <Polyline
                   positions={[pos, projectedEnd(track)!]}
                   pathOptions={{
@@ -1383,8 +1459,8 @@ export default function TacticalMap({
                 />
               )}
 
-              {/* Speed leader line (solid) */}
-              {speedLeaderEnd(track) && (
+              {/* Speed leader line (solid) — skip for interceptors */}
+              {!isInterceptor && speedLeaderEnd(track) && (
                 <Polyline
                   positions={[pos, speedLeaderEnd(track)!]}
                   pathOptions={{
@@ -1398,16 +1474,24 @@ export default function TacticalMap({
               {/* Track icon marker */}
               <Marker
                 position={pos}
-                icon={createTrackIcon(
-                  track.affiliation,
-                  isSelected,
-                  track.neutralized,
-                  track.coasting,
-                  track.hold_fire,
-                  track.heading_deg,
-                  track.speed_kts,
-                  trackBlinkStates[track.id],
-                )}
+                icon={isInterceptor
+                  ? createInterceptorIcon(
+                      isSelected,
+                      track.neutralized,
+                      track.heading_deg,
+                      blinkClass,
+                    )
+                  : createTrackIcon(
+                      track.affiliation,
+                      isSelected,
+                      track.neutralized,
+                      track.coasting,
+                      track.hold_fire,
+                      track.heading_deg,
+                      track.speed_kts,
+                      blinkClass,
+                    )
+                }
                 eventHandlers={{
                   click: (e) => {
                     L.DomEvent.stopPropagation(e.originalEvent);
