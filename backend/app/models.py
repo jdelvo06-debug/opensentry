@@ -27,6 +27,7 @@ class DroneType(str, Enum):
     PASSENGER_AIRCRAFT = "passenger_aircraft"
     MILITARY_JET = "military_jet"
     WEATHER_BALLOON = "weather_balloon"
+    COYOTE = "coyote"
 
 
 class ThreatClassification(str, Enum):
@@ -37,6 +38,7 @@ class ThreatClassification(str, Enum):
     WEATHER_BALLOON = "weather_balloon"
     IMPROVISED = "improvised"
     PASSENGER_AIRCRAFT = "passenger_aircraft"
+    COYOTE = "coyote"
 
 
 class SensorType(str, Enum):
@@ -113,6 +115,11 @@ class DroneState(BaseModel):
     jammed: bool = False
     jammed_behavior: str | None = None  # loss_of_control, rth, forced_landing, gps_spoof
     jammed_time_remaining: float = 0.0  # seconds until jam effect resolves
+    # Coyote interceptor fields
+    is_interceptor: bool = False
+    interceptor_target: str | None = None
+    intercept_phase: str | None = None  # launch, midcourse, terminal, self_destruct
+    intercept_attempts: int = 0  # track retry count for terminal intercept
 
 
 class SensorConfig(BaseModel):
