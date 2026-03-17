@@ -103,6 +103,32 @@ export default function EngagementPanel({
           >
             CONFIRM TRACK
           </button>
+          <button
+            onClick={() => onSlewCamera(track.id)}
+            style={{
+              width: "100%",
+              marginTop: 6,
+              padding: "8px 16px",
+              background: "#d2992218",
+              border: "1px solid #d2992255",
+              borderRadius: 6,
+              color: "#d29922",
+              fontSize: 11,
+              fontWeight: 600,
+              fontFamily: "'Inter', sans-serif",
+              letterSpacing: 1,
+              cursor: "pointer",
+              transition: "all 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "#d2992230";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "#d2992218";
+            }}
+          >
+            SLEW CAMERA
+          </button>
         </div>
       )}
 

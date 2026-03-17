@@ -52,6 +52,7 @@ function getActionsForPhase(dtidPhase: DTIDPhase, holdFire?: boolean): WheelActi
     case "detected":
       return [
         { id: "confirm_track", label: "CONFIRM", icon: "\u2714", color: "#58a6ff" },
+        { id: "slew_camera", label: "SLEW CAM", icon: "\u25CE", color: "#d29922" },
         { id: "monitor", label: "MONITOR", icon: "\u25C9", color: "#484f58", disabled: true },
         { id: "dismiss", label: "DISMISS", icon: "\u2715", color: "#484f58", disabled: true },
       ];
