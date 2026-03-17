@@ -1,227 +1,219 @@
-# CLAUDE.md — SKYSHIELD Project Context
+# CLAUDE.md — SKYSHIELD Project Guide (Updated 2026-03-17 02:35 UTC)
 
 ## What Is This?
-SKYSHIELD is an open-source, browser-based Counter-UAS (C-UAS) training simulator. It puts the player in a tactical operations center, working through the **DTID kill chain** (Detect → Track → Identify → Defeat) against drone threats. Unclassified, but designed to feel like a real C2 workstation.
+SKYSHIELD is a **free, browser-based C-UAS training simulator** designed to teach military operators the **DTID kill chain** (Detect → Track → Identify → Defeat). It's built to feel like a real FAAD C2 or Medusa workstation. No clearance required — purely training.
 
-## Tech Stack
-- **Backend:** Python 3.13 / FastAPI / WebSocket (real-time at 10Hz tick rate)
-- **Frontend:** React 19 / TypeScript / Vite / HTML5 Canvas (tactical map)
-- **Data:** JSON scenario files in `backend/scenarios/`
-- **Deployment:** Docker Compose or `make dev` for local
+**Target User:** "The E-5 who gets handed the C-UAS binder and told to figure it out."
 
-## Architecture
+**Vision:** Deployable worldwide so any military member can train C-UAS operations without needing real systems at their base.
 
-```
-frontend/                  # React + Vite + TypeScript
-  src/
-    App.tsx                # Main app — game state machine (scenario_select → loadout → placement → running → debrief)
-    types.ts               # All TypeScript types/interfaces for WebSocket messages + equipment + bases
-    hooks/
-      useWebSocket.ts      # WebSocket connection hook
-    components/
-      TacticalMap.tsx      # HTML5 Canvas — dark tactical map, MIL-STD-2525 icons, range rings, trails
-      HeaderBar.tsx        # Mission clock, threat level (GREEN→RED), scenario name
-      SensorPanel.tsx      # Left sidebar top — sensor status (Radar, RF, EO/IR, Acoustic)
-      EffectorPanel.tsx    # Left sidebar bottom — countermeasure readiness
-      TrackDetailPanel.tsx # Right sidebar — selected track info + DTID phase progress
-      EngagementPanel.tsx  # Right sidebar — action buttons based on current DTID phase
-      EventLog.tsx         # Bottom bar — timestamped mission events
-      DebriefScreen.tsx    # Post-mission scoring overlay
-      ScenarioSelect.tsx   # Scenario + base template selection screen
-      LoadoutScreen.tsx    # Equipment selection (sensors + effectors from catalog)
-      PlacementScreen.tsx  # Drag-and-drop sensor/effector placement on base map (1500 lines)
-      CameraPanel.tsx      # EO/IR camera simulation — thermal silhouettes for visual ID (590 lines)
+## Current State (47 commits, ~15,000 lines)
 
-backend/
-  app/
-    main.py                # FastAPI app + WebSocket game loop
-    models.py              # Pydantic models — DTIDPhase, Affiliation, DroneState, ScenarioConfig, etc.
-    scenario.py            # Loads JSON scenario files from backend/scenarios/
-    scoring.py             # DTID scoring engine (5 categories, S/A/B/C/F grades)
-    drone.py               # Drone movement behaviors (direct_approach, etc.)
-    detection.py           # Multi-sensor simulation (radar, RF, EO/IR, acoustic)
-  scenarios/
-    lone_wolf.json         # Single commercial quad, beginner difficulty
-  bases.py                 # Load base templates from backend/bases/
-  bases/
-    small_fob.json         # Compact FOB — tight perimeter, 2 protected assets
-    medium_airbase.json    # Airbase with runway, hangars, ATC tower
-    large_installation.json # Major installation, multiple assets, complex terrain
-  equipment/
-    catalog.json           # Full equipment catalog — 5 sensors + 10 effectors with stats
-```
+### Core Features ✅
+- **DTID Kill Chain:** Detect (radar) → Track (persist) → Identify (visual on camera) → Defeat (kinetic/EW)
+- **Real-World Equipment Only:** AN/TPQ-50 (360° radar), KURFS (fire-control radar), Nighthawk (pan/tilt camera), RF/PNT Jammer, Coyote Block 2C (4 interceptors per pallet)
+- **Real-World Maps:** Leaflet.js + OpenStreetMap satellite imagery. Location search (Nominatim geocoding). Any real-world location.
+- **FAAD C2 / Medusa UI Patterns:**
+  - Radial Action Wheel (Wheel of Death) — right-click tracks for actions
+  - Track Data Blocks (Hook Bubbles) — persistent info labels on all tracks
+  - Device WOD — right-click sensors/effectors
+  - Range rings (color-coded per system with labels)
+  - Track coasting (24s extrapolation, faded icons)
+  - Hold Fire (dashed box, engagement lockout)
+  - Protected/Warning areas with ETA countdown
+  - Track alerts (blinking, banners, escalating alarms)
 
-## Kill Chain: DTID
-This is the core gameplay loop. Every decision flows through these four phases:
+- **Nighthawk EO/IR Camera:** Pan/tilt gimbal, auto-track, manual slew with virtual joystick, zoom 1x-8x, 6 animated thermal silhouettes (quadcopter, fixed-wing, passenger aircraft, bird, balloon, micro drone)
+- **Web Audio Synthesis:** 10 sound effects (detection ping, engagement, alarms, camera slew, etc.) — all synthesized, no audio files
+- **Continuous Operations (No Auto-End):**
+  - Mission runs indefinitely until player hits END MISSION button
+  - Waves of threats escalate in difficulty
+  - Wave counter in header
+  - 30-60s pause between waves
+  - Ambient air traffic (commercial planes, military jets, birds, weather balloons)
+  
+- **Realistic EW Jamming:**
+  - Jammer activates regardless of range (radiates omnidirectionally)
+  - Effect only applies when target is in 3km range
+  - Jammed drones don't vanish — they enter 5-10s jammed state with random behavior (drift/crash, RTH, forced landing, GPS spoof)
+  - Commercial quads always affected. Autonomous fixed-wing can resist (30% chance)
+  - "JAMMED" label on track data blocks
 
-1. **DETECT** — Track appears as UNKNOWN (yellow square). Radar picks it up. Limited info.
-2. **TRACK** — Player clicks "Confirm Track." Multiple sensors correlate. Confidence grows. More data flows in (altitude, speed, heading, bearing).
-3. **IDENTIFY** — Player classifies threat type (commercial_quad, fixed_wing, micro, bird, weather_balloon, improvised) and sets affiliation (hostile, friendly, neutral). Icon changes color based on affiliation.
-4. **DEFEAT** — Player selects countermeasure and engages. Backend calculates effectiveness. Outcome displayed.
+- **Coyote Block 2C Full Lifecycle:**
+  - Launch: CYTE-XX appears as green friendly track at pallet position
+  - Midcourse (150kts): KURFS radar guides, flying toward target
+  - Terminal (200kts): seeker acquires within 0.3km
+  - Intercept: 85% success rate within 0.05km
+  - Miss: re-engage once more (max 2 attempts), then self-destruct at 328ft
+  - Hold Fire abort: Coyote self-destructs
+  - Map visualization: green triangle icon, dashed trail, intercept vector line
+  - Camera: approaching Coyote as pulsing dot + explosion sequence (white flash → fireball → smoke)
 
-**Do NOT add AI-suggested responses or hints.** The player makes all decisions independently. This is a training tool, not easy mode.
+### Game Flow
+1. **Waiting/Title** — QUICK START (pre-loaded, straight to running) or CUSTOM MISSION
+2. **Scenario Select** — Choose from 4 scenarios: Lone Wolf (1 drone), Swarm Attack (5), Recon Probe (3 + trigger discipline), Tutorial (guided)
+3. **Loadout** — Select equipment: 1x TPQ-50, 1x KURFS, 2x Nighthawk, 2x Coyote Pallets, 1x RF Jammer (Quick Start preset)
+4. **Placement** — Drag sensors/effectors onto real satellite map. See coverage zones, gaps. Toggle range rings per system.
+5. **Running** — Mission executes. Player:
+   - Watches radar for contacts
+   - Confirms tracks (switches to TRACKED phase)
+   - Slews Nighthawk camera for visual ID
+   - Classifies (commercial quad, fixed-wing, bird, balloon, etc.)
+   - Engages with Coyote or jammer
+   - Monitors Coyote flight and intercept
+   - Manages ROE (don't shoot friendlies)
+   - After all threats neutralized, mission pauses 30-60s then spawns next wave
+6. **END MISSION** — Jumps to debrief
+7. **Debrief** — Cumulative scoring across all waves: DTID accuracy, reaction time, ROE violations, engagement effectiveness
 
-## MIL-STD-2525 Symbology (Simplified)
-- **UNKNOWN** = yellow square
-- **HOSTILE** = red diamond
-- **FRIENDLY** = blue rectangle
-- **NEUTRAL** = green square
-- Track tails show flight path history
-- Speed leader lines show projected trajectory
+### Tech Stack
+- **Backend:** FastAPI (Python 3.13), WebSocket at 10Hz tick rate
+- **Frontend:** React 19, TypeScript, Vite, Leaflet.js, HTML5 Canvas
+- **Maps:** OpenStreetMap satellite + CartoDB Dark Matter tiles (free)
+- **Data:** JSON scenarios + base templates + equipment catalog
 
-## Sensor Types
-Each sensor provides different data and has different range:
-- **RADAR** — Best range. Provides range, altitude, speed, heading. Always-on detection.
-- **RF DETECTOR** — Medium range. Only detects RF-emitting drones. Provides bearing. Identifies protocol.
-- **EO/IR CAMERA** — Short range. Provides visual classification hints (silhouette type).
-- **ACOUSTIC** — Very short range. Detects all drones by sound. Provides bearing.
+### File Structure
 
-## Effector Types
-- **RF JAMMER** — Effective vs commercial quads. Rechargeable (10s). Low collateral.
-- **KINETIC** — Effective vs all. Single-use. ROE violation in Lone Wolf scenario.
-- **INTERCEPTOR DRONE** — Good vs quads/small. Single-use. Low collateral.
-- **DIRECTED ENERGY** — Effective vs all. Rechargeable (15s). Short range. LOS required.
+**Frontend Key Files:**
+- `App.tsx` — State machine, WebSocket management, phase transitions
+- `TacticalMap.tsx` — Leaflet map, drone/Coyote rendering, track interactions
+- `CameraPanel.tsx` — Canvas thermal camera, silhouettes, explosion effects
+- `EngagementPanel.tsx` — DTID phase UI (confirm/identify/engage buttons)
+- `RadialActionWheel.tsx` — Right-click pie menu for tracks and devices
+- `PlacementScreen.tsx` — Drag-drop sensor/effector placement on real maps
+- `types.ts` — All TypeScript interfaces (TrackData, SensorConfig, etc.)
 
-## Scoring System (5 categories)
-| Category | Weight | What It Measures |
-|----------|--------|-----------------|
-| Detection Response | 20% | How fast player confirmed track after detection |
-| Tracking | 15% | Did player let sensors build confidence before ID? |
-| Identification | 25% | Correct classification + correct affiliation |
-| Defeat Method | 25% | Optimal vs acceptable vs poor effector choice |
-| ROE Compliance | 15% | Did player violate rules of engagement? |
+**Backend Key Files:**
+- `main.py` — FastAPI app + game loop (drone movement, detection, jamming, Coyote intercept logic)
+- `models.py` — Pydantic models (DroneState, SensorConfig, EffectorConfig, DTIDPhase, etc.)
+- `scenario.py` — Load scenario JSON files
+- `detection.py` — Multi-sensor detection simulation
+- `drone.py` — Drone movement behaviors (direct_approach, orbit, waypoint_path, evasive, etc.)
+- `scoring.py` — DTID scoring engine (5 categories, S-F grades)
 
-Grades: S (≥95) → A (≥85) → B (≥70) → C (≥50) → F
+**Data Files:**
+- `backend/scenarios/` — lone_wolf.json, swarm_attack.json, recon_probe.json, tutorial.json
+- `backend/bases/` — small_fob.json, medium_airbase.json, large_installation.json
+- `backend/equipment/catalog.json` — Sensor + effector specs (range, FOV, ammo count, etc.)
 
-## UI Layout — Single Pane of Glass
-The interface follows real C2 system patterns (Lattice, FAAD C2, Medusa, DroneSentry):
+### Key Code Patterns
 
-```
-┌──────────────────────────────────────────────────────┐
-│  HEADER: Mission clock │ Threat level │ ROE status   │
-├────────────┬─────────────────────────┬───────────────┤
-│  SENSOR    │                         │  TRACK        │
-│  STATUS    │    TACTICAL MAP         │  DETAIL       │
-│  PANEL     │                         │  PANEL        │
-│            │  (dark theme, tracks,   │               │
-│            │   range rings, trails)  │               │
-├────────────┤                         ├───────────────┤
-│  EFFECTOR  │                         │  ENGAGEMENT   │
-│  STATUS    │                         │  PANEL        │
-├────────────┴─────────────────────────┴───────────────┤
-│  EVENT LOG: Timestamped mission events               │
-└──────────────────────────────────────────────────────┘
+**Game Loop (main.py):**
+```python
+# Every tick (10Hz = 100ms):
+# 1. Move drones based on behavior (direct_approach, orbit, etc.)
+# 2. Move Coyote interceptors (launch → midcourse → terminal → intercept)
+# 3. Update sensor detection (multi-sensor fusion, confidence buildup)
+# 4. Handle player actions (confirm, identify, engage, hold fire)
+# 5. Build state message (tracks, sensor status, effector status, protected area)
+# 6. Send to frontend via WebSocket
 ```
 
-## WebSocket Protocol
-Client → Server:
-- `{"type": "start", "scenario_id": "lone_wolf"}` — Start scenario
-- `{"type": "action", "action": "confirm_track", "target_id": "bogey-1"}` — Confirm track (DETECT→TRACK)
-- `{"type": "action", "action": "identify", "target_id": "bogey-1", "classification": "commercial_quad", "affiliation": "hostile"}` — Identify (TRACK→IDENTIFY)
-- `{"type": "action", "action": "engage", "target_id": "bogey-1", "effector": "jammer"}` — Engage (IDENTIFY→DEFEAT)
-- `{"type": "restart"}` — Restart scenario
+**WebSocket Messages:**
+- `game_start` — Sent once when mission begins. Includes scenario name, sensor list, effector list, engagement zones.
+- `state` — Sent every tick. Tracks array (with `is_interceptor`, `intercept_phase` for Coyotes), elapsed time, threat level, sensor configs.
+- `event` — Sent on significant events ("TRACK CONFIRMED", "COYOTE LAUNCHED", "HOLD FIRE ACTIVATED", etc.).
+- `engagement_result` — Sent when an engagement resolves (success/miss, effectiveness score).
 
-Server → Client:
-- `game_start` — Scenario loaded, sensor/effector configs
-- `state` — 10Hz game state updates (tracks, sensors, effectors, elapsed time)
-- `event` — Timestamped mission log events
-- `engagement_result` — Outcome of an engagement action
-- `debrief` — Final score breakdown
+**Track Data (Frontend):**
+```typescript
+interface TrackData {
+  id: string;                      // BOGEY-1, CYTE-01, etc.
+  dtid_phase: "detected" | "tracked" | "identified" | "defeated";
+  affiliation: "friendly" | "hostile" | "unknown";
+  x: number;                       // km from base center
+  y: number;
+  altitude_ft: number;
+  speed_kts: number;
+  heading_deg: number;
+  confidence: number;              // 0-1
+  classification: string | null;   // "commercial_quad", "passenger_aircraft", etc.
+  trail: [number, number][];       // Past positions for trail line
+  sensors_detecting: string[];     // Which sensors see this track
+  neutralized: boolean;
+  is_interceptor?: boolean;        // Coyote only
+  interceptor_target?: string;     // Target track ID for Coyote
+  intercept_phase?: string;        // "launch", "midcourse", "terminal"
+  coasting?: boolean;
+  hold_fire?: boolean;
+  eta_protected?: number;          // Seconds until protected area
+}
+```
 
-## Adding New Scenarios
-1. Create a JSON file in `backend/scenarios/` following `lone_wolf.json` format
-2. Define drones (type, start position, behavior), sensors, effectors, engagement zones
-3. Set `correct_classification`, `correct_affiliation`, `optimal_effectors`, `roe_violations`
-4. The scenario engine auto-discovers all JSON files in the directory
+### Known Working Features
+✅ Scenario select + loadout + placement + running mission
+✅ Real-world maps (Leaflet satellite)
+✅ Radar detection (TPQ-50, KURFS)
+✅ Track coasting (24s extrapolation)
+✅ DTID kill chain (detect → track → identify → defeat)
+✅ Camera slew (detected/tracked/identified phases)
+✅ Thermal camera with 6 silhouettes
+✅ Coyote full lifecycle (launch, flight, intercept, miss, self-destruct)
+✅ Camera explosion on intercept
+✅ Jammer activation regardless of range (effect range-dependent)
+✅ Ambient air traffic (commercial, military, birds, balloons)
+✅ Continuous operations (waves, pauses, END MISSION button)
+✅ Web Audio synthesis (10 sound effects)
+✅ Hold Fire command
+✅ Track alerts (blinking, alarms)
+✅ Protected/Warning areas with ETA
 
-## Scenario Files
-Stored in `backend/scenarios/` as JSON. Auto-discovered on startup.
-- `lone_wolf.json` — Single commercial quad, beginner (Easy)
-- `swarm_attack.json` — 5 drones from multiple directions, staggered spawns (Hard)
-- `recon_probe.json` — 3 sequential contacts including a bird false alarm (Medium)
-- `tutorial.json` — Single slow quad with guided prompts (Tutorial)
+### Known Issues / TODOs
+- [ ] Joint Data Network / SIAP integration (shared air picture, track correlation, Link-16 feeds)
+- [ ] After-action replay (timeline scrub on debrief)
+- [ ] Mobile-responsive layout for tablet demos
+- [ ] Docker deployment + README polish
+- [ ] Port all logic to client-side JS (zero-server deployment on here.now)
+- [ ] Advanced scenario builder (player creates custom scenarios)
+- [ ] Multi-operator / multiplayer support (share same mission)
 
-## Design Principles
-- **Dark theme throughout** — Dark backgrounds (#0d1117, #161b22), subtle borders (#30363d)
-- **Professional C2 aesthetic** — Inspired by Anduril Lattice, not arcade games
-- **Clean, modern UI** — Consumer-web-app feel, not 1990s military terminal
-- **Color-coded status** — Green=ready/active, Yellow=warning, Orange=caution, Red=critical/hostile
-- **No unnecessary animation** — Radar sweep is subtle, data updates are clean
-
-## Development
+### Quick Debug Commands
 ```bash
-make install    # Install Python + Node dependencies
-make dev        # Start backend :8000 + frontend :5173
+# Start dev stack
+make dev                     # Backend + frontend
+cd frontend && npm run dev   # Frontend only (if backend already running)
+cd backend && source ../.venv/bin/activate && uvicorn app.main:app --port 8000
+
+# Test WebSocket
+python3 << 'EOF'
+import asyncio, websockets, json
+async def test():
+    async with websockets.connect('ws://localhost:8000/ws/game') as ws:
+        await ws.send(json.dumps({'scenario_id': 'lone_wolf', 'base_id': 'medium_airbase', 'placement': {...}}))
+        for i in range(10):
+            msg = json.loads(await ws.recv())
+            print(f"Tick {i}: {msg['type']}")
+asyncio.run(test())
+EOF
+
+# Check git history
+git log --oneline -20
+git diff HEAD~5..HEAD --stat  # Last 5 commits
 ```
 
-Or manually:
-```bash
-cd backend && pip install -r requirements.txt && uvicorn app.main:app --reload --port 8000
-cd frontend && npm install && npm run dev
-```
+### Next Session Roadmap (for you to pick from)
 
-## OPSEC
-- ALL scenarios use unclassified, publicly available threat data
-- No real unit names, locations, or TTPs
-- Drone behaviors based on commercial UAS specs (DJI, Autel, etc.)
-- Countermeasure effectiveness based on published vendor data
-- When in doubt, sanitize harder
+**High Impact:**
+1. **JDN / SIAP Integration** — Simulate network of C2 nodes sharing air picture. Track correlation. Link-16 feeds.
+2. **After-Action Replay** — Timeline scrub on debrief. Rewind/replay events.
+3. **Multiplayer / Shared Mission** — Two operators on same mission (one radios, one engages).
 
-## Training Flow (Cradle-to-Grave)
-The complete user flow:
-1. **SELECT SCENARIO** — Choose scenario (Lone Wolf, etc.) + base template (FOB, Airbase, Installation)
-2. **EQUIP** — Select sensors and effectors from the equipment catalog
-3. **PLAN** — Drag-and-drop place equipment on the base map, review coverage arcs/gaps
-4. **EXECUTE** — Run the DTID mission with your planned defense layout
-5. **DEBRIEF** — Score on both planning quality AND execution quality
+**Polish:**
+4. Mobile-responsive layout (tablets for field demos)
+5. Advanced scenario builder (player creates custom missions)
+6. Docker + production deployment
 
-## EO/IR Camera Panel
-- Modal overlay with thermal/HUD aesthetic for visual drone identification
-- Canvas-drawn silhouettes: commercial quad, fixed-wing, micro, bird, weather balloon, improvised
-- Range-based clarity (closer = sharp, farther = grainy with noise)
-- Range-based camera shake/jitter (more shake at longer range)
-- Thermal vs daylight toggle (color palette switch)
-- 'Acquiring...' spinning animation when slewing to new target
-- Crosshairs, targeting data HUD (speed, heading, bearing, altitude, zoom, mode)
-- Only available when target is within camera FOV (based on placement direction)
+**Next-Level:**
+7. Port to all-client-side JS (zero-server, deployable on here.now)
+8. VR mode (with headset support)
+9. Integration with real C2 systems (API bridge)
 
-## Drone Behaviors
-- `direct_approach` — Flies straight toward base (0,0)
-- `orbit` — Circles at standoff range around a configurable center point
-- `waypoint_path` — Follows a list of [x,y] waypoints in order
-- `evasive` — Direct approach until detected, then jinks heading ±30-60° and altitude every 2-4s
+---
 
-## Keyboard Shortcuts (Running Phase)
-- `Space` — Pause/resume
-- `1` — Confirm track (DETECT→TRACK)
-- `2` — Open EO/IR camera on selected track
-- `4` — Close camera
-- `Tab` — Cycle through active tracks
+## How to Use This File
+- **Before starting work:** Read the relevant section here first (e.g., "Coyote Full Lifecycle" if you're fixing interceptor bugs)
+- **When adding a feature:** Add it to "Known Working Features" ✅ when done
+- **When finding a bug:** Reproduce it, add to "Known Issues" with a brief description
+- **When changing architecture:** Update the "File Structure" or "Game Loop" section
 
-## Tutorial System
-- Scenarios with `tutorial: true` show guided overlay prompts
-- Prompts trigger on game events: start, detected, tracked, identify_ready, identified, defeated
-- Semi-transparent banner at top of tactical map, auto-dismisses after 12s
-
-## Equipment Catalog
-Stored in `backend/equipment/catalog.json`. Each item has: name, type, range_km, fov_deg, description, pros, cons, requires_los, collateral_risk (effectors), recharge_seconds, single_use.
-
-## Base Templates
-Stored in `backend/bases/` as JSON. Each has: boundary polygon, protected_assets (name, position, priority), terrain features (buildings, towers, berms, treelines with LOS blocking), approach corridors.
-
-## Current Status
-- Phase 1 MVP complete — Lone Wolf scenario playable end-to-end
-- Phase 2 complete — Equipment loadout, base defense planner, EO/IR camera panel, full training flow
-- Phase 3 complete — Multi-track scenarios, drone behaviors, tutorial system, UI polish
-- DTID kill chain implemented
-- Tactical map with MIL-STD-2525-lite symbology
-- Sensor fusion and effector management
-- Scoring and debrief system (planning + execution, multi-track weighted average)
-- 3 base templates, full equipment catalog
-- 4 scenarios: Lone Wolf, Swarm Attack (5 drones), Recon Probe (3 sequential), Tutorial
-- 4 drone behaviors: direct_approach, orbit, waypoint_path, evasive
-- Keyboard shortcuts, pause/resume, camera thermal/daylight modes
-- Placement polish: reset button, coverage %, weakest sector indicator, directional rotate
-
-## Roadmap
-- Phase 4: Multiplayer, community scenarios, Docker deployment, mobile support
+Good luck! 🛡️
