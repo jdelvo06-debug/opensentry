@@ -14,6 +14,7 @@ import L from "leaflet";
 import type { Affiliation, EffectorStatus, EngagementZones, ProtectedAreaInfo, SensorStatus, TrackData } from "../types";
 import { gameXYToLatLng } from "../utils/coordinates";
 import RadialActionWheel from "./RadialActionWheel";
+import DeviceWheel from "./DeviceWheel";
 
 // Import leaflet CSS
 import "leaflet/dist/leaflet.css";
@@ -41,6 +42,13 @@ interface Props {
 
 interface WheelState {
   trackId: string;
+  screenX: number;
+  screenY: number;
+}
+
+interface DeviceWheelState {
+  deviceId: string;
+  deviceType: "sensor" | "effector";
   screenX: number;
   screenY: number;
 }
@@ -193,6 +201,27 @@ function createBaseIcon(): L.DivIcon {
     iconSize: [32, 32],
     iconAnchor: [16, 16],
   });
+}
+
+function createSensorIcon(name: string): L.DivIcon {
+  const label = (name || "SENSOR").toUpperCase().slice(0, 8);
+  const svg = `<svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="14" cy="14" r="8" fill="rgba(88,166,255,0.15)" stroke="#58a6ff" stroke-width="1.5"/>
+    <circle cx="14" cy="14" r="2" fill="#58a6ff"/>
+    <text x="14" y="27" text-anchor="middle" fill="#58a6ff" font-size="6" font-weight="600" font-family="monospace">${label}</text>
+  </svg>`;
+  return L.divIcon({ html: svg, className: "", iconSize: [28, 28], iconAnchor: [14, 14] });
+}
+
+function createEffectorIcon(name: string): L.DivIcon {
+  const label = (name || "EFFECTOR").toUpperCase().slice(0, 8);
+  const svg = `<svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+    <rect x="6" y="6" width="16" height="16" rx="2" fill="rgba(240,136,62,0.15)" stroke="#f0883e" stroke-width="1.5"/>
+    <line x1="14" y1="9" x2="14" y2="19" stroke="#f0883e" stroke-width="1.5"/>
+    <line x1="9" y1="14" x2="19" y2="14" stroke="#f0883e" stroke-width="1.5"/>
+    <text x="14" y="27" text-anchor="middle" fill="#f0883e" font-size="6" font-weight="600" font-family="monospace">${label}</text>
+  </svg>`;
+  return L.divIcon({ html: svg, className: "", iconSize: [28, 28], iconAnchor: [14, 14] });
 }
 
 // Component to handle map click for deselecting tracks
@@ -366,7 +395,9 @@ export default function TacticalMap({
 }: Props) {
   const baseCenter: [number, number] = [baseLat, baseLng];
   const [wheelState, setWheelState] = useState<WheelState | null>(null);
+  const [deviceWheelState, setDeviceWheelState] = useState<DeviceWheelState | null>(null);
   const [showRangeRings, setShowRangeRings] = useState(true);
+  const [hiddenRings, setHiddenRings] = useState<Set<string>>(new Set());
 
   // Compute zoom from engagement zones to fit detection range
   const zoom = useMemo(() => {
@@ -609,7 +640,7 @@ export default function TacticalMap({
           const fov = sensor.fov_deg ?? 360;
           const facing = sensor.facing_deg ?? 0;
           const isSelected = false; // sensors don't have selection in tactical map
-          const shouldShow = showRangeRings || isSelected;
+          const shouldShow = (showRangeRings && !hiddenRings.has(sensor.id)) || isSelected;
           if (!shouldShow) return null;
 
           // For limited FOV sensors, draw a sector wedge
@@ -677,7 +708,7 @@ export default function TacticalMap({
         })}
 
         {/* Per-effector range rings */}
-        {showRangeRings && effectors.map((eff) => {
+        {showRangeRings && effectors.filter((e) => !hiddenRings.has(e.id)).map((eff) => {
           if (!eff.x && eff.x !== 0) return null;
           if (!eff.range_km) return null;
           const style = getRingStyleByName(eff.name, eff.type);
@@ -714,6 +745,58 @@ export default function TacticalMap({
           icon={baseIcon}
           interactive={false}
         />
+
+        {/* Sensor device markers (right-clickable) */}
+        {sensorConfigs.map((sensor) => {
+          if (sensor.x == null && sensor.x !== 0) return null;
+          const sPos = gameXYToLatLng(sensor.x ?? 0, sensor.y ?? 0, baseLat, baseLng);
+          return (
+            <Marker
+              key={`sensor-marker-${sensor.id}`}
+              position={sPos}
+              icon={createSensorIcon(sensor.name || sensor.id)}
+              eventHandlers={{
+                contextmenu: (e) => {
+                  L.DomEvent.stopPropagation(e.originalEvent);
+                  e.originalEvent.preventDefault();
+                  setWheelState(null);
+                  setDeviceWheelState({
+                    deviceId: sensor.id,
+                    deviceType: "sensor",
+                    screenX: e.originalEvent.clientX,
+                    screenY: e.originalEvent.clientY,
+                  });
+                },
+              }}
+            />
+          );
+        })}
+
+        {/* Effector device markers (right-clickable) */}
+        {effectors.map((eff) => {
+          if (eff.x == null && eff.x !== 0) return null;
+          const ePos = gameXYToLatLng(eff.x ?? 0, eff.y ?? 0, baseLat, baseLng);
+          return (
+            <Marker
+              key={`effector-marker-${eff.id}`}
+              position={ePos}
+              icon={createEffectorIcon(eff.name || eff.id)}
+              eventHandlers={{
+                contextmenu: (e) => {
+                  L.DomEvent.stopPropagation(e.originalEvent);
+                  e.originalEvent.preventDefault();
+                  setWheelState(null);
+                  setDeviceWheelState({
+                    deviceId: eff.id,
+                    deviceType: "effector",
+                    screenX: e.originalEvent.clientX,
+                    screenY: e.originalEvent.clientY,
+                  });
+                },
+              }}
+            />
+          );
+        })}
 
         {/* Camera FOV Cone */}
         {(() => {
@@ -938,7 +1021,7 @@ export default function TacticalMap({
         </div>
       )}
 
-      {/* Radial action wheel */}
+      {/* Radial action wheel (track WOD) */}
       {wheelState && onConfirmTrack && onIdentify && onEngage && onSlewCamera && (() => {
         const wheelTrack = tracks.find((t) => t.id === wheelState.trackId);
         if (!wheelTrack || wheelTrack.neutralized) return null;
@@ -957,6 +1040,53 @@ export default function TacticalMap({
             onHoldFire={onHoldFire}
             onReleaseHoldFire={onReleaseHoldFire}
             onClose={() => setWheelState(null)}
+          />
+        );
+      })()}
+
+      {/* Device wheel (sensor/effector WOD) */}
+      {deviceWheelState && (() => {
+        const device = deviceWheelState.deviceType === "sensor"
+          ? sensorConfigs.find((s) => s.id === deviceWheelState.deviceId)
+          : effectors.find((e) => e.id === deviceWheelState.deviceId);
+        if (!device) return null;
+        return (
+          <DeviceWheel
+            device={device}
+            deviceType={deviceWheelState.deviceType}
+            screenX={deviceWheelState.screenX}
+            screenY={deviceWheelState.screenY}
+            onToggleRangeRing={(id) => {
+              setHiddenRings((prev) => {
+                const next = new Set(prev);
+                if (next.has(id)) next.delete(id);
+                else next.add(id);
+                return next;
+              });
+            }}
+            onSlewTo={onSlewCamera ? (_id) => {
+              // For camera sensors, find nearest track to slew to
+              const nearestTrack = tracks
+                .filter((t) => !t.neutralized)
+                .sort((a, b) => {
+                  const da = Math.sqrt(a.x * a.x + a.y * a.y);
+                  const db = Math.sqrt(b.x * b.x + b.y * b.y);
+                  return da - db;
+                })[0];
+              if (nearestTrack) onSlewCamera(nearestTrack.id);
+            } : undefined}
+            onEngageNearest={onEngage ? (effectorId) => {
+              // Find nearest hostile track
+              const nearestHostile = tracks
+                .filter((t) => !t.neutralized && t.affiliation === "hostile" && t.dtid_phase === "identified")
+                .sort((a, b) => {
+                  const da = Math.sqrt(a.x * a.x + a.y * a.y);
+                  const db = Math.sqrt(b.x * b.x + b.y * b.y);
+                  return da - db;
+                })[0];
+              if (nearestHostile) onEngage(nearestHostile.id, effectorId);
+            } : undefined}
+            onClose={() => setDeviceWheelState(null)}
           />
         );
       })()}
