@@ -1264,8 +1264,10 @@ async def game_websocket(ws: WebSocket):
                               else:
                                for j, d in enumerate(drones):
                                 if d.id == target_id:
-                                    # Check range
-                                    if not _check_effector_in_range(eff_state, d):
+                                    is_jammer = eff_state["type"] in ("rf_jam", "electronic")
+
+                                    # Check range — jammers can activate regardless (they radiate omnidirectionally)
+                                    if not is_jammer and not _check_effector_in_range(eff_state, d):
                                         await ws.send_json({
                                             "type": "event",
                                             "timestamp": round(elapsed, 1),
@@ -1288,8 +1290,18 @@ async def game_websocket(ws: WebSocket):
                                     )
 
                                     # --- EW Jamming: RF jammers don't instantly defeat ---
-                                    is_jammer = eff_state["type"] in ("rf_jam", "electronic")
+                                    # (is_jammer already set above)
                                     if is_jammer:
+                                        # Jammer activates (radiates) regardless, but effect depends on range
+                                        in_jam_range = _check_effector_in_range(eff_state, d)
+                                        await ws.send_json({
+                                            "type": "event",
+                                            "timestamp": round(elapsed, 1),
+                                            "message": f"EW: {eff_state['name']} RADIATING" + ("" if in_jam_range else f" — target {d.id.upper()} outside effective range"),
+                                        })
+                                        if not in_jam_range:
+                                            # Jammer is on but drone not in range yet — no effect
+                                            break
                                         jam_behavior = _pick_jam_behavior(d.drone_type)
                                         if jam_behavior is None:
                                             # Jam failed — autonomous navigation
