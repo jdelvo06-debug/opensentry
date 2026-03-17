@@ -38,6 +38,8 @@ interface Props {
   cameraTrackId?: string | null;
   sensorConfigs?: SensorStatus[];
   protectedArea?: ProtectedAreaInfo | null;
+  trackBlinkStates?: Record<string, string>;
+  newContactBanner?: string | null;
 }
 
 interface WheelState {
@@ -91,6 +93,7 @@ function createTrackIcon(
   holdFire?: boolean,
   headingDeg?: number,
   speedKts?: number,
+  blinkClass?: string,
 ): L.DivIcon {
   const color = AFFILIATION_COLORS[affiliation];
   const size = 40; // Increased to fit HF box and velocity line
@@ -183,7 +186,7 @@ function createTrackIcon(
 
   return L.divIcon({
     html: svg,
-    className: "",
+    className: blinkClass || "",
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   });
@@ -392,6 +395,8 @@ export default function TacticalMap({
   cameraTrackId,
   sensorConfigs = [],
   protectedArea,
+  trackBlinkStates = {},
+  newContactBanner,
 }: Props) {
   const baseCenter: [number, number] = [baseLat, baseLng];
   const [wheelState, setWheelState] = useState<WheelState | null>(null);
@@ -930,6 +935,7 @@ export default function TacticalMap({
                   track.hold_fire,
                   track.heading_deg,
                   track.speed_kts,
+                  trackBlinkStates[track.id],
                 )}
                 eventHandlers={{
                   click: (e) => {
@@ -984,6 +990,37 @@ export default function TacticalMap({
       >
         RANGE RINGS {showRangeRings ? "ON" : "OFF"}
       </button>
+
+      {/* NEW CONTACT banner */}
+      {newContactBanner && (
+        <div
+          className="new-contact-banner"
+          style={{
+            position: "absolute",
+            top: 10,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 1100,
+            background: "rgba(210, 153, 34, 0.2)",
+            border: "1px solid rgba(210, 153, 34, 0.6)",
+            borderRadius: 4,
+            padding: "6px 20px",
+            pointerEvents: "none",
+          }}
+        >
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#d29922",
+              letterSpacing: 2,
+            }}
+          >
+            NEW CONTACT — {newContactBanner}
+          </span>
+        </div>
+      )}
 
       {/* Zone labels overlay (positioned absolutely over map) */}
       {engagementZones && (

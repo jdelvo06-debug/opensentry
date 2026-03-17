@@ -90,6 +90,17 @@ export default function App() {
   const [audioVolume, setAudioVolume] = useState(soundEngine.volume);
   const prevThreatLevelRef = useRef<ThreatLevel>("green");
 
+  // Alert system state
+  const [alertCount, setAlertCount] = useState(0);
+  const [newContactBanner, setNewContactBanner] = useState<string | null>(null);
+  const newContactTimerRef = useRef<number>(0);
+  const [trackBlinkStates, setTrackBlinkStates] = useState<Record<string, string>>({});
+  const prevTrackIdsRef = useRef<Set<string>>(new Set());
+  const tracksInWarningRef = useRef<Set<string>>(new Set());
+  const tracksInProtectedRef = useRef<Set<string>>(new Set());
+  const tracksCriticalRef = useRef<Set<string>>(new Set());
+  const engagedTracksRef = useRef<Set<string>>(new Set());
+
   const handleToggleMute = useCallback(() => {
     soundEngine.init();
     const next = !soundEngine.muted;
@@ -194,6 +205,8 @@ export default function App() {
         }
         if (msg.effective) {
           setTimeout(() => soundEngine.play("target_defeated"), 500);
+          // Green flash on defeated track
+          setTrackBlinkStates((prev) => ({ ...prev, [msg.target_id]: "track-flash-green" }));
         }
         break;
       }
@@ -213,6 +226,7 @@ export default function App() {
         setPhase("debrief");
         if (msg.drone_reached_base) {
           soundEngine.play("mission_fail");
+          soundEngine.play("critical_alarm");
         } else {
           soundEngine.play("debrief_reveal");
         }
@@ -221,6 +235,92 @@ export default function App() {
   }, []);
 
   const { connect, send, connected } = useWebSocket(handleMessage);
+
+  // Alert system: detect new tracks, zone entries, threat escalation
+  useEffect(() => {
+    if (phase !== "running" || !protectedArea) return;
+
+    const currentTrackIds = new Set(tracks.filter((t) => !t.neutralized).map((t) => t.id));
+    const prevIds = prevTrackIdsRef.current;
+    const newBlinks: Record<string, string> = {};
+    let alerts = 0;
+
+    for (const track of tracks) {
+      if (track.neutralized) continue;
+
+      const isNew = !prevIds.has(track.id);
+      const eta = track.eta_protected;
+      const distToProtected = eta != null ? eta : Infinity;
+
+      // New contact detection
+      if (isNew && track.dtid_phase === "detected") {
+        // Flash track 3 times (slow blink)
+        newBlinks[track.id] = "track-blink-slow";
+        alerts++;
+
+        // Show NEW CONTACT banner
+        setNewContactBanner(track.id.toUpperCase());
+        window.clearTimeout(newContactTimerRef.current);
+        newContactTimerRef.current = window.setTimeout(() => {
+          setNewContactBanner(null);
+        }, 3000);
+      }
+
+      // Warning area entry
+      if (eta != null) {
+        // Track is heading toward protected area
+        const inWarning = distToProtected <= 60; // roughly within warning area by time
+        const inProtected = distToProtected <= 5; // basically at the edge
+        const isCritical = distToProtected <= 15;
+
+        if (isCritical && !tracksCriticalRef.current.has(track.id)) {
+          tracksCriticalRef.current.add(track.id);
+          newBlinks[track.id] = "track-blink-rapid";
+          soundEngine.play("critical_alarm");
+          alerts++;
+        } else if (inProtected && !tracksInProtectedRef.current.has(track.id)) {
+          tracksInProtectedRef.current.add(track.id);
+          newBlinks[track.id] = "track-blink-fast";
+          soundEngine.play("protected_area_entry");
+          alerts++;
+        } else if (inWarning && !tracksInWarningRef.current.has(track.id)) {
+          tracksInWarningRef.current.add(track.id);
+          newBlinks[track.id] = "track-blink-fast";
+          soundEngine.play("warning_area_entry");
+          alerts++;
+        } else if (tracksCriticalRef.current.has(track.id)) {
+          newBlinks[track.id] = "track-blink-rapid";
+          alerts++;
+        } else if (tracksInProtectedRef.current.has(track.id)) {
+          newBlinks[track.id] = "track-blink-fast";
+          alerts++;
+        } else if (tracksInWarningRef.current.has(track.id)) {
+          // Keep fast blink while in warning zone
+          newBlinks[track.id] = "track-blink-fast";
+          alerts++;
+        }
+      }
+
+      // Engagement blink (track in "defeated" phase but not yet neutralized = engaged)
+      if (track.dtid_phase === "defeated" && !track.neutralized) {
+        newBlinks[track.id] = "track-blink-engaged";
+      }
+    }
+
+    // Clean up refs for neutralized/removed tracks
+    for (const id of prevIds) {
+      if (!currentTrackIds.has(id)) {
+        tracksInWarningRef.current.delete(id);
+        tracksInProtectedRef.current.delete(id);
+        tracksCriticalRef.current.delete(id);
+        engagedTracksRef.current.delete(id);
+      }
+    }
+
+    prevTrackIdsRef.current = currentTrackIds;
+    setTrackBlinkStates(newBlinks);
+    setAlertCount(alerts);
+  }, [tracks, phase, protectedArea]);
 
   // Sound: threat level change
   useEffect(() => {
@@ -788,6 +888,7 @@ export default function App() {
         volume={audioVolume}
         onToggleMute={handleToggleMute}
         onVolumeChange={handleVolumeChange}
+        alertCount={alertCount}
       />
 
       {/* Left sidebar */}
@@ -834,6 +935,8 @@ export default function App() {
           cameraTrackId={cameraTrackId}
           sensorConfigs={sensorConfigs}
           protectedArea={protectedArea}
+          trackBlinkStates={trackBlinkStates}
+          newContactBanner={newContactBanner}
         />
 
         {/* Tutorial overlay banner */}

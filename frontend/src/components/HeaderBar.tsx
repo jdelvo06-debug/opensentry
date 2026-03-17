@@ -9,6 +9,7 @@ interface Props {
   volume: number;
   onToggleMute: () => void;
   onVolumeChange: (v: number) => void;
+  alertCount?: number;
 }
 
 const THREAT_COLORS: Record<ThreatLevel, string> = {
@@ -27,6 +28,7 @@ export default function HeaderBar({
   volume,
   onToggleMute,
   onVolumeChange,
+  alertCount = 0,
 }: Props) {
   const threatColor = THREAT_COLORS[threatLevel];
   const mins = Math.floor(timeRemaining / 60);
@@ -137,6 +139,28 @@ export default function HeaderBar({
             }}
           />
         </div>
+
+        {/* Alert Count Badge */}
+        {alertCount > 0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 10, color: "#f85149", letterSpacing: 1, fontWeight: 600 }}>ALERTS</span>
+            <span
+              style={{
+                padding: "2px 8px",
+                borderRadius: 10,
+                background: "rgba(248, 81, 73, 0.2)",
+                border: "1px solid rgba(248, 81, 73, 0.5)",
+                color: "#f85149",
+                fontSize: 12,
+                fontWeight: 700,
+                fontFamily: "'JetBrains Mono', monospace",
+                animation: "track-blink 1s ease-in-out infinite",
+              }}
+            >
+              {alertCount}
+            </span>
+          </div>
+        )}
 
         {/* Threat Level Badge */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

@@ -17,7 +17,10 @@ type SoundName =
   | "threat_red"
   | "camera_slew"
   | "clock_tick"
-  | "debrief_reveal";
+  | "debrief_reveal"
+  | "warning_area_entry"
+  | "protected_area_entry"
+  | "critical_alarm";
 
 class SoundEngine {
   private ctx: AudioContext | null = null;
@@ -136,6 +139,15 @@ class SoundEngine {
         break;
       case "debrief_reveal":
         this.debriefReveal(ctx, master, t);
+        break;
+      case "warning_area_entry":
+        this.warningAreaEntry(ctx, master, t);
+        break;
+      case "protected_area_entry":
+        this.protectedAreaEntry(ctx, master, t);
+        break;
+      case "critical_alarm":
+        this.criticalAlarm(ctx, master, t);
         break;
     }
   }
@@ -414,6 +426,67 @@ class SoundEngine {
     final.connect(fg).connect(master);
     final.start(ft);
     final.stop(ft + 0.45);
+  }
+
+  /** Warning area entry: two-tone amber alert. */
+  private warningAreaEntry(
+    ctx: AudioContext,
+    master: GainNode,
+    t: number,
+  ): void {
+    const freqs = [500, 600];
+    freqs.forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = f;
+      const start = t + i * 0.15;
+      gain.gain.setValueAtTime(0.25, start);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.12);
+      osc.connect(gain).connect(master);
+      osc.start(start);
+      osc.stop(start + 0.15);
+    });
+  }
+
+  /** Protected area entry: urgent three-pulse alarm. */
+  private protectedAreaEntry(
+    ctx: AudioContext,
+    master: GainNode,
+    t: number,
+  ): void {
+    for (let i = 0; i < 3; i++) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "square";
+      osc.frequency.value = 700;
+      const start = t + i * 0.12;
+      gain.gain.setValueAtTime(0.3, start);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.1);
+      osc.connect(gain).connect(master);
+      osc.start(start);
+      osc.stop(start + 0.12);
+    }
+  }
+
+  /** Critical alarm: rapid buzzing for imminent threat. */
+  private criticalAlarm(
+    ctx: AudioContext,
+    master: GainNode,
+    t: number,
+  ): void {
+    for (let i = 0; i < 5; i++) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "square";
+      osc.frequency.value = 900 + (i % 2) * 200;
+      const start = t + i * 0.08;
+      gain.gain.setValueAtTime(0.35, start);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.06);
+      osc.connect(gain).connect(master);
+      osc.start(start);
+      osc.stop(start + 0.08);
+    }
   }
 
   // ─── Helpers ───────────────────────────────────────────────────
