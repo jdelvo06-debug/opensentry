@@ -28,6 +28,18 @@
         50% { stroke-opacity: 0.4; stroke-width: 1.5; }
       }
 
+      /* Hostile track pulse glow */
+      @keyframes hostile-pulse {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 0.8; }
+      }
+
+      /* Jammer active pulse glow */
+      @keyframes jammer-pulse {
+        0%, 100% { opacity: 0.3; r: 16; }
+        50% { opacity: 0.7; r: 19; }
+      }
+
       /* Track blink animations */
       .track-blink-slow {
         animation: track-blink 1s ease-in-out 3;

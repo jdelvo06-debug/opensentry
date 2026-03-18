@@ -122,10 +122,10 @@ function createTrackIcon(
   blinkClass?: string,
 ): L.DivIcon {
   const color = AFFILIATION_COLORS[affiliation];
-  const size = 40; // Increased to fit HF box and velocity line
-  const cx = 20;
-  const cy = 20;
-  const iconR = 12; // half the icon shape size
+  const size = 48; // Larger for readability
+  const cx = 24;
+  const cy = 24;
+  const iconR = 14; // half the icon shape size
   let svg: string;
 
   const opacity = coasting ? 0.4 : 1.0;
@@ -133,8 +133,8 @@ function createTrackIcon(
 
   if (neutralized) {
     svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-      <line x1="${cx - 8}" y1="${cy - 8}" x2="${cx + 8}" y2="${cy + 8}" stroke="#484f58" stroke-width="2.5"/>
-      <line x1="${cx + 8}" y1="${cy - 8}" x2="${cx - 8}" y2="${cy + 8}" stroke="#484f58" stroke-width="2.5"/>
+      <line x1="${cx - 9}" y1="${cy - 9}" x2="${cx + 9}" y2="${cy + 9}" stroke="#484f58" stroke-width="2.5"/>
+      <line x1="${cx + 9}" y1="${cy - 9}" x2="${cx - 9}" y2="${cy + 9}" stroke="#484f58" stroke-width="2.5"/>
     </svg>`;
   } else {
     const fill = `${color}33`;
@@ -167,41 +167,50 @@ function createTrackIcon(
     switch (affiliation) {
       case "hostile":
         // Diamond
-        shape = `<polygon points="${cx},${cy - 10} ${cx + 10},${cy} ${cx},${cy + 10} ${cx - 10},${cy}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${dashArray} opacity="${opacity}"/>`;
+        shape = `<polygon points="${cx},${cy - 12} ${cx + 12},${cy} ${cx},${cy + 12} ${cx - 12},${cy}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${dashArray} opacity="${opacity}"/>`;
         break;
       case "friendly":
         // Rectangle
-        shape = `<rect x="${cx - 11}" y="${cy - 8}" width="22" height="16" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${dashArray} opacity="${opacity}"/>`;
+        shape = `<rect x="${cx - 13}" y="${cy - 10}" width="26" height="20" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${dashArray} opacity="${opacity}"/>`;
         break;
       case "neutral":
-        shape = `<rect x="${cx - 9}" y="${cy - 9}" width="18" height="18" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${dashArray} opacity="${opacity}"/>`;
+        shape = `<rect x="${cx - 11}" y="${cy - 11}" width="22" height="22" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${dashArray} opacity="${opacity}"/>`;
         break;
       case "unknown":
       default:
-        shape = `<rect x="${cx - 9}" y="${cy - 9}" width="18" height="18" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${dashArray} opacity="${opacity}"/>`;
+        shape = `<rect x="${cx - 11}" y="${cy - 11}" width="22" height="22" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${dashArray} opacity="${opacity}"/>`;
         break;
     }
 
+    // Hostile pulse glow ring — only on active hostile tracks
+    let hostilePulse = "";
+    if (affiliation === "hostile" && !neutralized && !coasting) {
+      hostilePulse = `<circle cx="${cx}" cy="${cy}" r="17" fill="none" stroke="${stroke}" stroke-width="1.5">
+        <animate attributeName="opacity" values="0.3;0.8;0.3" dur="1.5s" repeatCount="indefinite"/>
+      </circle>`;
+    }
+
     const selectedRing = isSelected
-      ? `<circle cx="${cx}" cy="${cy}" r="14" fill="none" stroke="${stroke}" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>`
+      ? `<circle cx="${cx}" cy="${cy}" r="17" fill="none" stroke="${stroke}" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>`
       : "";
 
     // Hold Fire indicator: dashed rectangle with "HF" text
     let hfIndicator = "";
     if (holdFire) {
       hfIndicator = `
-        <rect x="${cx - 14}" y="${cy - 14}" width="28" height="28" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-dasharray="4,2" opacity="0.8"/>
-        <text x="${cx + 12}" y="${cy - 10}" text-anchor="middle" font-size="7" font-weight="700" font-family="monospace" fill="${stroke}" opacity="0.9">HF</text>
+        <rect x="${cx - 16}" y="${cy - 16}" width="32" height="32" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-dasharray="4,2" opacity="0.8"/>
+        <text x="${cx + 14}" y="${cy - 12}" text-anchor="middle" font-size="7" font-weight="700" font-family="monospace" fill="${stroke}" opacity="0.9">HF</text>
       `;
     }
 
     // Coasting indicator text
     let coastIndicator = "";
     if (coasting) {
-      coastIndicator = `<text x="${cx}" y="${cy + 18}" text-anchor="middle" font-size="6" font-weight="600" font-family="monospace" fill="${stroke}" opacity="0.6">COAST</text>`;
+      coastIndicator = `<text x="${cx}" y="${cy + 21}" text-anchor="middle" font-size="6" font-weight="600" font-family="monospace" fill="${stroke}" opacity="0.6">COAST</text>`;
     }
 
     svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+      ${hostilePulse}
       ${velocityLine}
       ${shape}
       ${selectedRing}
@@ -223,39 +232,46 @@ function createInterceptorIcon(
   neutralized: boolean,
   headingDeg?: number,
   blinkClass?: string,
+  callsign?: string,
 ): L.DivIcon {
-  const size = 32;
-  const cx = 16;
-  const cy = 16;
+  const size = 44;
+  const cx = 22;
+  const cy = 18; // shifted up to leave room for callsign below
   const color = "#3fb950"; // green
 
   if (neutralized) {
     const svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-      <line x1="${cx - 5}" y1="${cy - 5}" x2="${cx + 5}" y2="${cy + 5}" stroke="#484f58" stroke-width="2"/>
-      <line x1="${cx + 5}" y1="${cy - 5}" x2="${cx - 5}" y2="${cy + 5}" stroke="#484f58" stroke-width="2"/>
+      <line x1="${cx - 6}" y1="${cy - 6}" x2="${cx + 6}" y2="${cy + 6}" stroke="#484f58" stroke-width="2"/>
+      <line x1="${cx + 6}" y1="${cy - 6}" x2="${cx - 6}" y2="${cy + 6}" stroke="#484f58" stroke-width="2"/>
     </svg>`;
     return L.divIcon({ html: svg, className: "", iconSize: [size, size], iconAnchor: [cx, cy] });
   }
 
   const headingRad = headingDeg != null ? ((headingDeg) * Math.PI) / 180 : 0;
-  // Triangle pointing in heading direction
-  const triSize = 8;
+  // Triangle pointing in heading direction — larger and filled
+  const triSize = 11;
   const p1x = cx + Math.sin(headingRad) * triSize;
   const p1y = cy - Math.cos(headingRad) * triSize;
-  const p2x = cx + Math.sin(headingRad + 2.4) * triSize * 0.65;
-  const p2y = cy - Math.cos(headingRad + 2.4) * triSize * 0.65;
-  const p3x = cx + Math.sin(headingRad - 2.4) * triSize * 0.65;
-  const p3y = cy - Math.cos(headingRad - 2.4) * triSize * 0.65;
+  const p2x = cx + Math.sin(headingRad + 2.4) * triSize * 0.6;
+  const p2y = cy - Math.cos(headingRad + 2.4) * triSize * 0.6;
+  const p3x = cx + Math.sin(headingRad - 2.4) * triSize * 0.6;
+  const p3y = cy - Math.cos(headingRad - 2.4) * triSize * 0.6;
 
-  const fill = `${color}44`;
+  const fill = `${color}88`;
   const sw = isSelected ? 2.5 : 1.5;
   const selectedRing = isSelected
-    ? `<circle cx="${cx}" cy="${cy}" r="11" fill="none" stroke="${color}" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>`
+    ? `<circle cx="${cx}" cy="${cy}" r="14" fill="none" stroke="${color}" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>`
+    : "";
+
+  // Small callsign label below icon
+  const label = callsign
+    ? `<text x="${cx}" y="${size - 2}" text-anchor="middle" font-size="7" font-weight="600" font-family="monospace" fill="${color}" opacity="0.8">${callsign}</text>`
     : "";
 
   const svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
     <polygon points="${p1x},${p1y} ${p2x},${p2y} ${p3x},${p3y}" fill="${fill}" stroke="${color}" stroke-width="${sw}"/>
     ${selectedRing}
+    ${label}
   </svg>`;
 
   return L.divIcon({
@@ -282,23 +298,23 @@ function createBaseIcon(): L.DivIcon {
 
 function createSensorIcon(name: string): L.DivIcon {
   const label = (name || "SENSOR").toUpperCase().slice(0, 8);
-  const svg = `<svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="14" cy="14" r="8" fill="rgba(88,166,255,0.15)" stroke="#58a6ff" stroke-width="1.5"/>
-    <circle cx="14" cy="14" r="2" fill="#58a6ff"/>
-    <text x="14" y="27" text-anchor="middle" fill="#58a6ff" font-size="6" font-weight="600" font-family="monospace">${label}</text>
+  const svg = `<svg width="34" height="34" viewBox="0 0 34 34" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="17" cy="17" r="10" fill="rgba(88,166,255,0.15)" stroke="#58a6ff" stroke-width="1.5"/>
+    <circle cx="17" cy="17" r="2.5" fill="#58a6ff"/>
+    <text x="17" y="33" text-anchor="middle" fill="#58a6ff" font-size="7" font-weight="600" font-family="monospace">${label}</text>
   </svg>`;
-  return L.divIcon({ html: svg, className: "", iconSize: [28, 28], iconAnchor: [14, 14] });
+  return L.divIcon({ html: svg, className: "", iconSize: [34, 34], iconAnchor: [17, 17] });
 }
 
 function createEffectorIcon(name: string): L.DivIcon {
   const label = (name || "EFFECTOR").toUpperCase().slice(0, 8);
-  const svg = `<svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
-    <rect x="6" y="6" width="16" height="16" rx="2" fill="rgba(240,136,62,0.15)" stroke="#f0883e" stroke-width="1.5"/>
-    <line x1="14" y1="9" x2="14" y2="19" stroke="#f0883e" stroke-width="1.5"/>
-    <line x1="9" y1="14" x2="19" y2="14" stroke="#f0883e" stroke-width="1.5"/>
-    <text x="14" y="27" text-anchor="middle" fill="#f0883e" font-size="6" font-weight="600" font-family="monospace">${label}</text>
+  const svg = `<svg width="34" height="34" viewBox="0 0 34 34" xmlns="http://www.w3.org/2000/svg">
+    <rect x="7" y="7" width="20" height="20" rx="2" fill="rgba(240,136,62,0.15)" stroke="#f0883e" stroke-width="1.5"/>
+    <line x1="17" y1="11" x2="17" y2="23" stroke="#f0883e" stroke-width="1.5"/>
+    <line x1="11" y1="17" x2="23" y2="17" stroke="#f0883e" stroke-width="1.5"/>
+    <text x="17" y="33" text-anchor="middle" fill="#f0883e" font-size="7" font-weight="600" font-family="monospace">${label}</text>
   </svg>`;
-  return L.divIcon({ html: svg, className: "", iconSize: [28, 28], iconAnchor: [14, 14] });
+  return L.divIcon({ html: svg, className: "", iconSize: [34, 34], iconAnchor: [17, 17] });
 }
 
 // Component to handle map click for deselecting tracks
@@ -719,7 +735,7 @@ function TrackDataBlock({
     ? `<span style="color:#f85149;font-size:7px;font-weight:700;margin-left:4px;">HF</span>`
     : "";
   const jamLabel = isJammed
-    ? `<span style="color:#d29922;font-size:7px;font-weight:700;margin-left:4px;animation:track-blink 1s ease-in-out infinite;">JAMMED</span>`
+    ? `<span style="display:inline-block;background:#1f6feb33;border:1px solid #1f6feb88;border-radius:2px;padding:0 3px;margin-left:4px;color:#58a6ff;font-size:7px;font-weight:700;animation:track-blink 1s ease-in-out infinite;">JAM</span>`
     : "";
   const interceptPhaseLabel = isInterceptor && track.intercept_phase && !track.neutralized
     ? `<span style="color:#3fb950;font-size:7px;font-weight:700;margin-left:4px;">${track.intercept_phase.toUpperCase()}</span>`
@@ -732,6 +748,18 @@ function TrackDataBlock({
     ? `<span style="color:#a371f7;font-size:7px;opacity:0.7;margin-left:3px;">${track.frequency_band}</span>`
     : "";
 
+  // DTID phase color for the phase badge
+  const phaseColors: Record<string, string> = {
+    detected: "#8b949e",
+    tracked: "#d29922",
+    identified: track.affiliation === "hostile" ? "#f85149" : track.affiliation === "friendly" ? "#3fb950" : "#d29922",
+    defeated: "#484f58",
+  };
+  const phaseColor = isInterceptor ? "#3fb950" : (phaseColors[track.dtid_phase] || "#8b949e");
+
+  // Affiliation border color for left accent
+  const borderAccent = track.neutralized ? "#484f58" : (isInterceptor ? "#3fb950" : AFFILIATION_COLORS[track.affiliation]);
+
   // ETA to protected area
   const eta = track.eta_protected;
   let etaLabel = "";
@@ -742,11 +770,12 @@ function TrackDataBlock({
 
   const html = `<div style="
     pointer-events:none;
-    background:rgba(13,17,23,${isSelected ? "0.92" : "0.78"});
+    background:rgba(13,17,23,${isSelected ? "0.94" : "0.82"});
     border:1px solid ${isSelected ? color : "#30363d"};
-    ${isCoasting ? "border-style:dashed;" : ""}
+    border-left:3px solid ${borderAccent};
+    ${isCoasting ? "border-style:dashed;border-left-style:solid;" : ""}
     border-radius:3px;
-    padding:2px 5px;
+    padding:2px 6px 2px 5px;
     white-space:nowrap;
     font-family:'JetBrains Mono',monospace;
     line-height:1.35;
@@ -755,14 +784,14 @@ function TrackDataBlock({
   ">
     <div style="
       position:absolute;
-      left:-9px;
-      top:8px;
-      width:8px;
+      left:-12px;
+      top:9px;
+      width:9px;
       height:1px;
       background:${isSelected ? color : "#30363d"};
     "></div>
-    <div style="color:${color};font-size:${isSelected ? "10px" : "9px"};font-weight:600;letter-spacing:0.5px;">
-      ${track.id.toUpperCase()} <span style="opacity:0.6;font-weight:400;">${phaseChar}</span>${freqLabel}${coastLabel}${hfLabel}${jamLabel}${shinobiLabel}${interceptPhaseLabel}
+    <div style="color:${color};font-size:${isSelected ? "11px" : "10px"};font-weight:700;letter-spacing:0.5px;">
+      ${track.id.toUpperCase()} <span style="color:${phaseColor};font-size:8px;font-weight:600;opacity:0.9;">${phaseChar}</span>${freqLabel}${coastLabel}${hfLabel}${jamLabel}${shinobiLabel}${interceptPhaseLabel}
     </div>
     ${!track.neutralized ? `
     <div style="color:#8b949e;font-size:8px;opacity:${isSelected ? 0.9 : 0.65};">
@@ -773,15 +802,15 @@ function TrackDataBlock({
     </div>
     ${etaLabel}` : isShinobiCM ? `
     <div style="color:#a371f7;font-size:8px;font-weight:600;">SHINOBI ${(track.shinobi_cm_active || "").replace("shinobi_", "").replace("_", " ").toUpperCase()} [${track.shinobi_cm_state || "?"}]</div>` : isJammed ? `
-    <div style="color:#d29922;font-size:8px;font-weight:600;">EW EFFECT ACTIVE</div>` : `
+    <div style="color:#58a6ff;font-size:8px;font-weight:600;">EW EFFECT ACTIVE</div>` : `
     <div style="color:#484f58;font-size:8px;">NEUTRALIZED</div>`}
   </div>`;
 
   const icon = L.divIcon({
     html,
     className: "",
-    iconSize: [120, 48],
-    iconAnchor: [-18, 12 - yOff],
+    iconSize: [130, 52],
+    iconAnchor: [-22, 14 - yOff],
   });
 
   return <Marker position={position} icon={icon} interactive={false} />;
@@ -1490,6 +1519,7 @@ export default function TacticalMap({
                       track.neutralized,
                       track.heading_deg,
                       blinkClass,
+                      track.id.toUpperCase(),
                     )
                   : createTrackIcon(
                       track.affiliation,
