@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { DTIDPhase, EffectorStatus } from "../types";
 
 interface WheelAction {
@@ -51,6 +51,14 @@ const SHINOBI_CM_OPTIONS = [
   { id: "shinobi_land_now", label: "LAND NOW", icon: "\u2B07", color: "#f0883e", desc: "Force descent" },
   { id: "shinobi_deafen", label: "DEAFEN", icon: "\u{1F507}", color: "#f85149", desc: "Sever link" },
 ];
+
+// Phase accent colors for center hub ring
+const PHASE_COLORS: Record<DTIDPhase, string> = {
+  detected: "#58a6ff",   // blue
+  tracked: "#f0883e",    // orange
+  identified: "#f85149", // red (overridden to green for friendly/neutral)
+  defeated: "#3fb950",   // green
+};
 
 type SubMenu = "none" | "identify" | "engage" | "shinobi_cm";
 
@@ -110,73 +118,121 @@ function arcPath(startAngle: number, endAngle: number, outerR: number, innerR: n
   ].join(" ");
 }
 
+function linePath(angleDeg: number, innerR: number, outerR: number): string {
+  const [x1, y1] = polarToXY(angleDeg, innerR);
+  const [x2, y2] = polarToXY(angleDeg, outerR);
+  return `M ${x1} ${y1} L ${x2} ${y2}`;
+}
+
 function WheelSegments({
   actions,
   onSelect,
   hoveredId,
+  pressedId,
   onHover,
+  onPress,
 }: {
   actions: WheelAction[];
   onSelect: (id: string) => void;
   hoveredId: string | null;
+  pressedId: string | null;
   onHover: (id: string | null) => void;
+  onPress: (id: string | null) => void;
 }) {
   const n = actions.length;
   const sliceAngle = 360 / n;
 
   return (
     <>
+      {/* Radial gradient for slice backgrounds */}
       {actions.map((action, i) => {
         const startAngle = i * sliceAngle;
         const endAngle = startAngle + sliceAngle;
         const midAngle = startAngle + sliceAngle / 2;
         const isHovered = hoveredId === action.id;
-        const labelR = (WHEEL_RADIUS + INNER_RADIUS) / 2;
-        const [lx, ly] = polarToXY(midAngle, labelR);
-        const iconR = labelR - 10;
+        const isPressed = pressedId === action.id;
+        const iconR = (WHEEL_RADIUS + INNER_RADIUS) / 2 - 6;
+        const labelR = (WHEEL_RADIUS + INNER_RADIUS) / 2 + 8;
         const [ix, iy] = polarToXY(midAngle, iconR);
+        const [lx, ly] = polarToXY(midAngle, labelR);
+
+        const sliceFill = action.disabled
+          ? "rgba(22, 27, 34, 0.7)"
+          : isHovered
+            ? `${action.color}30`
+            : "rgba(22, 27, 34, 0.92)";
+
+        const sliceStroke = isHovered && !action.disabled ? action.color : "#30363d";
+        const sliceStrokeWidth = isHovered && !action.disabled ? 1.5 : 0.5;
+        const scaleTransform = isPressed && !action.disabled
+          ? `translate(${CENTER}, ${CENTER}) scale(0.95) translate(${-CENTER}, ${-CENTER})`
+          : undefined;
 
         return (
           <g
             key={action.id}
             style={{ cursor: action.disabled ? "default" : "pointer" }}
+            transform={scaleTransform}
             onMouseEnter={() => !action.disabled && onHover(action.id)}
-            onMouseLeave={() => onHover(null)}
+            onMouseLeave={() => { onHover(null); onPress(null); }}
+            onMouseDown={() => !action.disabled && onPress(action.id)}
+            onMouseUp={() => onPress(null)}
             onClick={(e) => {
               e.stopPropagation();
               if (!action.disabled) onSelect(action.id);
             }}
           >
+            {/* Slice background */}
             <path
               d={arcPath(startAngle, endAngle, WHEEL_RADIUS - 2, INNER_RADIUS)}
-              fill={isHovered ? `${action.color}30` : "rgba(22, 27, 34, 0.92)"}
-              stroke={isHovered ? action.color : "#30363d"}
-              strokeWidth={isHovered ? 1.5 : 1}
+              fill={sliceFill}
+              stroke={sliceStroke}
+              strokeWidth={sliceStrokeWidth}
+              filter={isHovered && !action.disabled ? "url(#hover-glow)" : undefined}
             />
+
+            {/* Disabled strikethrough overlay */}
+            {action.disabled && (
+              <line
+                x1={ix - 8}
+                y1={iy + 2}
+                x2={ix + 8}
+                y2={iy - 2}
+                stroke="#484f58"
+                strokeWidth={1}
+                opacity={0.5}
+                style={{ pointerEvents: "none" }}
+              />
+            )}
+
+            {/* Icon — slightly larger */}
             <text
               x={ix}
               y={iy}
               textAnchor="middle"
               dominantBaseline="central"
               style={{
-                fontSize: 14,
-                fill: action.disabled ? "#484f58" : action.color,
+                fontSize: 16,
+                fill: action.disabled ? "#484f5880" : action.color,
+                opacity: action.disabled ? 0.3 : 1,
                 pointerEvents: "none",
                 userSelect: "none",
               }}
             >
               {action.icon}
             </text>
+
+            {/* Label — smaller, below icon */}
             <text
               x={lx}
-              y={ly + 10}
+              y={ly}
               textAnchor="middle"
               dominantBaseline="central"
               style={{
-                fontSize: 8,
+                fontSize: 7,
                 fontWeight: 600,
                 fontFamily: "'JetBrains Mono', monospace",
-                fill: action.disabled ? "#484f5899" : isHovered ? "#e6edf3" : "#8b949e",
+                fill: action.disabled ? "#484f5860" : isHovered ? "#e6edf3" : "#8b949e",
                 letterSpacing: 0.5,
                 pointerEvents: "none",
                 userSelect: "none",
@@ -187,11 +243,11 @@ function WheelSegments({
             {action.statusText && (
               <text
                 x={lx}
-                y={ly + 20}
+                y={ly + 9}
                 textAnchor="middle"
                 dominantBaseline="central"
                 style={{
-                  fontSize: 7,
+                  fontSize: 6,
                   fontFamily: "'JetBrains Mono', monospace",
                   fill: "#484f58",
                   pointerEvents: "none",
@@ -202,6 +258,20 @@ function WheelSegments({
               </text>
             )}
           </g>
+        );
+      })}
+
+      {/* Separator lines between slices */}
+      {n > 1 && actions.map((_, i) => {
+        const angle = i * sliceAngle;
+        return (
+          <path
+            key={`sep-${i}`}
+            d={linePath(angle, INNER_RADIUS, WHEEL_RADIUS - 2)}
+            stroke="#1b1f27"
+            strokeWidth={1}
+            style={{ pointerEvents: "none" }}
+          />
         );
       })}
     </>
@@ -225,13 +295,25 @@ export default function RadialActionWheel({
 }: Props) {
   const [subMenu, setSubMenu] = useState<SubMenu>("none");
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [opacity, setOpacity] = useState(0);
+  const [pressedId, setPressedId] = useState<string | null>(null);
+  const [animState, setAnimState] = useState<"entering" | "visible" | "exiting">("entering");
   const [selectedShinobiEffector, setSelectedShinobiEffector] = useState<string | null>(null);
+  const closingRef = useRef(false);
 
-  // Fade in
+  // Animate open: entering → visible
   useEffect(() => {
-    requestAnimationFrame(() => setOpacity(1));
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => setAnimState("visible"));
+    });
   }, []);
+
+  // Animated close helper
+  const animatedClose = useCallback(() => {
+    if (closingRef.current) return;
+    closingRef.current = true;
+    setAnimState("exiting");
+    setTimeout(() => onClose(), 100);
+  }, [onClose]);
 
   // Close on Escape
   useEffect(() => {
@@ -240,24 +322,24 @@ export default function RadialActionWheel({
         if (subMenu !== "none") {
           setSubMenu("none");
         } else {
-          onClose();
+          animatedClose();
         }
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [onClose, subMenu]);
+  }, [animatedClose, subMenu]);
 
   const handleSelect = useCallback(
     (actionId: string) => {
       switch (actionId) {
         case "confirm_track":
           onConfirmTrack(trackId);
-          onClose();
+          animatedClose();
           break;
         case "slew_camera":
           onSlewCamera(trackId);
-          onClose();
+          animatedClose();
           break;
         case "identify":
           setSubMenu("identify");
@@ -267,25 +349,25 @@ export default function RadialActionWheel({
           break;
         case "hold_fire":
           onHoldFire?.(trackId);
-          onClose();
+          animatedClose();
           break;
         case "release_hold_fire":
           onReleaseHoldFire?.(trackId);
-          onClose();
+          animatedClose();
           break;
         default:
           break;
       }
     },
-    [trackId, onConfirmTrack, onSlewCamera, onHoldFire, onReleaseHoldFire, onClose],
+    [trackId, onConfirmTrack, onSlewCamera, onHoldFire, onReleaseHoldFire, animatedClose],
   );
 
   const handleClassify = useCallback(
     (cls: (typeof CLASSIFICATIONS)[number]) => {
       onIdentify(trackId, cls.value, cls.affiliation);
-      onClose();
+      animatedClose();
     },
-    [trackId, onIdentify, onClose],
+    [trackId, onIdentify, animatedClose],
   );
 
   const handleEngage = useCallback(
@@ -298,9 +380,9 @@ export default function RadialActionWheel({
         return;
       }
       onEngage(trackId, effectorId);
-      onClose();
+      animatedClose();
     },
-    [trackId, effectors, onEngage, onClose],
+    [trackId, effectors, onEngage, animatedClose],
   );
 
   const handleShinobiCM = useCallback(
@@ -308,9 +390,9 @@ export default function RadialActionWheel({
       if (selectedShinobiEffector) {
         onEngage(trackId, selectedShinobiEffector, cmType);
       }
-      onClose();
+      animatedClose();
     },
-    [trackId, selectedShinobiEffector, onEngage, onClose],
+    [trackId, selectedShinobiEffector, onEngage, animatedClose],
   );
 
   const actions = getActionsForPhase(dtidPhase, holdFire);
@@ -364,6 +446,15 @@ export default function RadialActionWheel({
     }
   };
 
+  // Phase accent color
+  const phaseColor = PHASE_COLORS[dtidPhase];
+
+  // Animation CSS values
+  const isVisible = animState === "visible";
+  const isExiting = animState === "exiting";
+  const scale = isVisible ? 1 : isExiting ? 0.85 : 0.6;
+  const opacity = isVisible ? 1 : 0;
+
   return (
     <div
       onClick={(e) => {
@@ -372,13 +463,13 @@ export default function RadialActionWheel({
           if (subMenu !== "none") {
             setSubMenu("none");
           } else {
-            onClose();
+            animatedClose();
           }
         }
       }}
       onContextMenu={(e) => {
         e.preventDefault();
-        onClose();
+        animatedClose();
       }}
       style={{
         position: "fixed",
@@ -396,7 +487,11 @@ export default function RadialActionWheel({
           width: size,
           height: size,
           opacity,
-          transition: "opacity 100ms ease-out",
+          transform: `scale(${scale})`,
+          transition: isExiting
+            ? "opacity 100ms ease-in, transform 100ms ease-in"
+            : "opacity 150ms ease-out, transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+          transformOrigin: "center center",
           pointerEvents: "auto",
         }}
       >
@@ -406,11 +501,26 @@ export default function RadialActionWheel({
           viewBox={`0 0 ${size} ${size}`}
           xmlns="http://www.w3.org/2000/svg"
         >
-          {/* Drop shadow filter */}
+          {/* Filters */}
           <defs>
             <filter id="wheel-shadow" x="-20%" y="-20%" width="140%" height="140%">
               <feDropShadow dx="0" dy="2" stdDeviation="6" floodColor="#000" floodOpacity="0.5" />
             </filter>
+            <filter id="hover-glow" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter id="phase-glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="3" />
+            </filter>
+            {/* Radial gradient for slice fill — darker at center, lighter at edge */}
+            <radialGradient id="slice-grad" cx="50%" cy="50%" r="50%">
+              <stop offset="30%" stopColor="rgba(22, 27, 34, 0.95)" />
+              <stop offset="100%" stopColor="rgba(33, 38, 45, 0.92)" />
+            </radialGradient>
           </defs>
 
           {/* Background ring */}
@@ -424,15 +534,37 @@ export default function RadialActionWheel({
             filter="url(#wheel-shadow)"
           />
 
-          {/* Inner dark circle */}
-          <circle cx={CENTER} cy={CENTER} r={INNER_RADIUS} fill="rgba(13, 17, 23, 0.95)" stroke="#30363d" strokeWidth={1} />
+          {/* Phase accent glow ring (behind inner circle) */}
+          <circle
+            cx={CENTER}
+            cy={CENTER}
+            r={INNER_RADIUS + 1}
+            fill="none"
+            stroke={phaseColor}
+            strokeWidth={2}
+            opacity={0.4}
+            filter="url(#phase-glow)"
+          />
+
+          {/* Phase accent ring */}
+          <circle
+            cx={CENTER}
+            cy={CENTER}
+            r={INNER_RADIUS}
+            fill="rgba(13, 17, 23, 0.95)"
+            stroke={phaseColor}
+            strokeWidth={1.5}
+            opacity={0.9}
+          />
 
           {subMenu === "none" ? (
             <WheelSegments
               actions={actions}
               onSelect={handleSelect}
               hoveredId={hoveredId}
+              pressedId={pressedId}
               onHover={setHoveredId}
+              onPress={setPressedId}
             />
           ) : (
             <>
@@ -440,7 +572,9 @@ export default function RadialActionWheel({
                 actions={subActions}
                 onSelect={handleSubSelect}
                 hoveredId={hoveredId}
+                pressedId={pressedId}
                 onHover={setHoveredId}
+                onPress={setPressedId}
               />
               {/* Back button in center */}
               <g
@@ -486,30 +620,47 @@ export default function RadialActionWheel({
             </>
           )}
 
-          {/* Center dot */}
+          {/* Center hub: track ID + phase label */}
           {subMenu === "none" && (
-            <circle cx={CENTER} cy={CENTER} r={3} fill="#58a6ff" opacity={0.6} />
-          )}
+            <>
+              {/* Track ID callsign */}
+              <text
+                x={CENTER}
+                y={CENTER - 6}
+                textAnchor="middle"
+                dominantBaseline="central"
+                style={{
+                  fontSize: 8,
+                  fontWeight: 700,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fill: phaseColor,
+                  letterSpacing: 0.5,
+                  pointerEvents: "none",
+                  userSelect: "none",
+                }}
+              >
+                {trackId.length > 9 ? trackId.slice(0, 9) : trackId}
+              </text>
 
-          {/* Phase label in center */}
-          {subMenu === "none" && (
-            <text
-              x={CENTER}
-              y={CENTER + 14}
-              textAnchor="middle"
-              dominantBaseline="central"
-              style={{
-                fontSize: 7,
-                fontWeight: 600,
-                fontFamily: "'JetBrains Mono', monospace",
-                fill: "#8b949e",
-                letterSpacing: 1,
-                pointerEvents: "none",
-                userSelect: "none",
-              }}
-            >
-              {dtidPhase.toUpperCase()}
-            </text>
+              {/* Phase label */}
+              <text
+                x={CENTER}
+                y={CENTER + 8}
+                textAnchor="middle"
+                dominantBaseline="central"
+                style={{
+                  fontSize: 6,
+                  fontWeight: 600,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fill: "#8b949e",
+                  letterSpacing: 1,
+                  pointerEvents: "none",
+                  userSelect: "none",
+                }}
+              >
+                {dtidPhase.toUpperCase()}
+              </text>
+            </>
           )}
 
           {/* Submenu title in center */}
