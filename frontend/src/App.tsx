@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import HeaderBar from "./components/HeaderBar";
 import SensorPanel from "./components/SensorPanel";
 import EffectorPanel from "./components/EffectorPanel";
+import TrackList from "./components/TrackList";
 import TacticalMap from "./components/TacticalMap";
 import type { InterceptAnimationData } from "./components/TacticalMap";
 import TrackDetailPanel from "./components/TrackDetailPanel";
@@ -1107,11 +1108,16 @@ export default function App() {
           borderRight: "1px solid #30363d",
           display: "flex",
           flexDirection: "column",
-          overflow: "auto",
+          overflow: "hidden",
         }}
       >
         <SensorPanel sensors={sensors} />
         <EffectorPanel effectors={effectors} activeJammers={activeJammers} />
+        <TrackList
+          tracks={tracks.filter((t) => !t.neutralized && !t.is_ambient && !t.is_interceptor)}
+          selectedTrackId={selectedTrackId}
+          onSelectTrack={setSelectedTrackId}
+        />
       </div>
 
       {/* Center: Tactical Map */}

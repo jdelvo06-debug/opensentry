@@ -41,8 +41,6 @@ export default function SensorPanel({ sensors }: Props) {
         const color = STATUS_COLORS[sensor.status] || "#484f58";
         const displayName =
           sensor.name || SENSOR_ICONS[sensor.type || ""] || sensor.id.toUpperCase();
-        const detecting = sensor.detecting || [];
-
         return (
           <div
             key={sensor.id}
@@ -81,19 +79,6 @@ export default function SensorPanel({ sensors }: Props) {
               }}
             >
               {displayName}
-            </div>
-            {/* Detecting */}
-            <div
-              style={{
-                fontSize: 10,
-                fontFamily: "'JetBrains Mono', monospace",
-                color: detecting.length > 0 ? "#58a6ff" : "#484f58",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {detecting.length > 0
-                ? detecting.map((id) => id.toUpperCase()).join(", ")
-                : "\u2014"}
             </div>
           </div>
         );
