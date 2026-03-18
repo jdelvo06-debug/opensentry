@@ -598,10 +598,45 @@ function drawImprovised(ctx: CanvasRenderingContext2D, s: number, time: number) 
 }
 
 function drawUnknownBlob(ctx: CanvasRenderingContext2D, s: number, time: number) {
-  const pulse = 1 + Math.sin(time * 3) * 0.08;
+  // Ambiguous heat smear — looks like a real unresolved thermal contact, not a placeholder
+  const pulse = 1 + Math.sin(time * 2.1) * 0.06;
+  const wobble = Math.sin(time * 1.7) * 0.08;
+
+  // Outer diffuse glow (heat bloom)
+  const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 28 * s * pulse);
+  const isThermal = ctx.fillStyle === "rgba(230,230,230,0.9)" || (ctx.fillStyle as string).includes("230");
+  if (isThermal) {
+    glow.addColorStop(0, "rgba(255,255,240,0.55)");
+    glow.addColorStop(0.4, "rgba(220,220,200,0.25)");
+    glow.addColorStop(1, "rgba(180,180,160,0)");
+  } else {
+    glow.addColorStop(0, "rgba(20,25,30,0.7)");
+    glow.addColorStop(0.4, "rgba(30,40,50,0.35)");
+    glow.addColorStop(1, "rgba(40,50,60,0)");
+  }
+  ctx.fillStyle = glow;
   ctx.beginPath();
-  ctx.ellipse(0, 0, 16 * s * pulse, 12 * s * pulse, 0.3, 0, Math.PI * 2);
+  ctx.ellipse(0, 0, 28 * s * pulse, 20 * s * pulse, wobble, 0, Math.PI * 2);
   ctx.fill();
+
+  // Inner hot core — irregular, not a perfect ellipse
+  ctx.save();
+  ctx.rotate(wobble * 0.5);
+  const core = ctx.createRadialGradient(0, -2 * s, 0, 0, 0, 10 * s * pulse);
+  if (isThermal) {
+    core.addColorStop(0, "rgba(255,255,255,0.95)");
+    core.addColorStop(0.5, "rgba(240,240,220,0.7)");
+    core.addColorStop(1, "rgba(200,200,180,0)");
+  } else {
+    core.addColorStop(0, "rgba(15,18,22,0.95)");
+    core.addColorStop(0.5, "rgba(25,30,38,0.7)");
+    core.addColorStop(1, "rgba(35,42,50,0)");
+  }
+  ctx.fillStyle = core;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 10 * s * pulse, 7 * s * pulse, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 function drawExplosion(ctx: CanvasRenderingContext2D, w: number, h: number, elapsed: number) {
@@ -870,13 +905,35 @@ function drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number, mod
     grad.addColorStop(0, "#0c0e10");
     grad.addColorStop(0.5, "#15191d");
     grad.addColorStop(1, "#1c2228");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
   } else {
-    grad.addColorStop(0, "#8ba4c0");
-    grad.addColorStop(0.5, "#b0c4de");
-    grad.addColorStop(1, "#c8d8e8");
+    // Daylight sky — realistic gradient, darker at top, hazy horizon
+    const horizonY = h * 0.62;
+    grad.addColorStop(0, "#4a6f94");      // Deep blue at top
+    grad.addColorStop(0.45, "#7aa0c4");   // Mid sky
+    grad.addColorStop(0.6, "#a8c4d8");    // Horizon haze
+    grad.addColorStop(0.65, "#b8ccd8");   // Horizon line
+    grad.addColorStop(0.7, "#8a9a8e");    // Ground start (dull green-grey)
+    grad.addColorStop(1, "#6b7a6f");      // Ground (muted)
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    // Subtle horizon glow
+    const hGlow = ctx.createLinearGradient(0, horizonY - 20, 0, horizonY + 20);
+    hGlow.addColorStop(0, "rgba(200,220,235,0)");
+    hGlow.addColorStop(0.5, "rgba(200,220,235,0.18)");
+    hGlow.addColorStop(1, "rgba(200,220,235,0)");
+    ctx.fillStyle = hGlow;
+    ctx.fillRect(0, horizonY - 20, w, 40);
+
+    // Slight vignette (EO lens falloff at edges)
+    const vignette = ctx.createRadialGradient(w/2, h/2, h * 0.3, w/2, h/2, h * 0.85);
+    vignette.addColorStop(0, "rgba(0,0,0,0)");
+    vignette.addColorStop(1, "rgba(0,0,0,0.22)");
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0, 0, w, h);
   }
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, w, h);
 }
 
 // ---------------------------------------------------------------------------
