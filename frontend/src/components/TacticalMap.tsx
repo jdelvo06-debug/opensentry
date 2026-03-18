@@ -1048,10 +1048,11 @@ export default function TacticalMap({
               center={baseCenter}
               radius={engagementZones.detection_range_km * 1000}
               pathOptions={{
-                color: "#30363d",
+                color: "#4a5568",
                 fillColor: "transparent",
                 fillOpacity: 0,
-                weight: 1,
+                weight: 2,
+                opacity: 0.6,
                 dashArray: "6,4",
               }}
             />
@@ -1059,10 +1060,11 @@ export default function TacticalMap({
               center={baseCenter}
               radius={engagementZones.engagement_range_km * 1000}
               pathOptions={{
-                color: "rgba(88, 166, 255, 0.2)",
+                color: "#3d6b9e",
                 fillColor: "transparent",
                 fillOpacity: 0,
-                weight: 1,
+                weight: 2,
+                opacity: 0.6,
                 dashArray: "6,4",
               }}
             />
@@ -1070,10 +1072,11 @@ export default function TacticalMap({
               center={baseCenter}
               radius={engagementZones.identification_range_km * 1000}
               pathOptions={{
-                color: "rgba(210, 153, 34, 0.2)",
+                color: "#7d5a1a",
                 fillColor: "transparent",
                 fillOpacity: 0,
-                weight: 1,
+                weight: 2,
+                opacity: 0.6,
                 dashArray: "6,4",
               }}
             />
@@ -1204,11 +1207,10 @@ export default function TacticalMap({
                   positions={points}
                   pathOptions={{
                     color: style.color,
-                    fillColor: style.color,
-                    fillOpacity: 0.06,
-                    weight: 1.5,
-                    opacity: 0.6,
+                    weight: 2,
+                    opacity: 0.7,
                     dashArray: style.dashArray,
+                    fillOpacity: 0,
                   }}
                 />
                 <Marker
@@ -1229,11 +1231,10 @@ export default function TacticalMap({
                 radius={rangeKm * 1000}
                 pathOptions={{
                   color: style.color,
-                  fillColor: style.color,
-                  fillOpacity: 0.04,
-                  weight: 1.5,
-                  opacity: 0.6,
+                  weight: 2,
+                  opacity: 0.7,
                   dashArray: style.dashArray,
+                  fillOpacity: 0,
                 }}
               />
               <Marker
@@ -1260,11 +1261,10 @@ export default function TacticalMap({
                 radius={rangeKm * 1000}
                 pathOptions={{
                   color: style.color,
-                  fillColor: style.color,
-                  fillOpacity: 0.03,
-                  weight: 1.5,
-                  opacity: 0.5,
+                  weight: 2,
+                  opacity: 0.8,
                   dashArray: style.dashArray,
+                  fillOpacity: 0,
                 }}
               />
               <Marker

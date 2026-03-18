@@ -24,7 +24,7 @@
       "catalog_id": "kurz_fcs",
       "name": "KURZ FCS Radar",
       "type": "radar",
-      "range_km": 8.0,
+      "range_km": 10.0,
       "fov_deg": 360,
       "description": "Ku-band Radio Frequency Sensor. Precision fire-control radar that guides JACKAL interceptors to target. 360\u00b0 surveillance with high-accuracy track data for engagement.",
       "pros": [
@@ -87,7 +87,7 @@
       "catalog_id": "jackal_pallet",
       "name": "JACKAL Pallet",
       "type": "kinetic",
-      "range_km": 5.0,
+      "range_km": 10.0,
       "fov_deg": 360,
       "recharge_seconds": 0,
       "single_use": true,
