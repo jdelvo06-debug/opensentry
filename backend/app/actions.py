@@ -281,13 +281,17 @@ def handle_jam_all(gs: GameState, elapsed: float) -> list[dict]:
     return msgs
 
 
+_ATC_CLEARABLE = {DroneType.PASSENGER_AIRCRAFT, DroneType.MILITARY_JET}
+
 def handle_clear_airspace(gs: GameState, elapsed: float) -> list[dict]:
-    """Remove all ambient traffic and suppress new spawns for 120s."""
+    """Remove friendly aircraft (ATC-clearable) from the area. Birds and balloons are unaffected."""
     msgs: list[dict] = []
-    gs.drones = [d for d in gs.drones if not d.is_ambient or d.neutralized]
+    cleared = [d for d in gs.drones if d.is_ambient and d.drone_type in _ATC_CLEARABLE]
+    gs.drones = [d for d in gs.drones if not (d.is_ambient and d.drone_type in _ATC_CLEARABLE)]
     gs.ambient_suppressed_until = elapsed + 120.0
+    count = len(cleared)
     msgs.append(_event(elapsed,
-        "AIRSPACE: CLEARED \u2014 ATC notified, ambient traffic removed"))
+        f"AIRSPACE: CLEARED \u2014 ATC notified, {count} aircraft cleared from area"))
     return msgs
 
 
