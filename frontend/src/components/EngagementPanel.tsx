@@ -8,6 +8,7 @@ interface Props {
   onIdentify: (trackId: string, classification: string, affiliation: string) => void;
   onEngage: (trackId: string, effectorId: string, shinobiCm?: string) => void;
   onSlewCamera?: (trackId: string) => void;
+  tutorialStep?: number;
 }
 
 const CLASSIFICATIONS = [
@@ -53,6 +54,7 @@ export default function EngagementPanel({
   onIdentify,
   onEngage,
   onSlewCamera,
+  tutorialStep,
 }: Props) {
   const [shinobiSubMenu, setShinobiSubMenu] = useState<string | null>(null);
 
@@ -95,6 +97,7 @@ export default function EngagementPanel({
             Confirm track for continuous monitoring
           </div>
           <button
+            className={tutorialStep === 2 ? "tutorial-pulse" : undefined}
             onClick={() => onConfirmTrack(track.id)}
             style={{
               width: "100%",
@@ -120,6 +123,7 @@ export default function EngagementPanel({
             CONFIRM TRACK
           </button>
           <button
+            className={tutorialStep === 3 ? "tutorial-pulse" : undefined}
             onClick={() => onSlewCamera?.(track.id)}
             style={{
               width: "100%",
@@ -153,6 +157,7 @@ export default function EngagementPanel({
           {/* SLEW CAMERA button — always visible */}
           {onSlewCamera && (
             <button
+              className={tutorialStep === 3 ? "tutorial-pulse" : undefined}
               onClick={() => onSlewCamera(track.id)}
               style={{
                 width: "100%",
@@ -189,6 +194,7 @@ export default function EngagementPanel({
                 : cls.affiliation === "friendly" ? "#58a6ff" : "#3fb950";
               return (
                 <button
+                  className={tutorialStep === 4 ? "tutorial-pulse" : undefined}
                   key={`${cls.value}-${cls.affiliation}-${idx}`}
                   onClick={() => onIdentify(track.id, cls.value, cls.affiliation)}
                   style={{
@@ -340,6 +346,7 @@ export default function EngagementPanel({
 
                   return (
                     <button
+                      className={tutorialStep === 5 && isReady ? "tutorial-pulse" : undefined}
                       key={eff.id}
                       onClick={() => {
                         if (!isReady) return;

@@ -2,7 +2,7 @@
   "sensors": [
     {
       "catalog_id": "tpq51",
-      "name": "AN/TPQ-51 Radar",
+      "name": "L-Band Multi-Mission Radar",
       "type": "radar",
       "range_km": 10.0,
       "fov_deg": 360,
@@ -22,7 +22,7 @@
     },
     {
       "catalog_id": "kurz_fcs",
-      "name": "KURZ FCS Radar",
+      "name": "Ku-Band Fire Control Radar",
       "type": "radar",
       "range_km": 10.0,
       "fov_deg": 360,
@@ -91,7 +91,7 @@
       "fov_deg": 360,
       "recharge_seconds": 0,
       "single_use": true,
-      "description": "Tube-launched interceptor guided by KURZ FCS radar. Proximity-fused warhead. 4 interceptors per pallet. Requires KURZ FCS for mid-course guidance.",
+      "description": "Tube-launched interceptor guided by Ku-Band Fire Control Radar. Proximity-fused warhead. 4 interceptors per pallet. Requires Ku-Band FC Radar for mid-course guidance.",
       "pros": [
         "High Pk against all UAS types",
         "Fire-and-forget after launch",
@@ -99,7 +99,7 @@
       ],
       "cons": [
         "Single-use (4 per pallet)",
-        "Requires KURZ FCS radar",
+        "Requires Ku-Band Fire Control Radar",
         "Self-destructs if intercept fails"
       ],
       "requires_los": false,

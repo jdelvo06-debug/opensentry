@@ -190,3 +190,23 @@ A browser-based counter-drone training simulator that puts players in a tactical
 
 *Created: March 15, 2026*
 *Status: Planning*
+
+---
+
+## Pre-Launch: Client-Side Migration
+
+Before public release, migrate Python/FastAPI backend to pure TypeScript running in the browser.
+
+**Why:** Eliminates server dependency. Anyone accesses by URL — no install, no Python, works on any device including tablets. Free hosting on GitHub Pages or Netlify.
+
+**Scope:** React UI stays exactly the same. Only the game engine needs porting to TypeScript:
+- `app/main.py` — 10Hz game loop → `setInterval` in browser
+- `app/actions.py` → TypeScript action handlers
+- `app/jamming.py` → TypeScript EW logic
+- `app/coyote.py` → TypeScript JACKAL lifecycle
+- `app/ninja.py` → TypeScript SHINOBI state machine
+- Scoring engine
+
+**Est. effort:** 2-3 Claude Code sessions once feature set is locked.
+
+**When to do it:** Feature set finalized + smoke tests pass → migrate → deploy.

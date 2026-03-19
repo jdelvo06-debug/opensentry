@@ -76,6 +76,24 @@
         100% { opacity: 1; filter: none; }
       }
 
+      /* Tutorial pulse — button glow animation */
+      .tutorial-pulse {
+        animation: tutorial-glow 1.5s ease-in-out infinite;
+        position: relative;
+      }
+      @keyframes tutorial-glow {
+        0%, 100% { box-shadow: 0 0 4px rgba(88, 166, 255, 0.3); }
+        50% { box-shadow: 0 0 16px rgba(88, 166, 255, 0.6), 0 0 32px rgba(88, 166, 255, 0.2); }
+      }
+      /* Tutorial step tracker pulsing dot */
+      .tutorial-pulse-dot {
+        animation: tutorial-dot-pulse 1.5s ease-in-out infinite;
+      }
+      @keyframes tutorial-dot-pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.4; transform: scale(0.7); }
+      }
+
       /* New contact banner */
       .new-contact-banner {
         animation: banner-fade 3s ease-out forwards;

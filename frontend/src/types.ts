@@ -101,6 +101,12 @@ export interface TutorialMsg {
   message: string;
 }
 
+export interface TutorialFeedbackMsg {
+  type: "tutorial_feedback";
+  message: string;
+  severity: "warning" | "error";
+}
+
 export interface ProtectedAreaInfo {
   center_x: number;
   center_y: number;
@@ -136,6 +142,8 @@ export interface StateMsg {
   sensors: SensorStatus[];
   effectors: EffectorStatus[];
   ambient_suppressed_until?: number;
+  paused?: boolean;
+  tutorial_step?: number;
 }
 
 export interface EventMsg {
@@ -176,6 +184,7 @@ export type ServerMessage =
   | EngagementResultMsg
   | DebriefMsg
   | TutorialMsg
+  | TutorialFeedbackMsg
   | ErrorMsg;
 
 // Phase 2: Base Defense Planner types

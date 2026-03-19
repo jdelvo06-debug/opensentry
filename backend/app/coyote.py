@@ -139,7 +139,7 @@ def update_jackal(
             events.append({
                 "type": "event",
                 "timestamp": round(elapsed, 1),
-                "message": f"KURZ FCS GUIDING {jackal.id.upper()} — RANGE: {dist_to_target:.1f}km",
+                "message": f"Ku-FC GUIDING {jackal.id.upper()} — RANGE: {dist_to_target:.1f}km",
             })
 
         next_phase = "terminal" if dist_to_target < 0.3 else "midcourse"

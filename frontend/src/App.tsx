@@ -13,6 +13,9 @@ import ScenarioSelect from "./components/ScenarioSelect";
 import LoadoutScreen from "./components/LoadoutScreen";
 import PlacementScreen from "./components/PlacementScreen";
 import CameraPanel from "./components/CameraPanel";
+import TutorialStepTracker from "./components/TutorialStepTracker";
+import TutorialFeedback from "./components/TutorialFeedback";
+import PauseOverlay from "./components/PauseOverlay";
 import { useWebSocket } from "./hooks/useWebSocket";
 import { soundEngine } from "./audio/SoundEngine";
 import type {
@@ -177,9 +180,12 @@ export default function App() {
   const [isTutorial, setIsTutorial] = useState(false);
   const [tutorialMessage, setTutorialMessage] = useState<string | null>(null);
   const tutorialTimeoutRef = useRef<number>(0);
+  const [tutorialStep, setTutorialStep] = useState(0);
+  const [tutorialFeedback, setTutorialFeedback] = useState<string | null>(null);
 
   // Pause state
   const [paused, setPaused] = useState(false);
+  const [notes, setNotes] = useState<string[]>([]);
 
   // Audio state
   const [audioMuted, setAudioMuted] = useState(soundEngine.muted);
@@ -258,6 +264,8 @@ export default function App() {
         setThreatLevel(msg.threat_level);
         if (msg.wave_number != null) setWaveNumber(msg.wave_number);
         if (msg.ambient_suppressed_until != null) setAmbientSuppressedUntil(msg.ambient_suppressed_until);
+        if (msg.paused != null) setPaused(msg.paused);
+        if (msg.tutorial_step != null) setTutorialStep(msg.tutorial_step);
         setSensors((prev) => {
           const configs = prev.length ? prev : [];
           return msg.sensors.map((s) => {
@@ -377,6 +385,10 @@ export default function App() {
         tutorialTimeoutRef.current = window.setTimeout(() => {
           setTutorialMessage(null);
         }, 12000);
+        break;
+
+      case "tutorial_feedback":
+        setTutorialFeedback(msg.message);
         break;
 
       case "debrief":
@@ -520,9 +532,13 @@ export default function App() {
         return;
 
       switch (e.code) {
-        case "Space": {
+        case "KeyP": {
           e.preventDefault();
-          setPaused((p) => !p);
+          if (pausedRef.current) {
+            send({ type: "action", action: "resume_mission" });
+          } else {
+            send({ type: "action", action: "pause_mission" });
+          }
           break;
         }
         case "Digit1": {
@@ -666,7 +682,10 @@ export default function App() {
     autoOpenedCameraRef.current.clear();
     setTutorialMessage(null);
     setIsTutorial(false);
+    setTutorialStep(0);
+    setTutorialFeedback(null);
     setPaused(false);
+    setNotes([]);
     setWaveNumber(1);
 
     // Connect with placement data
@@ -677,10 +696,7 @@ export default function App() {
     });
   };
 
-  const handleRestart = () => {
-    send({ type: "restart" });
-    // Go back to scenario select
-    setPhase("waiting");
+  const resetAllState = () => {
     setScore(null);
     setTracks([]);
     setSelectedTrackId(null);
@@ -699,8 +715,23 @@ export default function App() {
     setPlacementConfig(null);
     setTutorialMessage(null);
     setIsTutorial(false);
+    setTutorialStep(0);
+    setTutorialFeedback(null);
     setPaused(false);
+    setNotes([]);
     setWaveNumber(1);
+  };
+
+  const handleRestart = () => {
+    send({ type: "restart" });
+    resetAllState();
+    setPhase("waiting");
+  };
+
+  const handleMainMenu = () => {
+    send({ type: "restart" });
+    resetAllState();
+    setPhase("waiting");
   };
 
   const confirmTrack = (trackId: string) => {
@@ -744,6 +775,8 @@ export default function App() {
   const handleSlewCamera = (trackId: string) => {
     setCameraTrackId(trackId);
     soundEngine.play("camera_slew");
+    // Send slew_camera action to backend (needed for tutorial gating)
+    send({ type: "action", action: "slew_camera", target_id: trackId });
   };
 
   const handleHoldFire = (trackId: string) => {
@@ -767,6 +800,38 @@ export default function App() {
     send({ type: "action", action: "clear_airspace" });
   };
 
+  const handlePause = () => {
+    send({ type: "action", action: "pause_mission" });
+  };
+
+  const handleResume = () => {
+    send({ type: "action", action: "resume_mission" });
+  };
+
+  const handlePauseToggle = () => {
+    if (paused) {
+      handleResume();
+    } else {
+      handlePause();
+    }
+  };
+
+  const handleAddNote = (note: string) => {
+    setNotes((prev) => [...prev, note]);
+  };
+
+  const handleDeleteNote = (index: number) => {
+    setNotes((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleExportNotes = () => {
+    const text = notes.join("\n");
+    navigator.clipboard.writeText(text).catch(() => {
+      // Fallback: open in a prompt
+      window.prompt("Copy notes:", text);
+    });
+  };
+
   const handleEndMission = () => {
     send({ type: "action", action: "end_mission", target_id: "" });
   };
@@ -786,10 +851,10 @@ export default function App() {
       setBaseId(qsBaseId);
 
       // Pre-defined placement: spread equipment around base for coverage
-      // 1x AN/TPQ-51 (center-ish, 360° coverage)
-      // 1x KURZ FCS (facing north — primary threat axis)
+      // 1x L-Band MMR (center-ish, 360° coverage)
+      // 1x Ku-Band FCS (facing north — primary threat axis)
       // 2x EO/IR Camera (offset positions for cross-coverage)
-      // 2x JACKAL Pallet (near KURZ FCS for intercept)
+      // 2x JACKAL Pallet (near Ku-Band FCS for intercept)
       const quickPlacement: PlacementConfig = {
         base_id: qsBaseId,
         sensors: [
@@ -824,6 +889,8 @@ export default function App() {
       autoOpenedCameraRef.current.clear();
       setTutorialMessage(null);
       setIsTutorial(false);
+      setTutorialStep(0);
+      setTutorialFeedback(null);
       setPaused(false);
       setPlacementConfig(quickPlacement);
       setWaveNumber(1);
@@ -1063,6 +1130,20 @@ export default function App() {
     );
   }
 
+  // --- Phase: Debrief ---
+  if (phase === "debrief" && score) {
+    return (
+      <DebriefScreen
+        score={score}
+        droneReachedBase={droneReachedBase}
+        scenarioName={scenarioName}
+        onRestart={handleRestart}
+        onMainMenu={handleMainMenu}
+        wavesCompleted={wavesCompleted}
+      />
+    );
+  }
+
   // --- Phase: Running ---
   const selectedTrack =
     tracks.find((t) => t.id === selectedTrackId) || null;
@@ -1095,6 +1176,9 @@ export default function App() {
         onEndMission={handleEndMission}
         onJamAll={handleJamAll}
         onClearAirspace={handleClearAirspace}
+        isPaused={paused}
+        onPause={handlePause}
+        onResume={handleResume}
         effectors={effectors}
         ambientSuppressedUntil={ambientSuppressedUntil}
       />
@@ -1111,6 +1195,9 @@ export default function App() {
           overflow: "hidden",
         }}
       >
+        {isTutorial && (
+          <TutorialStepTracker tutorialStep={tutorialStep} />
+        )}
         <SensorPanel sensors={sensors} />
         <EffectorPanel effectors={effectors} activeJammers={activeJammers} />
         <TrackList
@@ -1216,31 +1303,24 @@ export default function App() {
           </div>
         )}
 
+        {/* Tutorial feedback tooltip */}
+        {isTutorial && (
+          <TutorialFeedback
+            message={tutorialFeedback}
+            onDismiss={() => setTutorialFeedback(null)}
+          />
+        )}
+
         {/* Pause overlay */}
         {paused && phase === "running" && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              zIndex: 90,
-              background: "rgba(0,0,0,0.6)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <div
-              style={{
-                fontFamily: "monospace",
-                fontSize: 28,
-                color: "#d29922",
-                letterSpacing: 6,
-                fontWeight: 700,
-              }}
-            >
-              PAUSED
-            </div>
-          </div>
+          <PauseOverlay
+            missionTime={elapsed}
+            scenarioName={scenarioName}
+            notes={notes}
+            onAddNote={handleAddNote}
+            onDeleteNote={handleDeleteNote}
+            onExportNotes={handleExportNotes}
+          />
         )}
       </div>
 
@@ -1265,6 +1345,7 @@ export default function App() {
             onIdentify={identify}
             onEngage={engage}
             onSlewCamera={handleSlewCamera}
+            tutorialStep={isTutorial ? tutorialStep : undefined}
           />
         </div>
         <CameraPanel
@@ -1291,20 +1372,10 @@ export default function App() {
             letterSpacing: 0.5,
           }}
         >
-          SPACE:Pause TAB:Cycle 1:Confirm 2:Slew 4:Unslew M:Mute ESC:End Mission
+          P:Pause TAB:Cycle 1:Confirm 2:Slew 4:Unslew M:Mute ESC:End Mission
         </div>
       )}
 
-      {/* Debrief overlay */}
-      {phase === "debrief" && score && (
-        <DebriefScreen
-          score={score}
-          droneReachedBase={droneReachedBase}
-          scenarioName={scenarioName}
-          onRestart={handleRestart}
-          wavesCompleted={wavesCompleted}
-        />
-      )}
     </div>
     </ErrorBoundary>
   );

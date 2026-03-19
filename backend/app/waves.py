@@ -107,10 +107,10 @@ _MILITARY_CALLSIGNS = [
 
 # Interval ranges (seconds) between ambient spawns per type
 AMBIENT_INTERVALS: dict[str, tuple[float, float]] = {
-    "commercial_aircraft": (60.0, 90.0),
-    "military_jet": (120.0, 180.0),
-    "bird": (45.0, 60.0),
-    "weather_balloon": (180.0, 300.0),
+    "commercial_aircraft": (90.0, 150.0),
+    "military_jet": (180.0, 300.0),
+    "bird": (90.0, 150.0),
+    "weather_balloon": (240.0, 420.0),
 }
 
 

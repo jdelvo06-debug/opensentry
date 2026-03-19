@@ -101,3 +101,10 @@ class GameState:
 
     # Tutorial
     tutorial_prompts_sent: set[str] = field(default_factory=set)
+    tutorial_step: int = 0  # 0=waiting for detect, 1=DETECT, 2=TRACK, 3=SLEW, 4=IDENTIFY, 5=DEFEAT, 6=DEBRIEF
+    tutorial_camera_slewed: bool = False  # True once player slews camera in tutorial
+
+    # Pause
+    paused: bool = False
+    pause_start_time: float = 0.0  # wall-clock time when pause began
+    total_paused_seconds: float = 0.0  # accumulated paused time

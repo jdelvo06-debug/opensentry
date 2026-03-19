@@ -201,12 +201,12 @@ def handle_engage(
                 f"ENGAGEMENT: {eff_state['name']} — Target out of range"))
             break
 
-        # JACKAL requires KURZ FCS
+        # JACKAL requires Ku-Band FCS
         if (eff_state.get("ammo_count") is not None
                 and eff_state["type"] == "kinetic"):
             if not check_kurz_fcs_tracking(gs.sensor_configs, d):
                 msgs.append(_event(elapsed,
-                    "ENGAGEMENT: NO KURZ FCS TRACK \u2014 CANNOT GUIDE INTERCEPTOR"))
+                    "ENGAGEMENT: NO Ku-FC TRACK \u2014 CANNOT GUIDE INTERCEPTOR"))
                 break
 
         effectiveness = effector_effectiveness(
@@ -284,15 +284,54 @@ def handle_jam_all(gs: GameState, elapsed: float) -> list[dict]:
 _ATC_CLEARABLE = {DroneType.PASSENGER_AIRCRAFT, DroneType.MILITARY_JET}
 
 def handle_clear_airspace(gs: GameState, elapsed: float) -> list[dict]:
-    """Remove friendly aircraft (ATC-clearable) from the area. Birds and balloons are unaffected."""
+    """Reroute friendly aircraft away from base airspace. Birds and balloons are unaffected."""
+    import math as _math
     msgs: list[dict] = []
-    cleared = [d for d in gs.drones if d.is_ambient and d.drone_type in _ATC_CLEARABLE]
-    gs.drones = [d for d in gs.drones if not (d.is_ambient and d.drone_type in _ATC_CLEARABLE)]
+    rerouted = 0
+    for i, drone in enumerate(gs.drones):
+        if not (drone.is_ambient and drone.drone_type in _ATC_CLEARABLE):
+            continue
+        # Redirect drone to exit the area — point it away from base at high speed
+        angle = _math.atan2(drone.y, drone.x)  # bearing from base to drone
+        # Waypoint 12km out in the same direction — exits the radar picture quickly
+        exit_x = round(12.0 * _math.cos(angle), 2)
+        exit_y = round(12.0 * _math.sin(angle), 2)
+        heading = _math.degrees(angle) % 360
+        cfg = gs.drone_configs.get(drone.id)
+        if cfg:
+            gs.drone_configs[drone.id] = cfg.model_copy(update={
+                "waypoints": [[exit_x, exit_y]],
+                "behavior": "waypoint_path",
+            })
+        gs.behaviors[drone.id] = "waypoint_path"
+        gs.drones[i] = drone.model_copy(update={"heading": heading})
+        rerouted += 1
     gs.ambient_suppressed_until = elapsed + 120.0
-    count = len(cleared)
     msgs.append(_event(elapsed,
-        f"AIRSPACE: CLEARED \u2014 ATC notified, {count} aircraft cleared from area"))
+        f"AIRSPACE: CLEARED \u2014 ATC notified, {rerouted} aircraft rerouting away from base"))
     return msgs
+
+
+def handle_pause_mission(gs: GameState, elapsed: float) -> list[dict]:
+    """Pause the game — freeze all simulation updates."""
+    if gs.paused:
+        return []
+    gs.paused = True
+    import time
+    gs.pause_start_time = time.time()
+    return [_event(elapsed, "MISSION PAUSED")]
+
+
+def handle_resume_mission(gs: GameState, elapsed: float) -> list[dict]:
+    """Resume the game from pause."""
+    if not gs.paused:
+        return []
+    import time
+    paused_duration = time.time() - gs.pause_start_time
+    gs.total_paused_seconds += paused_duration
+    gs.paused = False
+    gs.pause_start_time = 0.0
+    return [_event(elapsed, "MISSION RESUMED")]
 
 
 def handle_end_mission(gs: GameState) -> list[dict]:

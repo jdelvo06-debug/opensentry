@@ -11,8 +11,8 @@
     "engagement_range_km": 2.5
   },
   "sensors": [
-    {"id": "radar", "name": "AN/TPQ-51 Radar", "type": "radar", "range_km": 10.0, "status": "active"},
-    {"id": "kurz_fcs", "name": "KURZ FCS Radar", "type": "radar", "range_km": 8.0, "status": "active"},
+    {"id": "radar", "name": "L-Band Multi-Mission Radar", "type": "radar", "range_km": 10.0, "status": "active"},
+    {"id": "kurz_fcs", "name": "Ku-Band Fire Control Radar", "type": "radar", "range_km": 8.0, "status": "active"},
     {"id": "eoir", "name": "EO/IR Camera", "type": "eoir", "range_km": 8.0, "status": "active"}
   ],
   "effectors": [

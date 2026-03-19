@@ -232,6 +232,7 @@ class ScenarioConfig(BaseModel):
     roe_violations: list[str] = []
     tutorial: bool = False
     tutorial_prompts: list[dict[str, str]] | None = None  # [{"trigger": "...", "message": "..."}]
+    no_ambient: bool = False  # If True, suppress all ambient traffic (birds, aircraft, balloons)
 
 
 class PlayerAction(BaseModel):

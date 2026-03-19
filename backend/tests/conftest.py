@@ -98,7 +98,7 @@ def neutralized_drone() -> DroneState:
 
 @pytest.fixture
 def radar_sensor() -> SensorConfig:
-    """AN/TPQ-51 style 360-degree radar at base center."""
+    """L-Band MMR style 360-degree radar at base center."""
     return SensorConfig(
         id="RADAR-1",
         name="TPQ-51",

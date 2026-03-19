@@ -324,7 +324,10 @@ def _tick_spawns(gs: GameState, elapsed: float) -> list[dict]:
         gs.pending_spawns.remove(cfg)
 
     _ATC_CLEARABLE_AMB = {"commercial_aircraft", "military_jet"}
-    # Ambient traffic — aircraft suppressed after CLEAR AIRSPACE, birds/balloons unaffected
+    # Ambient traffic — suppressed entirely if scenario sets no_ambient (e.g. tutorial)
+    if gs.scenario.no_ambient:
+        return events
+    # Aircraft suppressed after CLEAR AIRSPACE, birds/balloons unaffected
     for amb_type, next_time in list(gs.next_ambient_times.items()):
         if elapsed < gs.ambient_suppressed_until and amb_type in _ATC_CLEARABLE_AMB:
             continue

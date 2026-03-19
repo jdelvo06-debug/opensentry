@@ -6,6 +6,7 @@
   "duration_seconds": 300,
   "base_radius_km": 0.1,
   "tutorial": true,
+  "no_ambient": true,
   "tutorial_prompts": [
     {"trigger": "start", "message": "Welcome to SKYSHIELD. A drone is approaching your base. Watch the tactical map for a new contact to appear."},
     {"trigger": "detected", "message": "Contact detected! The yellow square on the map is an UNKNOWN track. Click on it to select it, then click CONFIRM TRACK in the engagement panel."},
@@ -20,8 +21,8 @@
     "engagement_range_km": 2.5
   },
   "sensors": [
-    {"id": "radar", "name": "AN/TPQ-51 Radar", "type": "radar", "range_km": 10.0, "status": "active"},
-    {"id": "kurz_fcs", "name": "KURZ FCS Radar", "type": "radar", "range_km": 8.0, "status": "active"},
+    {"id": "radar", "name": "L-Band Multi-Mission Radar", "type": "radar", "range_km": 10.0, "status": "active"},
+    {"id": "kurz_fcs", "name": "Ku-Band Fire Control Radar", "type": "radar", "range_km": 8.0, "status": "active"},
     {"id": "eoir", "name": "EO/IR Camera", "type": "eoir", "range_km": 8.0, "status": "active"}
   ],
   "effectors": [

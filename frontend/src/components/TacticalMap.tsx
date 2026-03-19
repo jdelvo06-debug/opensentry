@@ -861,6 +861,11 @@ export default function TacticalMap({
   const [selectionList, setSelectionList] = useState<SelectionListState | null>(null);
   const mapRef = useRef<L.Map | null>(null);
 
+  // Bulls-eye overlay state
+  const [showBullseye, setShowBullseye] = useState(false);
+  const [bullseyeCenter, setBullseyeCenter] = useState<[number, number]>(baseCenter);
+  const [bullseyeContextMenu, setBullseyeContextMenu] = useState<{ x: number; y: number; latlng: [number, number] } | null>(null);
+
   // Saved locations state
   interface SavedLocation {
     label: string;
@@ -982,6 +987,7 @@ export default function TacticalMap({
   // Map-level click handler with disambiguation
   const handleMapClick = useCallback(
     (e: L.LeafletMouseEvent) => {
+      setBullseyeContextMenu(null);
       const sx = e.originalEvent.clientX;
       const sy = e.originalEvent.clientY;
       if (!checkDisambiguation(sx, sy, false)) {
@@ -995,7 +1001,14 @@ export default function TacticalMap({
     (e: L.LeafletMouseEvent) => {
       const sx = e.originalEvent.clientX;
       const sy = e.originalEvent.clientY;
-      checkDisambiguation(sx, sy, true);
+      // If right-click didn't hit a track/device, show bulls-eye context menu
+      if (!checkDisambiguation(sx, sy, true)) {
+        setBullseyeContextMenu({
+          x: sx,
+          y: sy,
+          latlng: [e.latlng.lat, e.latlng.lng],
+        });
+      }
     },
     [checkDisambiguation],
   );
@@ -1385,9 +1398,12 @@ export default function TacticalMap({
           );
         })}
 
-        {/* Camera FOV Cone */}
+        {/* Camera FOV Cone — only shown when slewed to a track */}
         {(() => {
-          // Find the EO/IR camera sensor
+          if (!cameraTrackId) return null;
+          const cameraTarget = tracks.find((t) => t.id === cameraTrackId);
+          if (!cameraTarget) return null;
+
           const cameraSensor = sensorConfigs.find(
             (s) => s.type === "eoir" || s.name?.toLowerCase().includes("camera") || s.name?.toLowerCase().includes("eo"),
           );
@@ -1395,25 +1411,20 @@ export default function TacticalMap({
 
           const camX = cameraSensor.x ?? 0;
           const camY = cameraSensor.y ?? 0;
-          const camRange = cameraSensor.range_km ?? 2;
+          const camMaxRange = cameraSensor.range_km ?? 8;
           const camFov = cameraSensor.fov_deg ?? 30;
           const camPos = gameXYToLatLng(camX, camY, baseLat, baseLng);
 
-          // Determine cone direction: toward slewed track, or facing_deg
-          const cameraTarget = cameraTrackId
-            ? tracks.find((t) => t.id === cameraTrackId)
-            : null;
+          // Bearing from camera to slewed track
+          const dx = cameraTarget.x - camX;
+          const dy = cameraTarget.y - camY;
+          const bearingDeg = (Math.atan2(dx, dy) * 180) / Math.PI;
 
-          let bearingDeg: number;
-          if (cameraTarget) {
-            const dx = cameraTarget.x - camX;
-            const dy = cameraTarget.y - camY;
-            bearingDeg = (Math.atan2(dx, dy) * 180) / Math.PI;
-          } else {
-            bearingDeg = cameraSensor.facing_deg ?? 0;
-          }
+          // Clip cone length at actual distance to target (capped at max range)
+          const distToTarget = Math.sqrt(dx * dx + dy * dy);
+          const coneRange = Math.min(distToTarget, camMaxRange);
 
-          // Build cone polygon: camera position -> arc at range
+          // Build cone polygon: camera position -> arc at coneRange
           const halfFov = camFov / 2;
           const steps = 16;
           const conePoints: [number, number][] = [camPos];
@@ -1421,40 +1432,141 @@ export default function TacticalMap({
           for (let i = 0; i <= steps; i++) {
             const angle = bearingDeg - halfFov + (camFov * i) / steps;
             const angleRad = (angle * Math.PI) / 180;
-            const px = camX + Math.sin(angleRad) * camRange;
-            const py = camY + Math.cos(angleRad) * camRange;
+            const px = camX + Math.sin(angleRad) * coneRange;
+            const py = camY + Math.cos(angleRad) * coneRange;
             conePoints.push(gameXYToLatLng(px, py, baseLat, baseLng));
           }
 
-          // LOS center line to target or center of cone
-          const centerAngleRad = (bearingDeg * Math.PI) / 180;
-          const losDist = cameraTarget
-            ? Math.sqrt((cameraTarget.x - camX) ** 2 + (cameraTarget.y - camY) ** 2)
-            : camRange;
-          const losEndX = camX + Math.sin(centerAngleRad) * losDist;
-          const losEndY = camY + Math.cos(centerAngleRad) * losDist;
-          const losEnd = gameXYToLatLng(losEndX, losEndY, baseLat, baseLng);
+          // LOS center line to target
+          const targetPos = gameXYToLatLng(cameraTarget.x, cameraTarget.y, baseLat, baseLng);
 
           return (
             <>
               <Polygon
                 positions={conePoints}
                 pathOptions={{
-                  color: "#3fb950",
-                  fillColor: "#3fb950",
-                  fillOpacity: 0.08,
+                  color: "#d29922",
+                  fillColor: "#d29922",
+                  fillOpacity: 0.1,
                   weight: 1,
-                  opacity: 0.4,
+                  opacity: 0.5,
                 }}
               />
               <Polyline
-                positions={[camPos, losEnd]}
+                positions={[camPos, targetPos]}
                 pathOptions={{
                   color: "#d29922",
                   weight: 1.5,
                   opacity: 0.7,
                   dashArray: "6,3",
                 }}
+              />
+            </>
+          );
+        })()}
+
+        {/* Bulls-eye overlay */}
+        {showBullseye && (() => {
+          const BULLSEYE_RINGS_KM = [1, 2, 3, 5, 10];
+          const SPOKES = [
+            { deg: 0, label: "N" },
+            { deg: 45, label: "NE" },
+            { deg: 90, label: "E" },
+            { deg: 135, label: "SE" },
+            { deg: 180, label: "S" },
+            { deg: 225, label: "SW" },
+            { deg: 270, label: "W" },
+            { deg: 315, label: "NW" },
+          ];
+          const outerRing = BULLSEYE_RINGS_KM[BULLSEYE_RINGS_KM.length - 1];
+          const bcLat = bullseyeCenter[0];
+          const bcLng = bullseyeCenter[1];
+          // Convert bullseye center to game XY for offset calculations
+          const bcGameX = (bcLng - baseLng) * 111.32 * Math.cos((baseLat * Math.PI) / 180);
+          const bcGameY = (bcLat - baseLat) * 111.32;
+
+          return (
+            <>
+              {/* Range rings */}
+              {BULLSEYE_RINGS_KM.map((r) => (
+                <Circle
+                  key={`be-ring-${r}`}
+                  center={bullseyeCenter}
+                  radius={r * 1000}
+                  pathOptions={{
+                    color: "rgba(255,255,255,0.3)",
+                    fillColor: "transparent",
+                    fillOpacity: 0,
+                    weight: 1,
+                    dashArray: "4,4",
+                  }}
+                />
+              ))}
+              {/* Ring labels (positioned at due-East) */}
+              {BULLSEYE_RINGS_KM.map((r) => {
+                const labelPos = gameXYToLatLng(bcGameX + r, bcGameY, baseLat, baseLng);
+                return (
+                  <Marker
+                    key={`be-label-${r}`}
+                    position={labelPos}
+                    icon={L.divIcon({
+                      html: `<span style="font:500 8px 'JetBrains Mono',monospace;color:rgba(255,255,255,0.5);white-space:nowrap;pointer-events:none;">${r}km</span>`,
+                      className: "",
+                      iconSize: [30, 12],
+                      iconAnchor: [-2, 6],
+                    })}
+                    interactive={false}
+                  />
+                );
+              })}
+              {/* Azimuth spokes */}
+              {SPOKES.map(({ deg }) => {
+                const angleRad = (deg * Math.PI) / 180;
+                const endX = bcGameX + Math.sin(angleRad) * outerRing;
+                const endY = bcGameY + Math.cos(angleRad) * outerRing;
+                const endPos = gameXYToLatLng(endX, endY, baseLat, baseLng);
+                return (
+                  <Polyline
+                    key={`be-spoke-${deg}`}
+                    positions={[bullseyeCenter, endPos]}
+                    pathOptions={{
+                      color: "rgba(255,255,255,0.2)",
+                      weight: 1,
+                      dashArray: "2,4",
+                    }}
+                  />
+                );
+              })}
+              {/* Spoke labels at outer ring */}
+              {SPOKES.map(({ deg, label }) => {
+                const angleRad = (deg * Math.PI) / 180;
+                const labelX = bcGameX + Math.sin(angleRad) * (outerRing + 0.3);
+                const labelY = bcGameY + Math.cos(angleRad) * (outerRing + 0.3);
+                const labelPos = gameXYToLatLng(labelX, labelY, baseLat, baseLng);
+                return (
+                  <Marker
+                    key={`be-spoke-label-${deg}`}
+                    position={labelPos}
+                    icon={L.divIcon({
+                      html: `<span style="font:600 9px 'JetBrains Mono',monospace;color:rgba(255,255,255,0.45);white-space:nowrap;pointer-events:none;">${label}</span>`,
+                      className: "",
+                      iconSize: [20, 12],
+                      iconAnchor: [10, 6],
+                    })}
+                    interactive={false}
+                  />
+                );
+              })}
+              {/* Center crosshair marker */}
+              <Marker
+                position={bullseyeCenter}
+                icon={L.divIcon({
+                  html: `<svg width="12" height="12" viewBox="0 0 12 12"><line x1="6" y1="0" x2="6" y2="12" stroke="rgba(255,255,255,0.4)" stroke-width="1"/><line x1="0" y1="6" x2="12" y2="6" stroke="rgba(255,255,255,0.4)" stroke-width="1"/></svg>`,
+                  className: "",
+                  iconSize: [12, 12],
+                  iconAnchor: [6, 6],
+                })}
+                interactive={false}
               />
             </>
           );
@@ -1605,6 +1717,76 @@ export default function TacticalMap({
       >
         RANGE RINGS {showRangeRings ? "ON" : "OFF"}
       </button>
+
+      {/* Bulls-eye toggle */}
+      <button
+        onClick={() => setShowBullseye((v) => !v)}
+        style={{
+          position: "absolute",
+          top: 38,
+          left: 10,
+          zIndex: 1000,
+          padding: "5px 10px",
+          background: showBullseye ? "rgba(255, 255, 255, 0.12)" : "rgba(13, 17, 23, 0.8)",
+          border: `1px solid ${showBullseye ? "rgba(255,255,255,0.3)" : "#30363d"}`,
+          borderRadius: 4,
+          color: showBullseye ? "rgba(255,255,255,0.7)" : "#8b949e",
+          fontSize: 10,
+          fontWeight: 600,
+          fontFamily: "'JetBrains Mono', monospace",
+          letterSpacing: 1,
+          cursor: "pointer",
+          transition: "all 0.15s",
+        }}
+      >
+        BULLS-EYE {showBullseye ? "ON" : "OFF"}
+      </button>
+
+      {/* Bulls-eye context menu (set center) */}
+      {bullseyeContextMenu && (
+        <div
+          style={{
+            position: "fixed",
+            top: bullseyeContextMenu.y,
+            left: bullseyeContextMenu.x,
+            zIndex: 2000,
+            background: "#161b22",
+            border: "1px solid #30363d",
+            borderRadius: 4,
+            padding: 2,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+          }}
+        >
+          <button
+            onClick={() => {
+              setBullseyeCenter(bullseyeContextMenu.latlng);
+              setShowBullseye(true);
+              setBullseyeContextMenu(null);
+            }}
+            style={{
+              display: "block",
+              width: "100%",
+              padding: "6px 14px",
+              background: "none",
+              border: "none",
+              color: "#e6edf3",
+              fontSize: 11,
+              fontFamily: "'JetBrains Mono', monospace",
+              cursor: "pointer",
+              textAlign: "left",
+              whiteSpace: "nowrap",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "rgba(88,166,255,0.15)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "none";
+            }}
+          >
+            SET BULLS-EYE HERE
+          </button>
+        </div>
+      )}
 
       {/* Saved locations button + dropdown */}
       <div style={{ position: "absolute", top: 10, left: 160, zIndex: 1000 }}>

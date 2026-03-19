@@ -14,6 +14,9 @@ interface Props {
   onEndMission?: () => void;
   onJamAll?: () => void;
   onClearAirspace?: () => void;
+  isPaused?: boolean;
+  onPause?: () => void;
+  onResume?: () => void;
   effectors?: EffectorStatus[];
   ambientSuppressedUntil?: number;
 }
@@ -39,6 +42,9 @@ export default function HeaderBar({
   onEndMission,
   onJamAll,
   onClearAirspace,
+  isPaused = false,
+  onPause,
+  onResume,
   effectors = [],
   ambientSuppressedUntil = 0,
 }: Props) {
@@ -295,6 +301,40 @@ export default function HeaderBar({
             }}
           >
             {airspaceClear ? "AIRSPACE CLEAR" : "CLEAR AIRSPACE"}
+          </button>
+        )}
+
+        {/* PAUSE / RESUME button */}
+        {(onPause || onResume) && (
+          <button
+            onClick={isPaused ? onResume : onPause}
+            style={{
+              padding: "4px 12px",
+              background: isPaused
+                ? "rgba(63, 185, 80, 0.15)"
+                : "rgba(210, 153, 34, 0.15)",
+              border: `1px solid ${isPaused ? "rgba(63, 185, 80, 0.4)" : "rgba(210, 153, 34, 0.4)"}`,
+              borderRadius: 4,
+              color: isPaused ? "#3fb950" : "#d29922",
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: 1,
+              cursor: "pointer",
+              transition: "all 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = isPaused
+                ? "rgba(63, 185, 80, 0.3)"
+                : "rgba(210, 153, 34, 0.3)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = isPaused
+                ? "rgba(63, 185, 80, 0.15)"
+                : "rgba(210, 153, 34, 0.15)";
+            }}
+          >
+            {isPaused ? "\u25B6 RESUME" : "\u23F8 PAUSE"}
           </button>
         )}
 

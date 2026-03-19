@@ -5,6 +5,7 @@ interface Props {
   droneReachedBase: boolean;
   scenarioName: string;
   onRestart: () => void;
+  onMainMenu: () => void;
   wavesCompleted?: number;
 }
 
@@ -88,6 +89,7 @@ export default function DebriefScreen({
   droneReachedBase,
   scenarioName,
   onRestart,
+  onMainMenu,
   wavesCompleted,
 }: Props) {
   const gradeColor = GRADE_COLORS[score.grade] || "#8b949e";
@@ -99,12 +101,12 @@ export default function DebriefScreen({
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(13, 17, 23, 0.94)",
+        background: "#0d1117",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         zIndex: 100,
-        backdropFilter: "blur(4px)",
+        overflowY: "auto",
       }}
     >
       <div
@@ -115,9 +117,7 @@ export default function DebriefScreen({
           padding: 32,
           maxWidth: 520,
           width: "90%",
-          maxHeight: "90vh",
-          overflowY: "auto",
-          boxShadow: "0 16px 48px rgba(0, 0, 0, 0.5)",
+          margin: "32px auto",
         }}
       >
         <div style={{ textAlign: "center", marginBottom: 28 }}>
@@ -283,32 +283,60 @@ export default function DebriefScreen({
           </>
         )}
 
-        <button
-          onClick={onRestart}
-          style={{
-            width: "100%",
-            marginTop: 20,
-            padding: 14,
-            background: "#58a6ff18",
-            border: "1px solid #58a6ff55",
-            borderRadius: 6,
-            color: "#58a6ff",
-            fontFamily: "'Inter', sans-serif",
-            fontSize: 13,
-            fontWeight: 600,
-            letterSpacing: 1,
-            cursor: "pointer",
-            transition: "all 0.15s",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.background = "#58a6ff30";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.background = "#58a6ff18";
-          }}
-        >
-          NEW MISSION
-        </button>
+        <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
+          <button
+            onClick={onRestart}
+            style={{
+              flex: 1,
+              padding: 14,
+              background: "#58a6ff18",
+              border: "1px solid #58a6ff55",
+              borderRadius: 6,
+              color: "#58a6ff",
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 13,
+              fontWeight: 600,
+              letterSpacing: 1,
+              cursor: "pointer",
+              transition: "all 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "#58a6ff30";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "#58a6ff18";
+            }}
+          >
+            NEW MISSION
+          </button>
+          <button
+            onClick={onMainMenu}
+            style={{
+              flex: 1,
+              padding: 14,
+              background: "transparent",
+              border: "1px solid #30363d",
+              borderRadius: 6,
+              color: "#8b949e",
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 13,
+              fontWeight: 600,
+              letterSpacing: 1,
+              cursor: "pointer",
+              transition: "all 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.borderColor = "#8b949e";
+              (e.currentTarget as HTMLElement).style.color = "#e6edf3";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.borderColor = "#30363d";
+              (e.currentTarget as HTMLElement).style.color = "#8b949e";
+            }}
+          >
+            MAIN MENU
+          </button>
+        </div>
       </div>
     </div>
   );
