@@ -836,6 +836,66 @@ export default function App() {
     send({ type: "action", action: "end_mission", target_id: "" });
   };
 
+  // --- Tutorial handler ---
+  const handleTutorialStart = async () => {
+    soundEngine.init();
+    const tutScenarioId = "tutorial";
+    const tutBaseId = "small_fob";
+
+    try {
+      const res = await fetch(`${API_BASE}/bases/${tutBaseId}`);
+      const base = await res.json();
+      setBaseTemplate(base);
+      setScenarioId(tutScenarioId);
+      setBaseId(tutBaseId);
+
+      const tutorialPlacement: PlacementConfig = {
+        base_id: tutBaseId,
+        sensors: [
+          { catalog_id: "tpq51", x: 0.0, y: 0.0, facing_deg: 0 },
+          { catalog_id: "eoir_camera", x: 0.0, y: 0.0, facing_deg: 0 },
+        ],
+        effectors: [
+          { catalog_id: "rf_jammer", x: 0.0, y: 0.0, facing_deg: 0 },
+          { catalog_id: "jackal_pallet", x: 0.1, y: 0.0, facing_deg: 0 },
+        ],
+        combined: [],
+      };
+
+      // Reset running state
+      setScore(null);
+      setTracks([]);
+      setSelectedTrackId(null);
+      setEvents([]);
+      setSensors([]);
+      setSensorConfigs([]);
+      setEffectors([]);
+      setEffectorConfigs([]);
+      setEngagementZones(null);
+      setProtectedArea(null);
+      setElapsed(0);
+      setTimeRemaining(0);
+      setThreatLevel("green");
+      setCameraTrackId(null);
+      autoOpenedCameraRef.current.clear();
+      setTutorialMessage(null);
+      setIsTutorial(false);
+      setTutorialStep(0);
+      setTutorialFeedback(null);
+      setPaused(false);
+      setPlacementConfig(tutorialPlacement);
+      setWaveNumber(1);
+
+      connect({
+        scenarioId: tutScenarioId,
+        baseId: tutBaseId,
+        placement: tutorialPlacement,
+      });
+    } catch {
+      setPhase("scenario_select");
+    }
+  };
+
   // --- Quick Start handler ---
   const handleQuickStart = async () => {
     soundEngine.init();
@@ -1031,6 +1091,40 @@ export default function App() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8, alignItems: "center" }}>
+            <button
+              onClick={handleTutorialStart}
+              style={{
+                padding: "16px 56px",
+                background: "#58a6ff",
+                border: "none",
+                borderRadius: 6,
+                color: "#0d1117",
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 15,
+                fontWeight: 700,
+                letterSpacing: 2,
+                cursor: "pointer",
+                transition: "all 0.15s",
+                boxShadow: "0 4px 16px rgba(88, 166, 255, 0.3)",
+                width: "100%",
+                maxWidth: 320,
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "#79c0ff";
+                (e.currentTarget as HTMLElement).style.boxShadow =
+                  "0 6px 24px rgba(88, 166, 255, 0.45)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "#58a6ff";
+                (e.currentTarget as HTMLElement).style.boxShadow =
+                  "0 4px 16px rgba(88, 166, 255, 0.3)";
+              }}
+            >
+              TUTORIAL
+            </button>
+            <div style={{ fontSize: 10, color: "#8b949e", letterSpacing: 0.5 }}>
+              First time? Start here — no setup required
+            </div>
             <button
               onClick={handleQuickStart}
               style={{
