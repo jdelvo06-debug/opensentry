@@ -1201,12 +1201,14 @@ export default function TacticalMap({
         {sensorConfigs.map((sensor) => {
           if (!sensor.x && sensor.x !== 0) return null;
           if (!sensor.range_km) return null;
+          // EO/IR camera FOV is shown via the slewed cone — skip range ring entirely
+          if (sensor.type === "eoir" || sensor.name?.toLowerCase().includes("camera") || sensor.name?.toLowerCase().includes("eo")) return null;
           const style = getRingStyleByName(sensor.name, sensor.type);
           const sPos = gameXYToLatLng(sensor.x ?? 0, sensor.y ?? 0, baseLat, baseLng);
           const rangeKm = sensor.range_km;
           const fov = sensor.fov_deg ?? 360;
           const facing = sensor.facing_deg ?? 0;
-          const isSelected = false; // sensors don't have selection in tactical map
+          const isSelected = false;
           const shouldShow = (showRangeRings && !hiddenRings.has(sensor.id)) || isSelected;
           if (!shouldShow) return null;
 
