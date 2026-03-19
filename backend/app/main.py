@@ -995,6 +995,11 @@ async def game_websocket(ws: WebSocket):
                     effectors=[PlacedEquipment(**e) for e in pd.get("effectors", [])],
                     combined=[PlacedEquipment(**c) for c in pd.get("combined", [])],
                 )
+                # Apply client-provided perimeter overrides
+                if "boundary" in pd and isinstance(pd["boundary"], list):
+                    base_template.boundary = pd["boundary"]
+                if "placement_bounds_km" in pd and isinstance(pd["placement_bounds_km"], (int, float)):
+                    base_template.placement_bounds_km = float(pd["placement_bounds_km"])
             except (TypeError, ValueError, KeyError) as e:
                 logger.warning("Invalid placement config: %s", e)
                 await _send_error(ws, f"Invalid placement configuration: {e}", "invalid_placement")

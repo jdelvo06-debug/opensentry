@@ -73,12 +73,16 @@ export function useWebSocket(
               initMsg.base_id = connectOpts.baseId;
             }
             if (connectOpts.placement) {
-              initMsg.placement = {
-                base_id: connectOpts.placement.base_id,
-                sensors: connectOpts.placement.sensors,
-                effectors: connectOpts.placement.effectors,
-                combined: connectOpts.placement.combined ?? [],
+              const p = connectOpts.placement;
+              const placementMsg: Record<string, unknown> = {
+                base_id: p.base_id,
+                sensors: p.sensors,
+                effectors: p.effectors,
+                combined: p.combined ?? [],
               };
+              if (p.boundary) placementMsg.boundary = p.boundary;
+              if (p.placement_bounds_km != null) placementMsg.placement_bounds_km = p.placement_bounds_km;
+              initMsg.placement = placementMsg;
             }
             ws.send(JSON.stringify(initMsg));
           }

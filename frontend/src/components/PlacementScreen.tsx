@@ -5,6 +5,7 @@ import {
   Circle,
   Polygon,
   Polyline,
+  Rectangle,
   Marker,
   useMap,
   useMapEvents,
@@ -215,6 +216,30 @@ function createTerrainLabel(name: string): L.DivIcon {
     className: "",
     iconSize: [80, 14],
     iconAnchor: [40, 7],
+  });
+}
+
+// Create perimeter corner drag handle
+function createCornerHandle(): L.DivIcon {
+  const svg = `<svg width="14" height="14" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="7" cy="7" r="6" fill="#d29922" stroke="#ffb800" stroke-width="1.5" opacity="0.9"/>
+  </svg>`;
+  return L.divIcon({
+    html: svg,
+    className: "",
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+  });
+}
+
+// Create perimeter dimension label
+function createPerimeterLabel(text: string): L.DivIcon {
+  const html = `<span style="font:600 10px 'JetBrains Mono',monospace;color:#d29922;white-space:nowrap;pointer-events:none;background:rgba(13,17,23,0.85);padding:2px 6px;border-radius:3px;border:1px solid #d2992244;">${text}</span>`;
+  return L.divIcon({
+    html,
+    className: "",
+    iconSize: [120, 16],
+    iconAnchor: [60, 8],
   });
 }
 
@@ -434,6 +459,12 @@ export default function PlacementScreen({
   const [facingDeg, setFacingDeg] = useState(0);
   const [showRangeRings, setShowRangeRings] = useState(true);
 
+  // Perimeter box bounds in game XY (km from base center)
+  const [perimMinX, setPerimMinX] = useState(-0.5);
+  const [perimMinY, setPerimMinY] = useState(-0.5);
+  const [perimMaxX, setPerimMaxX] = useState(0.5);
+  const [perimMaxY, setPerimMaxY] = useState(0.5);
+
   const { lat: baseLat, lng: baseLng } = getBaseCenter(baseTemplate);
   const baseCenter: [number, number] = [baseLat, baseLng];
 
@@ -445,6 +476,72 @@ export default function PlacementScreen({
     if (bounds <= 1.5) return 14;
     return 13;
   }, [baseTemplate.placement_bounds_km]);
+
+  // Perimeter dimensions
+  const perimWidthKm = Math.abs(perimMaxX - perimMinX);
+  const perimHeightKm = Math.abs(perimMaxY - perimMinY);
+
+  // Perimeter corners as lat/lng for the rectangle
+  const perimSW = useMemo(
+    () => gameXYToLatLng(perimMinX, perimMinY, baseLat, baseLng),
+    [perimMinX, perimMinY, baseLat, baseLng],
+  );
+  const perimNE = useMemo(
+    () => gameXYToLatLng(perimMaxX, perimMaxY, baseLat, baseLng),
+    [perimMaxX, perimMaxY, baseLat, baseLng],
+  );
+  const perimBounds: L.LatLngBoundsExpression = [perimSW, perimNE];
+
+  // Corner positions for drag handles (SW, NW, NE, SE)
+  const perimCorners = useMemo(() => {
+    const sw = gameXYToLatLng(perimMinX, perimMinY, baseLat, baseLng);
+    const nw = gameXYToLatLng(perimMinX, perimMaxY, baseLat, baseLng);
+    const ne = gameXYToLatLng(perimMaxX, perimMaxY, baseLat, baseLng);
+    const se = gameXYToLatLng(perimMaxX, perimMinY, baseLat, baseLng);
+    return { sw, nw, ne, se };
+  }, [perimMinX, perimMinY, perimMaxX, perimMaxY, baseLat, baseLng]);
+
+  // Perimeter dimension label position (center-top of box)
+  const perimLabelPos = useMemo(
+    () => gameXYToLatLng((perimMinX + perimMaxX) / 2, perimMaxY, baseLat, baseLng),
+    [perimMinX, perimMaxX, perimMaxY, baseLat, baseLng],
+  );
+
+  // Handle corner drag
+  const handleCornerDrag = useCallback(
+    (corner: "sw" | "nw" | "ne" | "se", lat: number, lng: number) => {
+      const { x, y } = latLngToGameXY(lat, lng, baseLat, baseLng);
+      const rx = Math.round(x * 100) / 100;
+      const ry = Math.round(y * 100) / 100;
+      // Enforce minimum 0.2km box
+      switch (corner) {
+        case "sw":
+          setPerimMinX(Math.min(rx, perimMaxX - 0.2));
+          setPerimMinY(Math.min(ry, perimMaxY - 0.2));
+          break;
+        case "nw":
+          setPerimMinX(Math.min(rx, perimMaxX - 0.2));
+          setPerimMaxY(Math.max(ry, perimMinY + 0.2));
+          break;
+        case "ne":
+          setPerimMaxX(Math.max(rx, perimMinX + 0.2));
+          setPerimMaxY(Math.max(ry, perimMinY + 0.2));
+          break;
+        case "se":
+          setPerimMaxX(Math.max(rx, perimMinX + 0.2));
+          setPerimMinY(Math.min(ry, perimMaxY - 0.2));
+          break;
+      }
+    },
+    [baseLat, baseLng, perimMinX, perimMinY, perimMaxX, perimMaxY],
+  );
+
+  const resetPerimeter = useCallback(() => {
+    setPerimMinX(-0.5);
+    setPerimMinY(-0.5);
+    setPerimMaxX(0.5);
+    setPerimMaxY(0.5);
+  }, []);
 
   // Build palette list
   const paletteItems: PaletteItem[] = [
@@ -637,6 +734,17 @@ export default function PlacementScreen({
 
   // Build PlacementConfig and confirm
   const handleConfirm = useCallback(() => {
+    // Derive boundary from perimeter box (game XY km coords)
+    const boundary: number[][] = [
+      [perimMinX, perimMinY],
+      [perimMinX, perimMaxY],
+      [perimMaxX, perimMaxY],
+      [perimMaxX, perimMinY],
+    ];
+    // placement_bounds_km = 1.5× largest dimension
+    const maxDim = Math.max(perimWidthKm, perimHeightKm);
+    const placementBoundsKm = Math.max(maxDim * 1.5, baseTemplate.placement_bounds_km);
+
     const config: PlacementConfig = {
       base_id: baseTemplate.id,
       sensors: placedItems
@@ -648,9 +756,11 @@ export default function PlacementScreen({
       combined: placedItems
         .filter((p) => p.kind === "combined")
         .map((p) => p.equipment),
+      boundary,
+      placement_bounds_km: placementBoundsKm,
     };
     onConfirm(config);
-  }, [baseTemplate.id, placedItems, onConfirm]);
+  }, [baseTemplate.id, baseTemplate.placement_bounds_km, placedItems, onConfirm, perimMinX, perimMinY, perimMaxX, perimMaxY, perimWidthKm, perimHeightKm]);
 
   // Active selection info for palette
   const activeItem =
@@ -693,12 +803,6 @@ export default function PlacementScreen({
         ),
       })),
     [baseTemplate.terrain, baseLat, baseLng],
-  );
-
-  // Boundary polygon as lat/lng
-  const boundaryPositions = useMemo(
-    () => gamePolygonToLatLng(baseTemplate.boundary, baseLat, baseLng),
-    [baseTemplate.boundary, baseLat, baseLng],
   );
 
   return (
@@ -1325,19 +1429,38 @@ export default function PlacementScreen({
               </LayersControl.BaseLayer>
             </LayersControl>
 
-            {/* Base boundary polygon */}
-            {boundaryPositions.length > 0 && (
-              <Polygon
-                positions={boundaryPositions}
-                pathOptions={{
-                  color: "#ffffff88",
-                  fillColor: "transparent",
-                  fillOpacity: 0,
-                  weight: 1.5,
-                  dashArray: "8,4",
+            {/* Resizable perimeter box */}
+            <Rectangle
+              bounds={perimBounds}
+              pathOptions={{
+                color: "#d29922",
+                fillColor: "#d29922",
+                fillOpacity: 0.06,
+                weight: 2,
+                dashArray: "8,4",
+              }}
+            />
+            {/* Corner drag handles */}
+            {(["sw", "nw", "ne", "se"] as const).map((corner) => (
+              <Marker
+                key={`perim-${corner}`}
+                position={perimCorners[corner]}
+                icon={createCornerHandle()}
+                draggable
+                eventHandlers={{
+                  dragend: (e) => {
+                    const latlng = e.target.getLatLng();
+                    handleCornerDrag(corner, latlng.lat, latlng.lng);
+                  },
                 }}
               />
-            )}
+            ))}
+            {/* Perimeter dimension label */}
+            <Marker
+              position={perimLabelPos}
+              icon={createPerimeterLabel(`${perimWidthKm.toFixed(1)}km × ${perimHeightKm.toFixed(1)}km`)}
+              interactive={false}
+            />
 
             {/* Terrain features */}
             {terrainPolygons.map(({ terrain, positions, centroid }) => {
@@ -1651,8 +1774,91 @@ export default function PlacementScreen({
             overflowY: "auto",
           }}
         >
+          {/* Perimeter control panel */}
           <div
             style={{
+              padding: "12px 16px 8px",
+              fontSize: 11,
+              fontWeight: 600,
+              color: "#d29922",
+              letterSpacing: 1,
+              textTransform: "uppercase",
+              fontFamily: "'JetBrains Mono', monospace",
+            }}
+          >
+            Perimeter
+          </div>
+          <div style={{ padding: "4px 16px 12px" }}>
+            <div
+              style={{
+                fontSize: 10,
+                color: COLORS.muted,
+                marginBottom: 6,
+                lineHeight: 1.4,
+              }}
+            >
+              Drag corners to resize defended area
+            </div>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "baseline",
+                gap: 6,
+                marginBottom: 8,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 16,
+                  fontWeight: 700,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  color: "#d29922",
+                }}
+              >
+                {perimWidthKm.toFixed(1)} × {perimHeightKm.toFixed(1)}
+              </span>
+              <span
+                style={{
+                  fontSize: 10,
+                  color: COLORS.muted,
+                  fontFamily: "'JetBrains Mono', monospace",
+                }}
+              >
+                km
+              </span>
+            </div>
+            <button
+              onClick={resetPerimeter}
+              style={{
+                padding: "4px 10px",
+                background: "transparent",
+                border: `1px solid ${COLORS.border}`,
+                borderRadius: 4,
+                color: COLORS.muted,
+                fontSize: 10,
+                fontWeight: 600,
+                fontFamily: "'JetBrains Mono', monospace",
+                letterSpacing: 0.5,
+                cursor: "pointer",
+                transition: "border-color 0.15s, color 0.15s",
+                width: "100%",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "#d29922";
+                (e.currentTarget as HTMLButtonElement).style.color = "#d29922";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = COLORS.border;
+                (e.currentTarget as HTMLButtonElement).style.color = COLORS.muted;
+              }}
+            >
+              Reset to default (1km)
+            </button>
+          </div>
+
+          <div
+            style={{
+              borderTop: `1px solid ${COLORS.border}`,
               padding: "12px 16px 8px",
               fontSize: 11,
               fontWeight: 600,

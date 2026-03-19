@@ -308,4 +308,6 @@ export interface PlacementConfig {
   sensors: PlacedEquipment[];
   effectors: PlacedEquipment[];
   combined: PlacedEquipment[];
+  boundary?: number[][];
+  placement_bounds_km?: number;
 }
