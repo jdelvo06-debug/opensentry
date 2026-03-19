@@ -746,27 +746,14 @@ def _build_state_msg(gs: GameState, elapsed: float, time_remaining: float) -> di
 def _tutorial_gate_active(gs: GameState, drone: DroneState) -> bool:
     """Return True if the tutorial drone should be frozen (gate active).
 
-    Gates:
-      step 0: drone moves until detected by sensors (gate releases → step 1)
-      step 1: DETECT — drone holds, waiting for confirm_track → step 2
-      step 2: TRACK — drone holds, waiting for slew_camera → step 3
-      step 3: SLEW  — drone holds, waiting for identify → step 4
-      step 4: IDENTIFY — drone holds, waiting for engage → step 5
-      step 5+: no gate — drone resumes
+    Drone moves freely at all times — no gates on movement.
+    Tutorial steps auto-advance based on player actions, not drone position.
+    The only thing that triggers step advancement is the player completing each action.
     """
-    step = gs.tutorial_step
-    if step == 0:
-        # Gate releases when drone is detected AND within engagement range
-        # so the player always has a valid effector shot when the tutorial freezes
-        engage_range = gs.scenario.engagement_zones.engagement_range_km if gs.scenario.engagement_zones else 2.5
-        dist = math.sqrt(drone.x ** 2 + drone.y ** 2)
-        if drone.detected and dist <= engage_range:
-            gs.tutorial_step = 1
-            return True  # Hold on step 1
-        return False  # Let drone approach until detected and in range
-    if step >= 5:
-        return False  # Drone resumes after engage
-    return True  # Steps 1-4: hold position
+    # Auto-advance step 0 → 1 when drone is first detected (purely informational)
+    if gs.tutorial_step == 0 and drone.detected:
+        gs.tutorial_step = 1
+    return False  # Never freeze the drone
 
 
 def _advance_tutorial_step(gs: GameState, action_name: str, target_id: str,
