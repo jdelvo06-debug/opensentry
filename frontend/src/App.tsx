@@ -839,6 +839,7 @@ export default function App() {
 
   // --- Tutorial handler ---
   const handleTutorialStart = async () => {
+    if (phase !== "waiting") return; // prevent double-click / re-entry
     soundEngine.init();
     const tutScenarioId = "tutorial";
     const tutBaseId = "small_fob";
@@ -895,7 +896,7 @@ export default function App() {
         placement: tutorialPlacement,
       });
     } catch {
-      setPhase("scenario_select");
+      setPhase("waiting");
     }
   };
 
