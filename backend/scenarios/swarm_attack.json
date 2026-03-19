@@ -1,7 +1,7 @@
 {
   "id": "swarm_attack",
   "name": "Swarm Attack",
-  "description": "Six contacts inbound from multiple directions. A mix of commercial quads, a fixed-wing, a micro drone, one Shahed-type autonomous drone (jam-immune), and one bird (false alarm). Staggered arrival — expect the second wave at T+30s and late contacts at T+60s. Prioritize threats, manage effectors, and don't waste resources on the bird.",
+  "description": "Six contacts inbound from multiple directions. A mix of commercial quads, a fixed-wing, a micro drone, one Shahed-type autonomous drone (jam-immune), and one bird (false alarm). Staggered arrival \u2014 expect the second wave at T+30s and late contacts at T+60s. Prioritize threats, manage effectors, and don't waste resources on the bird.",
   "difficulty": "Hard",
   "duration_seconds": 180,
   "base_radius_km": 0.1,
@@ -11,18 +11,59 @@
     "engagement_range_km": 2.5
   },
   "sensors": [
-    {"id": "radar", "name": "L-Band Multi-Mission Radar", "type": "radar", "range_km": 10.0, "status": "active"},
-    {"id": "kurz_fcs", "name": "Ku-Band Fire Control Radar", "type": "radar", "range_km": 8.0, "status": "active"},
-    {"id": "eoir", "name": "EO/IR Camera", "type": "eoir", "range_km": 8.0, "status": "active"}
+    {
+      "id": "radar",
+      "name": "L-Band Multi-Mission Radar",
+      "type": "radar",
+      "range_km": 10.0,
+      "status": "active"
+    },
+    {
+      "id": "kurz_fcs",
+      "name": "Ku-Band Fire Control Radar",
+      "type": "radar",
+      "range_km": 8.0,
+      "status": "active"
+    },
+    {
+      "id": "eoir",
+      "name": "EO/IR Camera",
+      "type": "eoir",
+      "range_km": 8.0,
+      "status": "active",
+      "fov_deg": 30
+    }
   ],
   "effectors": [
-    {"id": "jammer", "name": "RF/PNT Jammer", "type": "electronic", "range_km": 5.0, "status": "ready", "recharge_seconds": 10},
-    {"id": "jackal", "name": "JACKAL Pallet", "type": "kinetic", "range_km": 5.0, "status": "ready", "recharge_seconds": 0, "single_use": true, "ammo_count": 4, "ammo_remaining": 4}
+    {
+      "id": "jammer",
+      "name": "RF/PNT Jammer",
+      "type": "electronic",
+      "range_km": 5.0,
+      "status": "ready",
+      "recharge_seconds": 10
+    },
+    {
+      "id": "jackal",
+      "name": "JACKAL Pallet",
+      "type": "kinetic",
+      "range_km": 5.0,
+      "status": "ready",
+      "recharge_seconds": 0,
+      "single_use": true,
+      "ammo_count": 4,
+      "ammo_remaining": 4
+    }
   ],
   "correct_classification": "commercial_quad",
   "correct_affiliation": "hostile",
-  "optimal_effectors": ["electronic"],
-  "acceptable_effectors": ["electronic", "kinetic"],
+  "optimal_effectors": [
+    "electronic"
+  ],
+  "acceptable_effectors": [
+    "electronic",
+    "kinetic"
+  ],
   "roe_violations": [],
   "drones": [
     {
@@ -38,8 +79,13 @@
       "spawn_delay": 0,
       "correct_classification": "commercial_quad",
       "correct_affiliation": "hostile",
-      "optimal_effectors": ["electronic"],
-      "acceptable_effectors": ["electronic", "kinetic"],
+      "optimal_effectors": [
+        "electronic"
+      ],
+      "acceptable_effectors": [
+        "electronic",
+        "kinetic"
+      ],
       "roe_violations": [],
       "should_engage": true
     },
@@ -56,8 +102,13 @@
       "spawn_delay": 0,
       "correct_classification": "commercial_quad",
       "correct_affiliation": "hostile",
-      "optimal_effectors": ["electronic"],
-      "acceptable_effectors": ["electronic", "kinetic"],
+      "optimal_effectors": [
+        "electronic"
+      ],
+      "acceptable_effectors": [
+        "electronic",
+        "kinetic"
+      ],
       "roe_violations": [],
       "should_engage": true
     },
@@ -74,8 +125,13 @@
       "spawn_delay": 30,
       "correct_classification": "fixed_wing",
       "correct_affiliation": "hostile",
-      "optimal_effectors": ["kinetic"],
-      "acceptable_effectors": ["kinetic", "electronic"],
+      "optimal_effectors": [
+        "kinetic"
+      ],
+      "acceptable_effectors": [
+        "kinetic",
+        "electronic"
+      ],
       "roe_violations": [],
       "should_engage": true
     },
@@ -92,8 +148,14 @@
       "spawn_delay": 30,
       "correct_classification": "micro",
       "correct_affiliation": "hostile",
-      "optimal_effectors": ["electronic", "kinetic"],
-      "acceptable_effectors": ["electronic", "kinetic"],
+      "optimal_effectors": [
+        "electronic",
+        "kinetic"
+      ],
+      "acceptable_effectors": [
+        "electronic",
+        "kinetic"
+      ],
       "roe_violations": [],
       "should_engage": true
     },
@@ -110,8 +172,12 @@
       "spawn_delay": 60,
       "correct_classification": "shahed",
       "correct_affiliation": "hostile",
-      "optimal_effectors": ["kinetic"],
-      "acceptable_effectors": ["kinetic"],
+      "optimal_effectors": [
+        "kinetic"
+      ],
+      "acceptable_effectors": [
+        "kinetic"
+      ],
       "roe_violations": [],
       "should_engage": true
     },
@@ -126,12 +192,28 @@
       "behavior": "waypoint_path",
       "rf_emitting": false,
       "spawn_delay": 60,
-      "waypoints": [[0.5, 2.0], [-1.0, 0.5], [-2.5, -1.0]],
+      "waypoints": [
+        [
+          0.5,
+          2.0
+        ],
+        [
+          -1.0,
+          0.5
+        ],
+        [
+          -2.5,
+          -1.0
+        ]
+      ],
       "correct_classification": "bird",
       "correct_affiliation": "neutral",
       "optimal_effectors": [],
       "acceptable_effectors": [],
-      "roe_violations": ["electronic", "kinetic"],
+      "roe_violations": [
+        "electronic",
+        "kinetic"
+      ],
       "should_engage": false
     }
   ]

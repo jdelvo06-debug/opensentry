@@ -44,7 +44,7 @@
       "name": "EO/IR Camera",
       "type": "eoir",
       "range_km": 8.0,
-      "fov_deg": 360,
+      "fov_deg": 30,
       "description": "Pan/tilt/zoom electro-optical and infrared camera. 360\u00b0 continuous rotation gimbal with thermal and daylight imaging. Used for visual identification of UAS targets.",
       "pros": [
         "Visual ID capability",
@@ -111,7 +111,7 @@
     {
       "catalog_id": "shinobi",
       "name": "SHINOBI",
-      "description": "Integrated RF detect-and-defeat system. Passive omnidirectional antennas scan 2.4GHz, 5.8GHz, 430MHz, and 900MHz bands for drone control links. Library-based — only detects drones with known RF signatures. Protocol Manipulation defeat sends targeted commands on the drone's own protocol: HOLD (freeze), LAND NOW (forced descent), DEAFEN (sever link). CM state progresses from 1/2 (downlink) to 2/2 (uplink acquired, full control).",
+      "description": "Integrated RF detect-and-defeat system. Passive omnidirectional antennas scan 2.4GHz, 5.8GHz, 430MHz, and 900MHz bands for drone control links. Library-based \u2014 only detects drones with known RF signatures. Protocol Manipulation defeat sends targeted commands on the drone's own protocol: HOLD (freeze), LAND NOW (forced descent), DEAFEN (sever link). CM state progresses from 1/2 (downlink) to 2/2 (uplink acquired, full control).",
       "sensor_type": "rf",
       "sensor_range_km": 8.0,
       "effector_type": "shinobi_pm",

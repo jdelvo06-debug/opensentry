@@ -8,12 +8,30 @@
   "tutorial": true,
   "no_ambient": true,
   "tutorial_prompts": [
-    {"trigger": "start", "message": "Welcome to SKYSHIELD. A drone is approaching your base. Watch the tactical map for a new contact to appear."},
-    {"trigger": "detected", "message": "Contact detected! The yellow square on the map is an UNKNOWN track. Click on it to select it, then click CONFIRM TRACK in the engagement panel."},
-    {"trigger": "tracked", "message": "Track confirmed. Sensors are now correlating data. Watch the confidence indicator rise. When you have enough data, click IDENTIFY to classify the threat."},
-    {"trigger": "identify_ready", "message": "Confidence is building. Select the correct classification (Commercial Quad) and affiliation (Hostile), then confirm identification."},
-    {"trigger": "identified", "message": "Threat identified! Now select an effector to engage. RF/PNT Jammer is the optimal choice for a commercial quad — it has low collateral risk and is rechargeable."},
-    {"trigger": "defeated", "message": "Target neutralized. Well done! You have completed the DTID kill chain: Detect, Track, Identify, Defeat. Review your debrief score."}
+    {
+      "trigger": "start",
+      "message": "Welcome to SKYSHIELD. A drone is approaching your base. Watch the tactical map for a new contact to appear."
+    },
+    {
+      "trigger": "detected",
+      "message": "Contact detected! The yellow square on the map is an UNKNOWN track. Click on it to select it, then click CONFIRM TRACK in the engagement panel."
+    },
+    {
+      "trigger": "tracked",
+      "message": "Track confirmed. Sensors are now correlating data. Watch the confidence indicator rise. When you have enough data, click IDENTIFY to classify the threat."
+    },
+    {
+      "trigger": "identify_ready",
+      "message": "Confidence is building. Select the correct classification (Commercial Quad) and affiliation (Hostile), then confirm identification."
+    },
+    {
+      "trigger": "identified",
+      "message": "Threat identified! Now select an effector to engage. RF/PNT Jammer is the optimal choice for a commercial quad \u2014 it has low collateral risk and is rechargeable."
+    },
+    {
+      "trigger": "defeated",
+      "message": "Target neutralized. Well done! You have completed the DTID kill chain: Detect, Track, Identify, Defeat. Review your debrief score."
+    }
   ],
   "engagement_zones": {
     "detection_range_km": 5.0,
@@ -21,18 +39,59 @@
     "engagement_range_km": 2.5
   },
   "sensors": [
-    {"id": "radar", "name": "L-Band Multi-Mission Radar", "type": "radar", "range_km": 10.0, "status": "active"},
-    {"id": "kurz_fcs", "name": "Ku-Band Fire Control Radar", "type": "radar", "range_km": 8.0, "status": "active"},
-    {"id": "eoir", "name": "EO/IR Camera", "type": "eoir", "range_km": 8.0, "status": "active"}
+    {
+      "id": "radar",
+      "name": "L-Band Multi-Mission Radar",
+      "type": "radar",
+      "range_km": 10.0,
+      "status": "active"
+    },
+    {
+      "id": "kurz_fcs",
+      "name": "Ku-Band Fire Control Radar",
+      "type": "radar",
+      "range_km": 8.0,
+      "status": "active"
+    },
+    {
+      "id": "eoir",
+      "name": "EO/IR Camera",
+      "type": "eoir",
+      "range_km": 8.0,
+      "status": "active",
+      "fov_deg": 30
+    }
   ],
   "effectors": [
-    {"id": "jammer", "name": "RF/PNT Jammer", "type": "electronic", "range_km": 5.0, "status": "ready", "recharge_seconds": 10},
-    {"id": "jackal", "name": "JACKAL Pallet", "type": "kinetic", "range_km": 5.0, "status": "ready", "recharge_seconds": 0, "single_use": true, "ammo_count": 4, "ammo_remaining": 4}
+    {
+      "id": "jammer",
+      "name": "RF/PNT Jammer",
+      "type": "electronic",
+      "range_km": 5.0,
+      "status": "ready",
+      "recharge_seconds": 10
+    },
+    {
+      "id": "jackal",
+      "name": "JACKAL Pallet",
+      "type": "kinetic",
+      "range_km": 5.0,
+      "status": "ready",
+      "recharge_seconds": 0,
+      "single_use": true,
+      "ammo_count": 4,
+      "ammo_remaining": 4
+    }
   ],
   "correct_classification": "commercial_quad",
   "correct_affiliation": "hostile",
-  "optimal_effectors": ["electronic"],
-  "acceptable_effectors": ["electronic", "kinetic"],
+  "optimal_effectors": [
+    "electronic"
+  ],
+  "acceptable_effectors": [
+    "electronic",
+    "kinetic"
+  ],
   "roe_violations": [],
   "drones": [
     {
@@ -48,8 +107,13 @@
       "spawn_delay": 5,
       "correct_classification": "commercial_quad",
       "correct_affiliation": "hostile",
-      "optimal_effectors": ["electronic"],
-      "acceptable_effectors": ["electronic", "kinetic"],
+      "optimal_effectors": [
+        "electronic"
+      ],
+      "acceptable_effectors": [
+        "electronic",
+        "kinetic"
+      ],
       "roe_violations": [],
       "should_engage": true
     }
