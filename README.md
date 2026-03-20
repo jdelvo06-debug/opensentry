@@ -10,6 +10,19 @@
 
 ---
 
+## Screenshots
+
+![OpenSentry Main Menu](docs/screenshots/01-main-menu.png)
+*Mission select screen — four scenarios from Tutorial to Swarm Attack, with difficulty and duration at a glance.*
+
+![OpenSentry Tactical Operations Center](docs/screenshots/02-tactical-map.png)
+*Live mission view — satellite tactical map, multi-sensor track panel, engagement controls, and real-time ETA/threat level.*
+
+![OpenSentry Active Track](docs/screenshots/03-gameplay-track.png)
+*Track data card — range, bearing, altitude, speed, confidence, DTID phase, and RF status updated at 10Hz.*
+
+---
+
 ## Features
 
 ### Core Gameplay — DTID Kill Chain
