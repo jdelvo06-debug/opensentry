@@ -854,41 +854,98 @@ export default function App() {
     send({ type: "action", action: "end_mission", target_id: "" });
   };
 
-  // --- Tutorial handler ---
-  const handleTutorialStart = async () => {
-    if (phase !== "waiting") return; // prevent double-click / re-entry
+  // --- Scenario card metadata ---
+  const SCENARIO_CARDS = [
+    {
+      id: "tutorial",
+      name: "TUTORIAL",
+      description: "Learn the basics of C-UAS detection, tracking, and defeat.",
+      difficulty: "BEGINNER",
+      duration: "5 min",
+      accent: "#58a6ff",
+    },
+    {
+      id: "lone_wolf",
+      name: "LONE WOLF",
+      description: "Single hostile UAS inbound. Detect, identify, and neutralize before breach.",
+      difficulty: "INTERMEDIATE",
+      accent: "#3fb950",
+      duration: "10 min",
+    },
+    {
+      id: "swarm_attack",
+      name: "SWARM ATTACK",
+      description: "Multi-vector swarm assault. Triage threats, manage effector economy.",
+      difficulty: "ADVANCED",
+      accent: "#f85149",
+      duration: "15 min",
+    },
+    {
+      id: "recon_probe",
+      name: "RECON PROBE",
+      description: "Mixed contacts — apply ROE, identify hostiles, avoid fratricide.",
+      difficulty: "ADVANCED",
+      accent: "#d29922",
+      duration: "12 min",
+    },
+  ];
+
+  // --- Scenario Launch handler (replaces handleTutorialStart + handleQuickStart) ---
+  const handleScenarioLaunch = async (scenarioId: string) => {
+    if (phase !== "waiting") return;
     soundEngine.init();
-    const tutScenarioId = "tutorial";
-    const tutBaseId = "small_fob";
+
+    const isTut = scenarioId === "tutorial";
+    const baseId = isTut ? "small_fob" : "medium_airbase";
+
+    const tutorialPlacement: PlacementConfig = {
+      base_id: "small_fob",
+      sensors: [
+        { catalog_id: "tpq51", x: 0.0, y: 0.0, facing_deg: 0 },
+        { catalog_id: "kurz_fcs", x: 0.0, y: 0.0, facing_deg: 0 },
+        { catalog_id: "eoir_camera", x: 0.0, y: 0.0, facing_deg: 0 },
+      ],
+      effectors: [
+        { catalog_id: "rf_jammer", x: 0.0, y: 0.0, facing_deg: 0 },
+        { catalog_id: "jackal_pallet", x: 0.1, y: 0.0, facing_deg: 0 },
+      ],
+      combined: [
+        { catalog_id: "shinobi", x: 0.0, y: 0.0, facing_deg: 0 },
+      ],
+    };
+
+    const quickPlacement: PlacementConfig = {
+      base_id: "medium_airbase",
+      sensors: [
+        { catalog_id: "tpq51", x: 0.0, y: -0.1, facing_deg: 0 },
+        { catalog_id: "kurz_fcs", x: 0.2, y: 0.1, facing_deg: 0 },
+        { catalog_id: "eoir_camera", x: -0.3, y: 0.15, facing_deg: 0 },
+        { catalog_id: "eoir_camera", x: 0.4, y: -0.2, facing_deg: 180 },
+      ],
+      effectors: [
+        { catalog_id: "rf_jammer", x: 0.0, y: 0.05, facing_deg: 0 },
+        { catalog_id: "jackal_pallet", x: 0.15, y: 0.0, facing_deg: 0 },
+        { catalog_id: "jackal_pallet", x: -0.15, y: 0.0, facing_deg: 180 },
+      ],
+      combined: [
+        { catalog_id: "shinobi", x: 0.0, y: 0.0, facing_deg: 0 },
+      ],
+    };
+
+    const placement = isTut ? tutorialPlacement : quickPlacement;
 
     try {
-      const res = await fetch(`${API_BASE}/bases/${tutBaseId}`);
+      const res = await fetch(`${API_BASE}/bases/${baseId}`);
       const base = await res.json();
       setBaseTemplate(base);
-      setScenarioId(tutScenarioId);
-      setBaseId(tutBaseId);
-
-      const tutorialPlacement: PlacementConfig = {
-        base_id: tutBaseId,
-        sensors: [
-          { catalog_id: "tpq51", x: 0.0, y: 0.0, facing_deg: 0 },
-          { catalog_id: "kurz_fcs", x: 0.0, y: 0.0, facing_deg: 0 },
-          { catalog_id: "eoir_camera", x: 0.0, y: 0.0, facing_deg: 0 },
-        ],
-        effectors: [
-          { catalog_id: "rf_jammer", x: 0.0, y: 0.0, facing_deg: 0 },
-          { catalog_id: "jackal_pallet", x: 0.1, y: 0.0, facing_deg: 0 },
-        ],
-        combined: [
-          { catalog_id: "shinobi", x: 0.0, y: 0.0, facing_deg: 0 },
-        ],
-      };
+      setScenarioId(scenarioId);
+      setBaseId(baseId);
 
       // Reset running state
       setScore(null);
       setTracks([]);
       setSelectedTrackId(null);
-    setHookedTrackIds(new Set());
+      setHookedTrackIds(new Set());
       setEvents([]);
       setSensors([]);
       setSensorConfigs([]);
@@ -903,95 +960,16 @@ export default function App() {
       autoOpenedCameraRef.current.clear();
       detectionPingedRef.current.clear();
       setTutorialMessage(null);
-      setIsTutorial(false);
+      setIsTutorial(isTut);
       setTutorialStep(0);
       setTutorialFeedback(null);
       setPaused(false);
-      setPlacementConfig(tutorialPlacement);
+      setPlacementConfig(placement);
       setWaveNumber(1);
 
-      connect({
-        scenarioId: tutScenarioId,
-        baseId: tutBaseId,
-        placement: tutorialPlacement,
-      });
+      connect({ scenarioId, baseId, placement });
     } catch {
       setPhase("waiting");
-    }
-  };
-
-  // --- Quick Start handler ---
-  const handleQuickStart = async () => {
-    soundEngine.init();
-    const qsScenarioId = "lone_wolf";
-    const qsBaseId = "medium_airbase";
-
-    try {
-      // Fetch base template
-      const res = await fetch(`${API_BASE}/bases/${qsBaseId}`);
-      const base = await res.json();
-      setBaseTemplate(base);
-      setScenarioId(qsScenarioId);
-      setBaseId(qsBaseId);
-
-      // Pre-defined placement: spread equipment around base for coverage
-      // 1x L-Band MMR (center-ish, 360° coverage)
-      // 1x Ku-Band FCS (facing north — primary threat axis)
-      // 2x EO/IR Camera (offset positions for cross-coverage)
-      // 2x JACKAL Pallet (near Ku-Band FCS for intercept)
-      const quickPlacement: PlacementConfig = {
-        base_id: qsBaseId,
-        sensors: [
-          { catalog_id: "tpq51", x: 0.0, y: -0.1, facing_deg: 0 },
-          { catalog_id: "kurz_fcs", x: 0.2, y: 0.1, facing_deg: 0 },
-          { catalog_id: "eoir_camera", x: -0.3, y: 0.15, facing_deg: 0 },
-          { catalog_id: "eoir_camera", x: 0.4, y: -0.2, facing_deg: 180 },
-        ],
-        effectors: [
-          { catalog_id: "rf_jammer", x: 0.0, y: 0.05, facing_deg: 0 },
-          { catalog_id: "jackal_pallet", x: 0.15, y: 0.0, facing_deg: 0 },
-          { catalog_id: "jackal_pallet", x: -0.15, y: 0.0, facing_deg: 180 },
-        ],
-        combined: [
-          { catalog_id: "shinobi", x: 0.0, y: 0.0, facing_deg: 0 },
-        ],
-      };
-
-      // Reset running state
-      setScore(null);
-      setTracks([]);
-      setSelectedTrackId(null);
-    setHookedTrackIds(new Set());
-      setEvents([]);
-      setSensors([]);
-      setSensorConfigs([]);
-      setEffectors([]);
-      setEffectorConfigs([]);
-      setEngagementZones(null);
-      setProtectedArea(null);
-      setElapsed(0);
-      setTimeRemaining(0);
-      setThreatLevel("green");
-      setCameraTrackId(null);
-      autoOpenedCameraRef.current.clear();
-      detectionPingedRef.current.clear();
-      setTutorialMessage(null);
-      setIsTutorial(false);
-      setTutorialStep(0);
-      setTutorialFeedback(null);
-      setPaused(false);
-      setPlacementConfig(quickPlacement);
-      setWaveNumber(1);
-
-      // Connect directly — skip scenario select, loadout, placement
-      connect({
-        scenarioId: qsScenarioId,
-        baseId: qsBaseId,
-        placement: quickPlacement,
-      });
-    } catch {
-      // Fallback to normal flow if quick start fails
-      setPhase("scenario_select");
     }
   };
 
@@ -1027,9 +1005,10 @@ export default function App() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: 24,
+            gap: 32,
           }}
         >
+          {/* Title */}
           <div>
             <div
               style={{
@@ -1038,6 +1017,7 @@ export default function App() {
                 color: "#e6edf3",
                 letterSpacing: 6,
                 fontFamily: "'Inter', sans-serif",
+                textAlign: "center",
               }}
             >
               SKYSHIELD
@@ -1056,166 +1036,139 @@ export default function App() {
             </div>
           </div>
 
+          {/* Scenario card grid */}
           <div
             style={{
-              marginTop: 16,
-              padding: "20px 28px",
-              background: "#161b22",
-              border: "1px solid #30363d",
-              borderRadius: 8,
-              maxWidth: 480,
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 16,
+              maxWidth: 640,
               width: "100%",
-              textAlign: "center",
             }}
           >
-            <div
-              style={{
-                fontSize: 9,
-                fontWeight: 600,
-                color: "#8b949e",
-                letterSpacing: 1.5,
-                marginBottom: 12,
-              }}
-            >
-              TRAINING FLOW
-            </div>
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                justifyContent: "center",
-                marginBottom: 16,
-              }}
-            >
-              {["SELECT", "EQUIP", "PLAN", "EXECUTE", "DEBRIEF"].map(
-                (step) => (
-                  <span
-                    key={step}
+            {SCENARIO_CARDS.map((sc) => (
+              <div
+                key={sc.id}
+                style={{
+                  background: "#161b22",
+                  border: "1px solid #30363d",
+                  borderTop: `3px solid ${sc.accent}`,
+                  borderRadius: 8,
+                  padding: "20px 20px 16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 10,
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div
                     style={{
-                      padding: "4px 10px",
-                      borderRadius: 4,
-                      background: "#21262d",
-                      color: "#8b949e",
-                      fontSize: 9,
-                      fontWeight: 600,
-                      letterSpacing: 1,
+                      fontSize: 16,
+                      fontWeight: 700,
+                      color: "#e6edf3",
+                      letterSpacing: 1.5,
+                      fontFamily: "'Inter', sans-serif",
                     }}
                   >
-                    {step}
+                    {sc.name}
+                  </div>
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 600,
+                      color: sc.accent,
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    {sc.duration}
                   </span>
-                ),
-              )}
-            </div>
-            <div
-              style={{
-                color: "#8b949e",
-                fontSize: 13,
-                lineHeight: 1.6,
-              }}
-            >
-              Select a scenario and base, choose your equipment, plan your
-              defense, then execute the DTID kill chain.
-            </div>
+                </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: "#8b949e",
+                    lineHeight: 1.5,
+                    minHeight: 36,
+                  }}
+                >
+                  {sc.description}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      letterSpacing: 1,
+                      padding: "3px 8px",
+                      borderRadius: 4,
+                      background: `${sc.accent}18`,
+                      color: sc.accent,
+                    }}
+                  >
+                    {sc.difficulty}
+                  </span>
+                </div>
+                <button
+                  onClick={() => handleScenarioLaunch(sc.id)}
+                  style={{
+                    marginTop: 4,
+                    padding: "10px 0",
+                    background: sc.accent,
+                    border: "none",
+                    borderRadius: 5,
+                    color: "#0d1117",
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    letterSpacing: 2,
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                    width: "100%",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.filter = "brightness(1.2)";
+                    (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 16px ${sc.accent}40`;
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.filter = "none";
+                    (e.currentTarget as HTMLElement).style.boxShadow = "none";
+                  }}
+                >
+                  LAUNCH
+                </button>
+              </div>
+            ))}
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8, alignItems: "center" }}>
-            <button
-              onClick={handleTutorialStart}
-              style={{
-                padding: "16px 56px",
-                background: "#58a6ff",
-                border: "none",
-                borderRadius: 6,
-                color: "#0d1117",
-                fontFamily: "'Inter', sans-serif",
-                fontSize: 15,
-                fontWeight: 700,
-                letterSpacing: 2,
-                cursor: "pointer",
-                transition: "all 0.15s",
-                boxShadow: "0 4px 16px rgba(88, 166, 255, 0.3)",
-                width: "100%",
-                maxWidth: 320,
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.background = "#79c0ff";
-                (e.currentTarget as HTMLElement).style.boxShadow =
-                  "0 6px 24px rgba(88, 166, 255, 0.45)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.background = "#58a6ff";
-                (e.currentTarget as HTMLElement).style.boxShadow =
-                  "0 4px 16px rgba(88, 166, 255, 0.3)";
-              }}
-            >
-              TUTORIAL
-            </button>
-            <div style={{ fontSize: 10, color: "#8b949e", letterSpacing: 0.5 }}>
-              First time? Start here — no setup required
-            </div>
-            <button
-              onClick={handleQuickStart}
-              style={{
-                padding: "16px 56px",
-                background: "#3fb950",
-                border: "none",
-                borderRadius: 6,
-                color: "#0d1117",
-                fontFamily: "'Inter', sans-serif",
-                fontSize: 15,
-                fontWeight: 700,
-                letterSpacing: 2,
-                cursor: "pointer",
-                transition: "all 0.15s",
-                boxShadow: "0 4px 16px rgba(63, 185, 80, 0.3)",
-                width: "100%",
-                maxWidth: 320,
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.background = "#56d364";
-                (e.currentTarget as HTMLElement).style.boxShadow =
-                  "0 6px 24px rgba(63, 185, 80, 0.45)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.background = "#3fb950";
-                (e.currentTarget as HTMLElement).style.boxShadow =
-                  "0 4px 16px rgba(63, 185, 80, 0.3)";
-              }}
-            >
-              QUICK START
-            </button>
-            <div style={{ fontSize: 10, color: "#8b949e", letterSpacing: 0.5 }}>
-              Lone Wolf + Medium Airbase — pre-configured loadout
-            </div>
-            <button
-              onClick={() => { soundEngine.init(); setPhase("scenario_select"); }}
-              style={{
-                padding: "12px 40px",
-                background: "transparent",
-                border: "1px solid #30363d",
-                borderRadius: 6,
-                color: "#8b949e",
-                fontFamily: "'Inter', sans-serif",
-                fontSize: 13,
-                fontWeight: 600,
-                letterSpacing: 2,
-                cursor: "pointer",
-                transition: "all 0.15s",
-                width: "100%",
-                maxWidth: 320,
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = "#58a6ff";
-                (e.currentTarget as HTMLElement).style.color = "#58a6ff";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = "#30363d";
-                (e.currentTarget as HTMLElement).style.color = "#8b949e";
-              }}
-            >
-              CUSTOM MISSION
-            </button>
-          </div>
+          {/* Custom Mission button */}
+          <button
+            onClick={() => { soundEngine.init(); setPhase("scenario_select"); }}
+            style={{
+              padding: "12px 40px",
+              background: "transparent",
+              border: "1px solid #30363d",
+              borderRadius: 6,
+              color: "#8b949e",
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 13,
+              fontWeight: 600,
+              letterSpacing: 2,
+              cursor: "pointer",
+              transition: "all 0.15s",
+              width: "100%",
+              maxWidth: 640,
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.borderColor = "#58a6ff";
+              (e.currentTarget as HTMLElement).style.color = "#58a6ff";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.borderColor = "#30363d";
+              (e.currentTarget as HTMLElement).style.color = "#8b949e";
+            }}
+          >
+            CUSTOM MISSION
+          </button>
         </div>
       </div>
     );
