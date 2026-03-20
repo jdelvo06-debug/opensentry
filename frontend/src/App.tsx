@@ -898,29 +898,29 @@ export default function App() {
     const isTut = scenarioId === "tutorial";
     const baseId = isTut ? "small_fob" : "medium_airbase";
 
+    // Doctrine: every scenario = L-Band + EO/IR + RF Jammer + SHINOBI baseline
+    // Ku-Band FCS always paired with JACKAL (fire control requirement)
+    // Shahed threats (Swarm, Lone Wolf) need kinetic defeat — JACKAL mandatory
     const tutorialPlacement: PlacementConfig = {
       base_id: "small_fob",
       sensors: [
         { catalog_id: "tpq51", x: 0.0, y: 0.0, facing_deg: 0 },
-        { catalog_id: "kurz_fcs", x: 0.0, y: 0.0, facing_deg: 0 },
-        { catalog_id: "eoir_camera", x: 0.0, y: 0.0, facing_deg: 0 },
+        { catalog_id: "eoir_camera", x: -0.2, y: 0.1, facing_deg: 0 },
       ],
       effectors: [
-        { catalog_id: "rf_jammer", x: 0.0, y: 0.0, facing_deg: 0 },
-        { catalog_id: "jackal_pallet", x: 0.1, y: 0.0, facing_deg: 0 },
+        { catalog_id: "rf_jammer", x: 0.0, y: 0.05, facing_deg: 0 },
       ],
       combined: [
         { catalog_id: "shinobi", x: 0.0, y: 0.0, facing_deg: 0 },
       ],
     };
 
-    const quickPlacement: PlacementConfig = {
+    const loneWolfPlacement: PlacementConfig = {
       base_id: "medium_airbase",
       sensors: [
         { catalog_id: "tpq51", x: 0.0, y: -0.1, facing_deg: 0 },
         { catalog_id: "kurz_fcs", x: 0.2, y: 0.1, facing_deg: 0 },
         { catalog_id: "eoir_camera", x: -0.3, y: 0.15, facing_deg: 0 },
-        { catalog_id: "eoir_camera", x: 0.4, y: -0.2, facing_deg: 180 },
       ],
       effectors: [
         { catalog_id: "rf_jammer", x: 0.0, y: 0.05, facing_deg: 0 },
@@ -932,7 +932,51 @@ export default function App() {
       ],
     };
 
-    const placement = isTut ? tutorialPlacement : quickPlacement;
+    const swarmPlacement: PlacementConfig = {
+      base_id: "medium_airbase",
+      sensors: [
+        { catalog_id: "tpq51", x: 0.0, y: -0.1, facing_deg: 0 },
+        { catalog_id: "kurz_fcs", x: 0.2, y: 0.1, facing_deg: 0 },
+        { catalog_id: "eoir_camera", x: -0.3, y: 0.15, facing_deg: 0 },
+        { catalog_id: "eoir_camera", x: 0.4, y: -0.2, facing_deg: 180 },
+      ],
+      effectors: [
+        { catalog_id: "rf_jammer", x: 0.0, y: 0.05, facing_deg: 0 },
+        { catalog_id: "rf_jammer", x: -0.2, y: -0.1, facing_deg: 0 },
+        { catalog_id: "jackal_pallet", x: 0.15, y: 0.0, facing_deg: 0 },
+        { catalog_id: "jackal_pallet", x: -0.15, y: 0.0, facing_deg: 180 },
+        { catalog_id: "jackal_pallet", x: 0.0, y: 0.2, facing_deg: 270 },
+      ],
+      combined: [
+        { catalog_id: "shinobi", x: 0.0, y: 0.0, facing_deg: 0 },
+        { catalog_id: "shinobi", x: 0.3, y: 0.1, facing_deg: 0 },
+      ],
+    };
+
+    const reconPlacement: PlacementConfig = {
+      base_id: "medium_airbase",
+      sensors: [
+        { catalog_id: "tpq51", x: 0.0, y: -0.1, facing_deg: 0 },
+        { catalog_id: "kurz_fcs", x: 0.2, y: 0.1, facing_deg: 0 },
+        { catalog_id: "eoir_camera", x: -0.3, y: 0.15, facing_deg: 0 },
+        { catalog_id: "eoir_camera", x: 0.4, y: -0.2, facing_deg: 180 },
+      ],
+      effectors: [
+        { catalog_id: "rf_jammer", x: 0.0, y: 0.05, facing_deg: 0 },
+        { catalog_id: "jackal_pallet", x: 0.1, y: 0.0, facing_deg: 0 },
+      ],
+      combined: [
+        { catalog_id: "shinobi", x: 0.0, y: 0.0, facing_deg: 0 },
+      ],
+    };
+
+    const placementMap: Record<string, PlacementConfig> = {
+      tutorial: tutorialPlacement,
+      lone_wolf: loneWolfPlacement,
+      swarm_attack: swarmPlacement,
+      recon_probe: reconPlacement,
+    };
+    const placement = placementMap[scenarioId] ?? loneWolfPlacement;
 
     try {
       const res = await fetch(`${API_BASE}/bases/${baseId}`);
