@@ -29,6 +29,7 @@ class DroneType(str, Enum):
     WEATHER_BALLOON = "weather_balloon"
     JACKAL = "jackal"
     SHAHED = "shahed"
+    IMPROVISED = "improvised"
 
 
 class ThreatClassification(str, Enum):
