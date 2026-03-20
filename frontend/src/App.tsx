@@ -945,7 +945,6 @@ export default function App() {
         { catalog_id: "rf_jammer", x: -0.2, y: -0.1, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: 0.15, y: 0.0, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: -0.15, y: 0.0, facing_deg: 180 },
-        { catalog_id: "jackal_pallet", x: 0.0, y: 0.2, facing_deg: 270 },
       ],
       combined: [
         { catalog_id: "shinobi", x: 0.0, y: 0.0, facing_deg: 0 },
