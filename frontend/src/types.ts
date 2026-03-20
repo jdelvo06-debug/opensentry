@@ -26,6 +26,7 @@ export interface TrackData {
   is_ambient?: boolean;
   jammed?: boolean;
   jammed_behavior?: string | null;
+  pnt_jammed?: boolean;
   is_interceptor?: boolean;
   interceptor_target?: string | null;
   intercept_phase?: string | null;
@@ -160,6 +161,7 @@ export interface EngagementResultMsg {
   effectiveness: number;
   jammed?: boolean;
   jammed_behavior?: string;
+  pnt_jammed?: boolean;
   shinobi_cm?: string;
   shinobi_cm_state?: string;
 }

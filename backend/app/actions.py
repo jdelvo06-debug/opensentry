@@ -18,7 +18,7 @@ from app.helpers import (
     effector_effectiveness,
     find_effector_config,
 )
-from app.jamming import pick_jam_behavior
+from app.jamming import apply_pnt_jamming, pick_jam_behavior
 from app.shinobi import is_shinobi_vulnerable, pick_shinobi_cm_effectiveness, DRONE_FREQUENCY_MAP
 from app.models import (
     Affiliation,
@@ -385,8 +385,15 @@ def _engage_jammer(
     if not in_jam_range:
         return msgs
 
+    # --- RF link jamming ---
     jam_behavior = pick_jam_behavior(d.drone_type)
-    if jam_behavior is None:
+
+    # --- PNT jamming (runs independently of RF result) ---
+    pnt_effective, pnt_drift = apply_pnt_jamming(d.drone_type)
+    pnt_duration = random.uniform(15.0, 25.0) if pnt_effective else 0.0
+
+    if jam_behavior is None and not pnt_effective:
+        # Fully immune to both RF and PNT jamming
         msgs.append(_event(elapsed,
             f"JAM INEFFECTIVE — AUTONOMOUS NAVIGATION ({d.id.upper()})"))
         msgs.append({
@@ -395,27 +402,52 @@ def _engage_jammer(
             "effective": False, "effectiveness": 0.0,
         })
     else:
-        jam_duration = random.uniform(5.0, 10.0)
-        gs.drones[drone_idx] = d.model_copy(update={
-            "dtid_phase": DTIDPhase.DEFEATED,
-            "jammed": True,
-            "jammed_behavior": jam_behavior,
-            "jammed_time_remaining": jam_duration,
-        })
+        update_fields: dict = {}
+        engagement_result: dict = {
+            "type": "engagement_result",
+            "target_id": target_id, "effector": effector_id,
+            "effective": True, "effectiveness": round(effectiveness, 2),
+        }
+
+        if jam_behavior is not None:
+            jam_duration = random.uniform(5.0, 10.0)
+            update_fields.update({
+                "dtid_phase": DTIDPhase.DEFEATED,
+                "jammed": True,
+                "jammed_behavior": jam_behavior,
+                "jammed_time_remaining": jam_duration,
+            })
+            behavior_label = jam_behavior.replace("_", " ").upper()
+            msgs.append(_event(elapsed, f"EW: {d.id.upper()} JAMMED — {behavior_label}"))
+            engagement_result["jammed"] = True
+            engagement_result["jammed_behavior"] = jam_behavior
+
+        if pnt_effective:
+            update_fields.update({
+                "pnt_jammed": True,
+                "pnt_drift_magnitude": pnt_drift,
+                "pnt_jammed_time_remaining": pnt_duration,
+            })
+            if jam_behavior is None:
+                # PNT-only effect (e.g. Shahed) — different message tone
+                msgs.append(_event(elapsed,
+                    f"PNT: {d.id.upper()} — NAVIGATION DEGRADED ({pnt_duration:.0f}s)"))
+                engagement_result["pnt_jammed"] = True
+                engagement_result["effective"] = True
+                engagement_result["effectiveness"] = round(pnt_drift * 100, 2)
+            else:
+                msgs.append(_event(elapsed,
+                    f"PNT: {d.id.upper()} — GPS DEGRADED (compounding RF jam)"))
+                engagement_result["pnt_jammed"] = True
+
+        gs.drones[drone_idx] = d.model_copy(update=update_fields)
         gs.engage_times[target_id] = elapsed
         gs.effector_used[target_id] = eff_state["type"]
         gs.actions.append(PlayerAction(
             action="engage", target_id=target_id,
             effector=effector_id, timestamp=elapsed,
         ))
-        behavior_label = jam_behavior.replace("_", " ").upper()
-        msgs.append(_event(elapsed, f"EW: {d.id.upper()} JAMMED — {behavior_label}"))
-        msgs.append({
-            "type": "engagement_result",
-            "target_id": target_id, "effector": effector_id,
-            "effective": True, "effectiveness": round(effectiveness, 2),
-            "jammed": True, "jammed_behavior": jam_behavior,
-        })
+        msgs.append(engagement_result)
     return msgs
 
 

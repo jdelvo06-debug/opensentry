@@ -518,6 +518,24 @@ export default function EngagementPanel({
                 {track.jammed_behavior?.replace(/_/g, " ").toUpperCase() || "EW EFFECT ACTIVE"}
               </div>
             </>
+          ) : track.pnt_jammed && !track.neutralized ? (
+            <>
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "#e3b341",
+                  letterSpacing: 1,
+                  marginBottom: 4,
+                  animation: "track-blink 2s ease-in-out infinite",
+                }}
+              >
+                PNT DEGRADED
+              </div>
+              <div style={{ fontSize: 11, color: "#e3b341", opacity: 0.8 }}>
+                NAVIGATION ACCURACY REDUCED
+              </div>
+            </>
           ) : (
             <>
               <div

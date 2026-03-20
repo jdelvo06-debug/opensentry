@@ -44,7 +44,7 @@ from app.helpers import (
     build_sensors_from_placement,
     threat_level,
 )
-from app.jamming import pick_jam_behavior, update_jammed_drone
+from app.jamming import apply_pnt_jamming, pick_jam_behavior, update_jammed_drone, update_pnt_jammed_drone
 from app.shinobi import update_shinobi_drone
 from app.models import (
     Affiliation,
@@ -432,7 +432,7 @@ def _tick_passive_jamming(gs: GameState, elapsed: float) -> list[dict]:
         range_km = eff_state.get("range_km", 3.0)
 
         for i, drone in enumerate(gs.drones):
-            if drone.neutralized or drone.jammed or drone.is_interceptor:
+            if drone.neutralized or drone.is_interceptor:
                 continue
             if drone.shinobi_cm_active:
                 continue
@@ -440,28 +440,61 @@ def _tick_passive_jamming(gs: GameState, elapsed: float) -> list[dict]:
             if dist > range_km:
                 continue
 
-            behavior = pick_jam_behavior(drone.drone_type)
-            if behavior is None:
-                if drone.id not in gs.jam_resist_notified:
-                    gs.jam_resist_notified.add(drone.id)
+            update_fields: dict = {}
+            rf_applied = False
+            pnt_applied = False
+
+            # --- RF jamming (skip if already jammed) ---
+            if not drone.jammed:
+                behavior = pick_jam_behavior(drone.drone_type)
+                if behavior is None:
+                    if drone.id not in gs.jam_resist_notified:
+                        gs.jam_resist_notified.add(drone.id)
+                        events.append({
+                            "type": "event", "timestamp": round(elapsed, 1),
+                            "message": f"RF JAM: {drone.id.upper()} — RESISTANT (no effect)",
+                        })
+                else:
+                    jam_duration = random.uniform(5.0, 10.0)
+                    update_fields.update({
+                        "dtid_phase": DTIDPhase.DEFEATED,
+                        "jammed": True,
+                        "jammed_behavior": behavior,
+                        "jammed_time_remaining": jam_duration,
+                    })
+                    gs.engage_times.setdefault(drone.id, elapsed)
+                    gs.effector_used.setdefault(drone.id, eff_state["type"])
                     events.append({
                         "type": "event", "timestamp": round(elapsed, 1),
-                        "message": f"RF JAM: {drone.id.upper()} — RESISTANT (no effect)",
+                        "message": f"RF JAM: {drone.id.upper()} — {behavior.replace('_', ' ').upper()}",
                     })
-            else:
-                jam_duration = random.uniform(5.0, 10.0)
-                gs.drones[i] = drone.model_copy(update={
-                    "dtid_phase": DTIDPhase.DEFEATED,
-                    "jammed": True,
-                    "jammed_behavior": behavior,
-                    "jammed_time_remaining": jam_duration,
-                })
-                gs.engage_times.setdefault(drone.id, elapsed)
-                gs.effector_used.setdefault(drone.id, eff_state["type"])
-                events.append({
-                    "type": "event", "timestamp": round(elapsed, 1),
-                    "message": f"RF JAM: {drone.id.upper()} — {behavior.replace('_', ' ').upper()}",
-                })
+                    rf_applied = True
+
+            # --- PNT jamming (skip if already PNT-jammed) ---
+            if not drone.pnt_jammed:
+                pnt_effective, pnt_drift = apply_pnt_jamming(drone.drone_type)
+                if pnt_effective:
+                    pnt_duration = random.uniform(15.0, 25.0)
+                    update_fields.update({
+                        "pnt_jammed": True,
+                        "pnt_drift_magnitude": pnt_drift,
+                        "pnt_jammed_time_remaining": pnt_duration,
+                    })
+                    pnt_applied = True
+                    if not rf_applied:
+                        # PNT-only hit (e.g. Shahed)
+                        pnt_key = f"pnt_{drone.id}"
+                        if pnt_key not in gs.jam_resist_notified:
+                            gs.jam_resist_notified.add(pnt_key)
+                            events.append({
+                                "type": "event", "timestamp": round(elapsed, 1),
+                                "message": f"PNT: {drone.id.upper()} — NAVIGATION DEGRADED ({pnt_duration:.0f}s)",
+                            })
+                        gs.engage_times.setdefault(drone.id, elapsed)
+                        gs.effector_used.setdefault(drone.id, eff_state["type"])
+
+            if update_fields:
+                gs.drones[i] = drone.model_copy(update=update_fields)
     return events
 
 
@@ -490,12 +523,21 @@ def _tick_drones(gs: GameState, elapsed: float) -> list[dict]:
                         break
             continue
 
-        # --- Jammed drone ---
+        # --- Jammed drone (RF) ---
         if drone.jammed:
             updated, jevents = update_jammed_drone(drone, gs.tick_rate, elapsed)
             gs.drones[i] = updated
             events.extend(jevents)
             continue
+
+        # --- PNT-jammed drone (not RF-jammed — applies drift during normal movement) ---
+        if drone.pnt_jammed:
+            updated, pevents = update_pnt_jammed_drone(drone, gs.tick_rate, elapsed)
+            gs.drones[i] = updated
+            events.extend(pevents)
+            # Fall through — PNT-jammed drone still moves normally (below),
+            # but position was already perturbed by update_pnt_jammed_drone.
+            drone = gs.drones[i]
 
         # --- SHINOBI countermeasure active ---
         if drone.shinobi_cm_active:
@@ -709,6 +751,7 @@ def _build_state_msg(gs: GameState, elapsed: float, time_remaining: float) -> di
                 "is_ambient": drone.is_ambient,
                 "jammed": drone.jammed,
                 "jammed_behavior": drone.jammed_behavior,
+                "pnt_jammed": drone.pnt_jammed,
                 "is_interceptor": drone.is_interceptor,
                 "interceptor_target": drone.interceptor_target,
                 "intercept_phase": drone.intercept_phase,

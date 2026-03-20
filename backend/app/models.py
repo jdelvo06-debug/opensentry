@@ -136,6 +136,10 @@ class DroneState(BaseModel):
     jammed: bool = False
     jammed_behavior: str | None = None  # loss_of_control, rth, forced_landing, gps_spoof
     jammed_time_remaining: float = 0.0  # seconds until jam effect resolves
+    # PNT (Position/Navigation/Timing) jamming state — separate from RF jam
+    pnt_jammed: bool = False
+    pnt_drift_magnitude: float = 0.0  # km of nav error added per tick
+    pnt_jammed_time_remaining: float = 0.0  # seconds until PNT effect resolves
     # JACKAL interceptor fields
     is_interceptor: bool = False
     interceptor_target: str | None = None

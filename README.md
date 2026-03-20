@@ -45,15 +45,22 @@ All systems are fictional but specification-accurate — designed to reflect the
 
 ### Threat Types
 
-| Threat | Jam Resistance | Notes |
-|--------|---------------|-------|
-| **Commercial Quad** | 0% | GPS/RF dependent; fully jammable; SHINOBI-vulnerable |
-| **Fixed-Wing UAS** | 40% | Faster; harder to track; partially jam-resistant |
-| **Micro UAS** | 0% | Small radar cross-section; difficult to visually ID |
-| **Improvised UAS** | 50% | Unknown electronics; SHINOBI library miss likely |
-| **Shahed-style** | 100% | Autonomous INS navigation; **immune to RF/GPS jamming**; kinetic defeat only |
-| **Bird / Weather Balloon** | — | Ambient traffic; **cannot be engaged** (ROE) |
-| **Passenger Aircraft / Military Jet** | — | Ambient traffic; ATC-clearable via CLEAR AIRSPACE |
+| Threat | RF Jam Resistance | PNT Jam Effect | Notes |
+|--------|------------------|----------------|-------|
+| **Commercial Quad** | 0% | High drift | GPS/RF dependent; fully jammable; SHINOBI-vulnerable |
+| **Fixed-Wing UAS** | 40% | Light drift | Faster; harder to track; partially jam-resistant |
+| **Micro UAS** | 10% | Moderate drift | Small radar cross-section; difficult to visually ID |
+| **Improvised UAS** | 50% | Moderate drift | Unknown electronics; SHINOBI library miss likely |
+| **Shahed-style** | 100% (RF-immune) | Minor drift | INS-primary with GPS correction; **RF jamming has no effect**; PNT jamming degrades terminal accuracy but does not defeat; kinetic defeat (JACKAL) required for kill |
+| **Bird / Weather Balloon** | — | Immune | Ambient traffic; **cannot be engaged** (ROE) |
+| **Passenger Aircraft / Military Jet** | — | Immune | Ambient traffic; ATC-clearable via CLEAR AIRSPACE |
+
+**PNT Jamming vs. RF Jamming — Tactical Distinction:**
+The RF/PNT Jammer applies two independent effect layers:
+- **RF command link disruption** — defeats GPS/RF-dependent drones (behavioral effects: loss of control, RTH, forced landing, GPS spoof). Shahed is immune.
+- **PNT/GPS navigation denial** — injects positional drift, degrading terminal accuracy on all drone types. Shahed receives minor drift (~3 mm/s/tick) for 15–25 seconds, displayed as **PNT DEGRADED** in the engagement panel. Does not defeat the Shahed — it will still reach the target area, but with reduced accuracy.
+
+**Tactical decision:** Burning the jammer on a Shahed won't kill it, but PNT degradation buys time to spin up JACKAL. Use jammer for PNT suppression, JACKAL for the kill.
 
 ---
 
@@ -122,7 +129,7 @@ backend/
     models.py        — DroneState, GameState, enums
     actions.py       — Player action handlers
     config.py        — Server config, shared constants (KTS_TO_KMS)
-    jamming.py       — EW jamming logic + jam resistance by drone type
+    jamming.py       — EW jamming logic; RF resistance + PNT vulnerability tables; drift tick
     jackal.py        — JACKAL interceptor lifecycle (spinup/launch/midcourse/terminal)
     shinobi.py       — SHINOBI protocol manipulation state machine
     detection.py     — Sensor detection logic
