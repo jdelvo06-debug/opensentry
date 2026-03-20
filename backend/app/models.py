@@ -148,6 +148,7 @@ class DroneState(BaseModel):
     shinobi_cm_active: str | None = None  # Active SHINOBI countermeasure type
     shinobi_cm_state: str | None = None  # "pending", "1/2", "2/2"
     shinobi_cm_time_remaining: float = 0.0  # Seconds remaining in CM effect
+    shinobi_cm_initial_duration: float = 0.0  # Original CM duration (for elapsed calc)
 
 
 class SensorConfig(BaseModel):

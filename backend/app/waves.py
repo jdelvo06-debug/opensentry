@@ -142,8 +142,8 @@ def generate_ambient_object(
         start_x = 8.0 * math.cos(angle)
         start_y = 8.0 * math.sin(angle)
         exit_angle = angle + math.pi + random.uniform(-0.3, 0.3)
-        exit_x = 8.0 * math.cos(exit_angle)
-        exit_y = 8.0 * math.sin(exit_angle)
+        exit_x = 15.0 * math.cos(exit_angle)
+        exit_y = 15.0 * math.sin(exit_angle)
         heading = math.degrees(math.atan2(exit_y - start_y, exit_x - start_x)) % 360
 
         cfg = DroneStartConfig(

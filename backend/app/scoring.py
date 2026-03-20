@@ -339,7 +339,7 @@ def _score_single_drone(
         optimal_effectors=optimal_effectors,
         acceptable_effectors=acceptable_effectors,
         roe_violations=roe_violations,
-        should_engage=True,
+        should_engage=correct_affil == "hostile",
         actions=actions,
         detection_time=detection_time,
         confirm_time=confirm_time,

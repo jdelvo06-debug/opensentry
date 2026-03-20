@@ -632,8 +632,9 @@ def _run_sensors_for_drone(gs: GameState, i: int, elapsed: float) -> list[dict]:
                 })
             heading_rad = math.radians(gs.drones[i].last_known_heading)
             speed_kms = gs.drones[i].last_known_speed * KTS_TO_KMS
-            new_x = gs.drones[i].x + math.sin(heading_rad) * speed_kms * gs.tick_rate
-            new_y = gs.drones[i].y + math.cos(heading_rad) * speed_kms * gs.tick_rate
+            # Math convention: heading 0°=+X, 90°=+Y (same as drone.py atan2 output)
+            new_x = gs.drones[i].x + math.cos(heading_rad) * speed_kms * gs.tick_rate
+            new_y = gs.drones[i].y + math.sin(heading_rad) * speed_kms * gs.tick_rate
             new_trail = list(gs.drones[i].trail)
             new_trail.append([round(new_x, 3), round(new_y, 3)])
             if len(new_trail) > 20:
@@ -1062,9 +1063,11 @@ async def game_websocket(ws: WebSocket):
 
         # --- Main game loop ---
         while gs.phase == GamePhase.RUNNING:
+            tick_start = time.time()
+
             # Subtract accumulated paused time (and current pause if active)
-            wall_elapsed = time.time() - gs.start_time
-            paused_now = (time.time() - gs.pause_start_time) if gs.paused else 0.0
+            wall_elapsed = tick_start - gs.start_time
+            paused_now = (tick_start - gs.pause_start_time) if gs.paused else 0.0
             elapsed = wall_elapsed - gs.total_paused_seconds - paused_now
             time_remaining = max(0, gs.max_duration - elapsed)
             events: list[dict] = []
@@ -1090,9 +1093,11 @@ async def game_websocket(ws: WebSocket):
                 gs.phase = GamePhase.DEBRIEF
                 break
 
-            # --- Player input (non-blocking) ---
+            # --- Player input (non-blocking, use remaining tick budget) ---
+            tick_elapsed = time.time() - tick_start
+            receive_timeout = max(0.01, gs.tick_rate - tick_elapsed)
             try:
-                raw = await asyncio.wait_for(ws.receive_text(), timeout=gs.tick_rate)
+                raw = await asyncio.wait_for(ws.receive_text(), timeout=receive_timeout)
 
                 # Message size check
                 if len(raw) > config.MAX_WS_MESSAGE_BYTES:

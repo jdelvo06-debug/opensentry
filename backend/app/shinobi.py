@@ -78,13 +78,17 @@ def update_shinobi_drone(
     cm_state = drone.shinobi_cm_state
 
     # Decrement CM timer
-    remaining = max(0.0, drone.shinobi_cm_time_remaining - tick_rate)
+    prev_remaining = drone.shinobi_cm_time_remaining
+    remaining = max(0.0, prev_remaining - tick_rate)
     drone = drone.model_copy(update={"shinobi_cm_time_remaining": remaining})
+
+    # Track how long CM has been active (initial duration - remaining)
+    cm_elapsed = drone.shinobi_cm_initial_duration - remaining
 
     # --- State progression: pending → 1/2 → 2/2 ---
     if cm_state == "pending":
         # After ~1 second, acquire downlink (1/2)
-        if remaining < drone.shinobi_cm_time_remaining - 1.0 or remaining <= 0:
+        if cm_elapsed >= 1.0 or remaining <= 0:
             drone = drone.model_copy(update={
                 "shinobi_cm_state": "1/2",
                 "downlink_detected": True,
@@ -101,9 +105,11 @@ def update_shinobi_drone(
         if drone.uplink_detected:
             # Reset timer to full duration when full control is established
             import random as _random
+            new_duration = _random.uniform(20.0, 40.0)
             drone = drone.model_copy(update={
                 "shinobi_cm_state": "2/2",
-                "shinobi_cm_time_remaining": _random.uniform(20.0, 40.0),
+                "shinobi_cm_time_remaining": new_duration,
+                "shinobi_cm_initial_duration": new_duration,
             })
             events.append({
                 "type": "event",

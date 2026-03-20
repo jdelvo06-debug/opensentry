@@ -552,6 +552,7 @@ def _engage_shinobi(
         "shinobi_cm_active": cm_type,
         "shinobi_cm_state": "pending",
         "shinobi_cm_time_remaining": cm_duration,
+        "shinobi_cm_initial_duration": cm_duration,
         "frequency_band": freq,
         "downlink_detected": True,
     })
