@@ -1212,6 +1212,26 @@ export default function App() {
           >
             CUSTOM MISSION
           </button>
+
+          {/* Footer */}
+          <div style={{ marginTop: 32, textAlign: "center" }}>
+            <a
+              href="https://github.com/alfred-intel-handler-source/skyshield#readme"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: "#484f58",
+                fontSize: 12,
+                textDecoration: "none",
+                letterSpacing: 1,
+                transition: "color 0.15s",
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#58a6ff"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "#484f58"; }}
+            >
+              ⬡ SKYSHIELD — Open Source C-UAS Training Simulator
+            </a>
+          </div>
         </div>
       </div>
     );
