@@ -21,6 +21,12 @@
 ![OpenSentry Active Track](docs/screenshots/03-gameplay-track.png)
 *Track data card — range, bearing, altitude, speed, confidence, DTID phase, and RF status updated at 10Hz.*
 
+![OpenSentry Base Defense Planner](docs/screenshots/06-placement.png)
+*Base Defense Planner — drag and drop sensors and effectors onto a real-world satellite map. Perimeter box is resizable. Coverage analysis updates live.*
+
+![OpenSentry Location Search](docs/screenshots/07-location-search.png)
+*Train anywhere on Earth — search any real-world location and build your defense around actual terrain. Shaw AFB shown.*
+
 ---
 
 ## Features
