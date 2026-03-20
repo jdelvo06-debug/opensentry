@@ -1214,22 +1214,45 @@ export default function App() {
           </button>
 
           {/* Footer */}
-          <div style={{ marginTop: 32, textAlign: "center" }}>
+          <div style={{ marginTop: 40, textAlign: "center" }}>
             <a
               href="https://github.com/alfred-intel-handler-source/skyshield#readme"
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                color: "#484f58",
-                fontSize: 12,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 10,
+                color: "#8b949e",
+                fontSize: 13,
                 textDecoration: "none",
                 letterSpacing: 1,
-                transition: "color 0.15s",
+                padding: "10px 20px",
+                border: "1px solid #21262d",
+                borderRadius: 8,
+                background: "#161b22",
+                transition: "all 0.15s",
               }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#58a6ff"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "#484f58"; }}
+              onMouseEnter={(e) => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.borderColor = "#58a6ff";
+                el.style.color = "#58a6ff";
+                el.style.background = "#1a2332";
+              }}
+              onMouseLeave={(e) => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.borderColor = "#21262d";
+                el.style.color = "#8b949e";
+                el.style.background = "#161b22";
+              }}
             >
-              ⬡ OpenSentry — Open Source C-UAS Training Simulator
+              <span style={{ fontSize: 16 }}>📖</span>
+              <span>
+                <span style={{ fontWeight: 700, letterSpacing: 1.5 }}>OpenSentry</span>
+                <span style={{ color: "#484f58", margin: "0 6px" }}>·</span>
+                <span style={{ fontWeight: 400 }}>Documentation &amp; How It Works</span>
+              </span>
+              <span style={{ fontSize: 11, opacity: 0.5 }}>↗</span>
             </a>
           </div>
         </div>
