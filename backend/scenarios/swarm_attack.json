@@ -162,8 +162,8 @@
     {
       "id": "bogey-5",
       "drone_type": "shahed",
-      "start_x": -14.2,
-      "start_y": -4.7,
+      "start_x": -11.4,
+      "start_y": -3.8,
       "altitude": 500,
       "speed": 130,
       "heading": 60,
