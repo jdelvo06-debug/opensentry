@@ -1,7 +1,7 @@
 # CLAUDE.md — OpenSentry Project Guide (Updated 2026-03-20)
 
 ## What Is This?
-OpenSentry is a **free, browser-based C-UAS training simulator** designed to teach military operators the **DTID kill chain** (Detect → Track → Identify → Defeat). It's built to feel like a real FAAD C2 or Medusa workstation. No clearance required — purely training.
+OpenSentry is a **free, browser-based C-UAS training simulator** designed to teach military operators the **DTID kill chain** (Detect → Track → Identify → Defeat). It's built to emulate real-world C-UAS command and control systems. No clearance required — purely training.
 
 **Target User:** "The E-5 who gets handed the C-UAS binder and told to figure it out."
 

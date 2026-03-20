@@ -8,13 +8,13 @@ Free, browser-based C-UAS training simulator that any military member worldwide 
 
 ## Core Principles
 - Cradle-to-grave: continuous watch, not isolated scenarios
-- Realistic: mirrors real FAAD C2 / Medusa workflows exactly
+- Realistic: mirrors real-world C-UAS C2 workflows
 - Accessible: runs in a browser, no install, no clearance needed for the tool itself
 - Free: open source, zero infrastructure cost for end users
 
 ## Systems Modeled
-- **FAAD C2** — Primary C2 interface (hook bubbles, pie menus, track management, engagement workflow)
-- **Medusa** — Wheel of Death, AGE map, device management
+- **Radial action wheel** — pie menu-style engagement workflow (track management, effector selection)
+- **Device management** — sensor/effector status, range rings, coverage overlays
 - **Sensors:** AN/TPQ-51, Ku-Band FCS, EO/IR Camera
 - **Effectors:** JACKAL, RF/PNT Jammer
 - **Network:** Joint Data Network (Link-16, SIAP)
@@ -29,7 +29,7 @@ Free, browser-based C-UAS training simulator that any military member worldwide 
 - Failure: self-destruct at 100m+ altitude
 - Track management: Jackal shows as friendly track during flight
 - Hold Fire / Cease Fire commands work on in-flight Jackals
-- Reference: FAAD C2 Student Guide pp. 47-57
+
 
 ### Joint Data Network / SIAP
 - Simulated network of multiple C2 nodes

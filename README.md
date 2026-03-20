@@ -90,7 +90,7 @@ The RF/PNT Jammer applies two independent effect layers:
 ### UI/UX
 
 - **Real-world satellite maps** via Leaflet.js + OpenStreetMap (any location on Earth)
-- **FAAD C2 / Medusa-style interface** — radial action wheel (WOD), track data blocks, range rings
+- **C-UAS command & control-style interface** — radial action wheel (WOD), track data blocks, range rings
 - **EO/IR Camera panel** — thermal/daylight modes, realistic drone silhouettes, heat shimmer effect
 - **Track list** — live contact feed in left sidebar (all contacts including ambient traffic)
 - **Event log** — color-coded by severity, full engagement history
@@ -181,7 +181,7 @@ frontend/src/
     CameraPanel.tsx  — EO/IR canvas renderer (thermal + daylight, 6 silhouettes)
     RadialActionWheel.tsx — Right-click action wheel + SHINOBI CM submenu
     EngagementPanel.tsx — DTID phase controls + SHINOBI CM state display
-    EventLog.tsx     — Event log + FAAD hook panel (multi-track baseball cards)
+    EventLog.tsx     — Event log + track hook panel (multi-track baseball cards)
     HeaderBar.tsx    — Mission status, JAM ALL / CEASE JAMMING, CLEAR AIRSPACE
     TrackList.tsx    — Live contact list (left sidebar)
     SensorPanel.tsx  — Sensor status (filters combined systems)
