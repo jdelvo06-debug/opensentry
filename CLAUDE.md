@@ -76,7 +76,7 @@ SKYSHIELD is a **free, browser-based C-UAS training simulator** designed to teac
 - ✅ Scoring `should_engage`: no longer hard-coded True; ambient/friendly drones scored correctly
 - ✅ `military_jet` classification: EngagementPanel + RadialActionWheel now send correct value
 - ✅ `KTS_TO_KMS` constant: extracted to config.py, replaced 13 magic numbers
-- ✅ Module renames: `ninja.py` → `shinobi.py`, `coyote.py` → `jackal.py`
+- ✅ Module renames: original prototype names updated to `shinobi.py` and `jackal.py`
 - ✅ `IMPROVISED` jam resistance: explicit 50% in JAM_RESIST dict
 - ✅ EventLog `as any` casts: removed, using typed fields
 
