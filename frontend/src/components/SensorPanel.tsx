@@ -19,6 +19,8 @@ const SENSOR_ICONS: Record<string, string> = {
 };
 
 export default function SensorPanel({ sensors }: Props) {
+  // Filter out combined system sensors — shown in EffectorPanel's COMBINED section
+  const standaloneSensors = sensors.filter((s) => !s.id.startsWith("combined_sensor_"));
   return (
     <div
       style={{
@@ -37,7 +39,7 @@ export default function SensorPanel({ sensors }: Props) {
       >
         SENSORS
       </div>
-      {sensors.map((sensor) => {
+      {standaloneSensors.map((sensor) => {
         const color = STATUS_COLORS[sensor.status] || "#484f58";
         const displayName =
           sensor.name || SENSOR_ICONS[sensor.type || ""] || sensor.id.toUpperCase();
