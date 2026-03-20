@@ -4,6 +4,10 @@
 
 **Target user:** "The E-5 who gets handed the C-UAS binder and told to figure it out."
 
+## 🚀 [Launch Simulator →](https://alfred-intel-handler-source.github.io/skyshield/)
+
+> No install. No account. No Python. Just open the link and train.
+
 ---
 
 ## Features
