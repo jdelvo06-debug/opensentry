@@ -33,6 +33,13 @@
       "message": "Target neutralized. Well done! You have completed the DTID kill chain: Detect, Track, Identify, Defeat. Review your debrief score."
     }
   ],
+  "roe_briefing": [
+    "Positive identification required before any engagement",
+    "Do not engage tracks classified as FRIENDLY or CIVILIAN",
+    "Kinetic engagement authorized only after electronic countermeasures fail or are unavailable",
+    "All engagements must be within designated weapon engagement zones (WEZ)",
+    "Report all engagements to Battle Captain immediately"
+  ],
   "engagement_zones": {
     "detection_range_km": 5.0,
     "identification_range_km": 1.5,

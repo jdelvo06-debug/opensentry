@@ -5,6 +5,13 @@
   "difficulty": "Medium",
   "duration_seconds": 180,
   "base_radius_km": 0.1,
+  "roe_briefing": [
+    "Weapons tight — do not engage unless target is positively identified as hostile",
+    "Expect non-hostile air traffic in the area — positive ID is critical",
+    "Do not engage birds or civilian aircraft under any circumstances",
+    "Electronic countermeasures authorized only against confirmed hostile UAS",
+    "Document all tracks for post-mission intelligence analysis"
+  ],
   "engagement_zones": {
     "detection_range_km": 5.0,
     "identification_range_km": 1.5,

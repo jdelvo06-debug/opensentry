@@ -5,6 +5,13 @@
   "difficulty": "Easy",
   "duration_seconds": 120,
   "base_radius_km": 0.1,
+  "roe_briefing": [
+    "Positive identification required before any engagement",
+    "Do not engage tracks classified as FRIENDLY or CIVILIAN",
+    "Electronic countermeasures authorized against confirmed hostile UAS",
+    "Kinetic engagement authorized only when electronic defeat is ineffective or unavailable",
+    "All engagements must occur within the weapon engagement zone (WEZ)"
+  ],
   "engagement_zones": {
     "detection_range_km": 5.0,
     "identification_range_km": 1.5,

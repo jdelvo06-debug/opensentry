@@ -17,6 +17,7 @@ import TutorialStepTracker from "./components/TutorialStepTracker";
 import FeedbackModal from "./components/FeedbackModal";
 import TutorialFeedback from "./components/TutorialFeedback";
 import PauseOverlay from "./components/PauseOverlay";
+import ROEBriefing from "./components/ROEBriefing";
 import { useGameEngine as useWebSocket } from "./hooks/useGameEngine";
 import { soundEngine } from "./audio/SoundEngine";
 import type {
@@ -133,6 +134,12 @@ export default function App() {
   // --- Flow state ---
   const [phase, setPhase] = useState<GamePhase>("waiting");
   const [showFeedback, setShowFeedback] = useState(false);
+
+  // ROE briefing
+  const [roeBriefing, setRoeBriefing] = useState<string[]>([]);
+  const [roeScenarioName, setRoeScenarioName] = useState("");
+  const pendingRoeLaunchRef = useRef<(() => void) | null>(null);
+  const [showRoeOverlay, setShowRoeOverlay] = useState(false);
 
   // Scenario + base selection
   const [scenarioId, setScenarioId] = useState<string>("");
@@ -660,7 +667,21 @@ export default function App() {
       }
     }
 
-    setPhase("equip");
+    // Fetch scenario ROE and show briefing before equip
+    try {
+      const scenarioRes = await fetch(`${import.meta.env.BASE_URL}data/scenarios/${selScenarioId}.json`);
+      const scenarioData = await scenarioRes.json();
+      const roe: string[] = scenarioData.roe_briefing ?? [];
+      setRoeBriefing(roe);
+      setRoeScenarioName(scenarioData.name ?? selScenarioId);
+      pendingRoeLaunchRef.current = () => {
+        setPhase("equip");
+      };
+      setPhase("roe_briefing");
+    } catch {
+      // If we can't load ROE, skip to equip
+      setPhase("equip");
+    }
   };
 
   const handleLoadoutConfirm = (
@@ -737,6 +758,7 @@ export default function App() {
     setPaused(false);
     setNotes([]);
     setWaveNumber(1);
+    setShowRoeOverlay(false);
   };
 
   const handleRestart = () => {
@@ -981,39 +1003,50 @@ export default function App() {
     const placement = placementMap[scenarioId] ?? loneWolfPlacement;
 
     try {
-      const res = await fetch(`${import.meta.env.BASE_URL}data/bases/${baseId}.json`);
-      const base = await res.json();
+      const [baseRes, scenarioRes] = await Promise.all([
+        fetch(`${import.meta.env.BASE_URL}data/bases/${baseId}.json`),
+        fetch(`${import.meta.env.BASE_URL}data/scenarios/${scenarioId}.json`),
+      ]);
+      const base = await baseRes.json();
+      const scenarioData = await scenarioRes.json();
       setBaseTemplate(base);
       setScenarioId(scenarioId);
       setBaseId(baseId);
 
-      // Reset running state
-      setScore(null);
-      setTracks([]);
-      setSelectedTrackId(null);
-      setHookedTrackIds(new Set());
-      setEvents([]);
-      setSensors([]);
-      setSensorConfigs([]);
-      setEffectors([]);
-      setEffectorConfigs([]);
-      setEngagementZones(null);
-      setProtectedArea(null);
-      setElapsed(0);
-      setTimeRemaining(0);
-      setThreatLevel("green");
-      setCameraTrackId(null);
-      autoOpenedCameraRef.current.clear();
-      detectionPingedRef.current.clear();
-      setTutorialMessage(null);
-      setIsTutorial(isTut);
-      setTutorialStep(0);
-      setTutorialFeedback(null);
-      setPaused(false);
-      setPlacementConfig(placement);
-      setWaveNumber(1);
+      // Show ROE briefing before launching
+      const roe: string[] = scenarioData.roe_briefing ?? [];
+      setRoeBriefing(roe);
+      setRoeScenarioName(scenarioData.name ?? scenarioId);
+      pendingRoeLaunchRef.current = () => {
+        // Reset running state
+        setScore(null);
+        setTracks([]);
+        setSelectedTrackId(null);
+        setHookedTrackIds(new Set());
+        setEvents([]);
+        setSensors([]);
+        setSensorConfigs([]);
+        setEffectors([]);
+        setEffectorConfigs([]);
+        setEngagementZones(null);
+        setProtectedArea(null);
+        setElapsed(0);
+        setTimeRemaining(0);
+        setThreatLevel("green");
+        setCameraTrackId(null);
+        autoOpenedCameraRef.current.clear();
+        detectionPingedRef.current.clear();
+        setTutorialMessage(null);
+        setIsTutorial(isTut);
+        setTutorialStep(0);
+        setTutorialFeedback(null);
+        setPaused(false);
+        setPlacementConfig(placement);
+        setWaveNumber(1);
 
-      connect({ scenarioId, baseId, placement });
+        connect({ scenarioId, baseId, placement });
+      };
+      setPhase("roe_briefing");
     } catch {
       setPhase("waiting");
     }
@@ -1295,6 +1328,25 @@ export default function App() {
     return <ScenarioSelect onSelect={handleScenarioSelect} />;
   }
 
+  // --- Phase: ROE Briefing ---
+  if (phase === "roe_briefing") {
+    return (
+      <ROEBriefing
+        scenarioName={roeScenarioName}
+        roeBriefing={roeBriefing}
+        onConfirm={() => {
+          const launch = pendingRoeLaunchRef.current;
+          pendingRoeLaunchRef.current = null;
+          if (launch) launch();
+        }}
+        onBack={() => {
+          pendingRoeLaunchRef.current = null;
+          setPhase("waiting");
+        }}
+      />
+    );
+  }
+
   // --- Phase: Equipment Loadout ---
   if (phase === "equip") {
     return (
@@ -1373,6 +1425,7 @@ export default function App() {
         onResume={handleResume}
         effectors={effectors}
         ambientSuppressedUntil={ambientSuppressedUntil}
+        onShowRoe={() => setShowRoeOverlay(true)}
       />
 
       {/* Left sidebar */}
@@ -1575,6 +1628,97 @@ export default function App() {
           }}
         >
           P:Pause TAB:Cycle 1:Confirm 2:Slew 4:Unslew M:Mute ESC:End Mission
+        </div>
+      )}
+
+      {/* ROE overlay (viewable during mission) */}
+      {showRoeOverlay && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9000,
+            background: "rgba(13, 17, 23, 0.92)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontFamily: "'Inter', sans-serif",
+          }}
+          onClick={() => setShowRoeOverlay(false)}
+        >
+          <div
+            style={{
+              maxWidth: 560,
+              width: "100%",
+              padding: 32,
+              background: "#161b22",
+              border: "1px solid #30363d",
+              borderRadius: 12,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: 11, fontWeight: 600, color: "#3fb950", letterSpacing: 2, marginBottom: 8 }}>
+              RULES OF ENGAGEMENT
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#e6edf3", marginBottom: 20 }}>
+              {roeScenarioName}
+            </div>
+            {roeBriefing.map((rule, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  gap: 12,
+                  alignItems: "flex-start",
+                  padding: "10px 0",
+                  borderBottom: i < roeBriefing.length - 1 ? "1px solid #21262d" : "none",
+                }}
+              >
+                <span
+                  style={{
+                    flexShrink: 0,
+                    width: 24,
+                    height: 24,
+                    borderRadius: "50%",
+                    background: "rgba(63, 185, 80, 0.12)",
+                    border: "1px solid rgba(63, 185, 80, 0.3)",
+                    color: "#3fb950",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {i + 1}
+                </span>
+                <span style={{ fontSize: 13, lineHeight: 1.6, color: "#e6edf3", paddingTop: 1 }}>
+                  {rule}
+                </span>
+              </div>
+            ))}
+            <button
+              onClick={() => setShowRoeOverlay(false)}
+              style={{
+                marginTop: 20,
+                padding: "10px 32px",
+                fontSize: 12,
+                fontWeight: 700,
+                fontFamily: "'Inter', sans-serif",
+                letterSpacing: 1.5,
+                border: "none",
+                borderRadius: 6,
+                cursor: "pointer",
+                background: "#3fb950",
+                color: "#0d1117",
+                width: "100%",
+                transition: "all 0.15s",
+              }}
+            >
+              DISMISS
+            </button>
+          </div>
         </div>
       )}
 

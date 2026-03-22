@@ -5,6 +5,13 @@
   "difficulty": "Hard",
   "duration_seconds": 180,
   "base_radius_km": 0.1,
+  "roe_briefing": [
+    "Weapons free against all confirmed hostile UAS — engage at will within WEZ",
+    "Do not engage tracks classified as NEUTRAL or CIVILIAN (expect false alarms in high-density environment)",
+    "Prioritize inbound threats by range and speed — nearest threats first",
+    "Kinetic engagement authorized immediately for jam-resistant targets (e.g., autonomous UAS)",
+    "Conserve interceptor munitions — prefer electronic defeat for RF-emitting targets"
+  ],
   "engagement_zones": {
     "detection_range_km": 5.0,
     "identification_range_km": 1.5,

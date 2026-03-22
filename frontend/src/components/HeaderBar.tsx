@@ -20,6 +20,7 @@ interface Props {
   onResume?: () => void;
   effectors?: EffectorStatus[];
   ambientSuppressedUntil?: number;
+  onShowRoe?: () => void;
 }
 
 const THREAT_COLORS: Record<ThreatLevel, string> = {
@@ -49,6 +50,7 @@ export default function HeaderBar({
   onResume,
   effectors = [],
   ambientSuppressedUntil = 0,
+  onShowRoe,
 }: Props) {
   const threatColor = THREAT_COLORS[threatLevel];
   const allJammersActive = effectors.filter(
@@ -301,6 +303,34 @@ export default function HeaderBar({
             }}
           >
             {airspaceClear ? "AIRSPACE CLEAR" : "CLEAR AIRSPACE"}
+          </button>
+        )}
+
+        {/* ROE button */}
+        {onShowRoe && (
+          <button
+            onClick={onShowRoe}
+            style={{
+              padding: "4px 12px",
+              background: "rgba(63, 185, 80, 0.15)",
+              border: "1px solid rgba(63, 185, 80, 0.4)",
+              borderRadius: 4,
+              color: "#3fb950",
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: 1,
+              cursor: "pointer",
+              transition: "all 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "rgba(63, 185, 80, 0.3)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "rgba(63, 185, 80, 0.15)";
+            }}
+          >
+            ROE
           </button>
         )}
 
