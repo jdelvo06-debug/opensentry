@@ -62,7 +62,8 @@
   ],
   "acceptable_effectors": [
     "electronic",
-    "kinetic"
+    "kinetic",
+    "shinobi_pm"
   ],
   "roe_violations": [],
   "drones": [
