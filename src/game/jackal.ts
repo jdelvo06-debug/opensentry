@@ -88,7 +88,7 @@ export function updateJackal(
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
-        message: `${jackal.id.toUpperCase()} — LAUNCH SEQUENCE COMPLETE — AWAY`,
+        message: `${(jackal.display_label || jackal.id).toUpperCase()} — LAUNCH SEQUENCE COMPLETE — AWAY`,
       });
     } else {
       const countdown = Math.floor(spinupRemaining) + 1;
@@ -96,7 +96,7 @@ export function updateJackal(
         events.push({
           type: 'event',
           timestamp: Math.round(elapsed * 10) / 10,
-          message: `${jackal.id.toUpperCase()} — SPINUP T-${countdown}s`,
+          message: `${(jackal.display_label || jackal.id).toUpperCase()} — SPINUP T-${countdown}s`,
         });
       }
       jackal = { ...jackal, spinup_remaining: spinupRemaining };
@@ -115,7 +115,7 @@ export function updateJackal(
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
-        message: `${jackal.id.toUpperCase()} SELF-DESTRUCT AT ${Math.round(jackal.altitude)}ft`,
+        message: `${(jackal.display_label || jackal.id).toUpperCase()} SELF-DESTRUCT AT ${Math.round(jackal.altitude)}ft`,
       });
     }
     return [jackal, droneMutations, events, engagementResults];
@@ -135,7 +135,7 @@ export function updateJackal(
     events.push({
       type: 'event',
       timestamp: Math.round(elapsed * 10) / 10,
-      message: `${jackal.id.toUpperCase()} — TARGET LOST, ENTERING SELF-DESTRUCT`,
+      message: `${(jackal.display_label || jackal.id).toUpperCase()} — TARGET LOST, ENTERING SELF-DESTRUCT`,
     });
     return [jackal, droneMutations, events, engagementResults];
   }
@@ -183,7 +183,7 @@ export function updateJackal(
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
-        message: `Ku-FC GUIDING ${jackal.id.toUpperCase()} — RANGE: ${distToTarget.toFixed(1)}km`,
+        message: `Ku-FC GUIDING ${(jackal.display_label || jackal.id).toUpperCase()} — RANGE: ${distToTarget.toFixed(1)}km`,
       });
     }
 
@@ -192,7 +192,7 @@ export function updateJackal(
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
-        message: `${jackal.id.toUpperCase()} TERMINAL — SEEKER ACQUIRED`,
+        message: `${(jackal.display_label || jackal.id).toUpperCase()} TERMINAL — SEEKER ACQUIRED`,
       });
     }
     jackal = {
@@ -247,7 +247,7 @@ export function updateJackal(
         events.push({
           type: 'event',
           timestamp: Math.round(elapsed * 10) / 10,
-          message: `${jackal.id.toUpperCase()} INTERCEPT SUCCESSFUL — TARGET DESTROYED`,
+          message: `${(jackal.display_label || jackal.id).toUpperCase()} INTERCEPT SUCCESSFUL — TARGET DESTROYED`,
         });
         engagementResults.push({
           type: 'engagement_result',
@@ -256,7 +256,7 @@ export function updateJackal(
           effective: true,
           effectiveness: 1.0,
           timestamp: Math.round(elapsed * 10) / 10,
-          message: `${jackal.id.toUpperCase()} INTERCEPT SUCCESSFUL — TARGET DESTROYED`,
+          message: `${(jackal.display_label || jackal.id).toUpperCase()} INTERCEPT SUCCESSFUL — TARGET DESTROYED`,
         });
       } else {
         // Miss
@@ -269,7 +269,7 @@ export function updateJackal(
           events.push({
             type: 'event',
             timestamp: Math.round(elapsed * 10) / 10,
-            message: `${jackal.id.toUpperCase()} MISSED — MAX ATTEMPTS, SELF-DESTRUCT`,
+            message: `${(jackal.display_label || jackal.id).toUpperCase()} MISSED — MAX ATTEMPTS, SELF-DESTRUCT`,
           });
         } else {
           jackal = {
@@ -280,7 +280,7 @@ export function updateJackal(
           events.push({
             type: 'event',
             timestamp: Math.round(elapsed * 10) / 10,
-            message: `${jackal.id.toUpperCase()} MISSED — RE-ENGAGING`,
+            message: `${(jackal.display_label || jackal.id).toUpperCase()} MISSED — RE-ENGAGING`,
           });
         }
       }

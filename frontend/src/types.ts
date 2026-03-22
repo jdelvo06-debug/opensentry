@@ -5,6 +5,7 @@ export type ThreatLevel = "green" | "yellow" | "orange" | "red";
 
 export interface TrackData {
   id: string;
+  display_label: string;
   dtid_phase: DTIDPhase;
   affiliation: Affiliation;
   x: number;

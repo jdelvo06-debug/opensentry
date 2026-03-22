@@ -57,7 +57,7 @@ export function findNearbySelectables(
       items.push({
         id: track.id,
         type: "track",
-        label: track.id.toUpperCase(),
+        label: (track.display_label || track.id).toUpperCase(),
         status: phaseMap[track.dtid_phase] || track.dtid_phase.toUpperCase(),
         color: AFFILIATION_COLORS[track.affiliation] || "#d29922",
         icon: track.affiliation === "hostile" ? "\u25C6" : track.affiliation === "friendly" ? "\u25A0" : "\u25A0",

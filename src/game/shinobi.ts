@@ -111,7 +111,7 @@ export function updateShinobiDrone(
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
-        message: `SHINOBI: ${drone.id.toUpperCase()} — Downlink acquired (1/2)`,
+        message: `SHINOBI: ${(drone.display_label || drone.id).toUpperCase()} — Downlink acquired (1/2)`,
       });
     }
     return [drone, events];
@@ -131,7 +131,7 @@ export function updateShinobiDrone(
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
-        message: `SHINOBI: ${drone.id.toUpperCase()} — Uplink acquired (2/2) — FULL CONTROL`,
+        message: `SHINOBI: ${(drone.display_label || drone.id).toUpperCase()} — Uplink acquired (2/2) — FULL CONTROL`,
       });
     } else if (cm === 'shinobi_hold') {
       // Partial hold — drone slows significantly
@@ -177,7 +177,7 @@ export function updateShinobiDrone(
     events.push({
       type: 'event',
       timestamp: Math.round(elapsed * 10) / 10,
-      message: `SHINOBI: ${drone.id.toUpperCase()} — CM effect expired`,
+      message: `SHINOBI: ${(drone.display_label || drone.id).toUpperCase()} — CM effect expired`,
     });
   }
 
@@ -229,7 +229,7 @@ function applyLandNow(
     events.push({
       type: 'event',
       timestamp: Math.round(elapsed * 10) / 10,
-      message: `SHINOBI: ${drone.id.toUpperCase()} — FORCED LANDING COMPLETE (grounded)`,
+      message: `SHINOBI: ${(drone.display_label || drone.id).toUpperCase()} — FORCED LANDING COMPLETE (grounded)`,
     });
   }
   return [drone, events];
@@ -273,7 +273,7 @@ function applyDeafen(
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
-        message: `SHINOBI: ${drone.id.toUpperCase()} — LINK LOST — FAILSAFE LANDING`,
+        message: `SHINOBI: ${(drone.display_label || drone.id).toUpperCase()} — LINK LOST — FAILSAFE LANDING`,
       });
     }
   } else {
@@ -298,7 +298,7 @@ function applyDeafen(
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
-        message: `SHINOBI: ${drone.id.toUpperCase()} — LINK LOST — LEFT AREA`,
+        message: `SHINOBI: ${(drone.display_label || drone.id).toUpperCase()} — LINK LOST — LEFT AREA`,
       });
     }
   }

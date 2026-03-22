@@ -88,7 +88,7 @@ export function updatePntJammedDrone(
     events.push({
       type: 'event',
       timestamp: Math.round(elapsed * 10) / 10,
-      message: `PNT: ${drone.id.toUpperCase()} \u2014 NAV DEGRADATION CLEARED`,
+      message: `PNT: ${(drone.display_label || drone.id).toUpperCase()} \u2014 NAV DEGRADATION CLEARED`,
     });
     return [updated, events];
   }
@@ -141,7 +141,7 @@ export function updateJammedDrone(
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
-        message: `TRACK: ${d.id.toUpperCase()} \u2014 CRASHED (loss of control)`,
+        message: `TRACK: ${(d.display_label || d.id).toUpperCase()} \u2014 CRASHED (loss of control)`,
       });
     }
   } else if (jb === 'rth') {
@@ -158,7 +158,7 @@ export function updateJammedDrone(
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
-        message: `TRACK: ${d.id.toUpperCase()} \u2014 RTH (left area)`,
+        message: `TRACK: ${(d.display_label || d.id).toUpperCase()} \u2014 RTH (left area)`,
       });
     }
   } else if (jb === 'forced_landing') {
@@ -169,7 +169,7 @@ export function updateJammedDrone(
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
-        message: `TRACK: ${d.id.toUpperCase()} \u2014 FORCED LANDING (grounded)`,
+        message: `TRACK: ${(d.display_label || d.id).toUpperCase()} \u2014 FORCED LANDING (grounded)`,
       });
     }
   } else if (jb === 'gps_spoof') {
@@ -187,7 +187,7 @@ export function updateJammedDrone(
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
-        message: `TRACK: ${d.id.toUpperCase()} \u2014 GPS SPOOFED (left area)`,
+        message: `TRACK: ${(d.display_label || d.id).toUpperCase()} \u2014 GPS SPOOFED (left area)`,
       });
     }
   }

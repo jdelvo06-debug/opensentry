@@ -99,7 +99,7 @@ export default function TrackList({ tracks, selectedTrackId, onSelectTrack }: Pr
                     textOverflow: "ellipsis",
                   }}
                 >
-                  {track.id}
+                  {track.display_label || track.id}
                 </div>
                 {/* DTID phase badge */}
                 <div

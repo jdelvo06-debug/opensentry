@@ -441,7 +441,7 @@ export default function App() {
         alerts++;
 
         // Show NEW CONTACT banner
-        setNewContactBanner(track.id.toUpperCase());
+        setNewContactBanner((track.display_label || track.id).toUpperCase());
         window.clearTimeout(newContactTimerRef.current);
         newContactTimerRef.current = window.setTimeout(() => {
           setNewContactBanner(null);

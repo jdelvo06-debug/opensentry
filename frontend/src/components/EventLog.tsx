@@ -52,7 +52,7 @@ function HookCard({ track, onUnhook }: { track: TrackData; onUnhook: () => void 
           {track.affiliation.toUpperCase()}
         </span>
         <span style={{ fontSize: 11, fontWeight: 700, color: "#e6edf3", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {track.id}
+          {track.display_label || track.id}
         </span>
         <span
           onClick={onUnhook}

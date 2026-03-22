@@ -21,6 +21,15 @@ import { calculateScore, calculateScoreMulti, applyCompletionMultiplier } from '
 type Msg = Record<string, any>;
 
 // ---------------------------------------------------------------------------
+// Track label helper
+// ---------------------------------------------------------------------------
+
+function nextTrackLabel(gs: GameState): string {
+  gs.track_counter += 1;
+  return `TRN-${String(gs.track_counter).padStart(3, '0')}`;
+}
+
+// ---------------------------------------------------------------------------
 // Init helpers
 // ---------------------------------------------------------------------------
 
@@ -38,7 +47,9 @@ export function initGameState(
   for (const droneCfg of scenario.drones) {
     gs.drone_configs.set(droneCfg.id, droneCfg);
     if (droneCfg.spawn_delay <= 0) {
-      gs.drones.push(createDroneFromConfig(droneCfg));
+      const drone = createDroneFromConfig(droneCfg);
+      drone.display_label = nextTrackLabel(gs);
+      gs.drones.push(drone);
       gs.behaviors.set(droneCfg.id, droneCfg.behavior);
     } else {
       gs.pending_spawns.push(droneCfg);
@@ -138,13 +149,14 @@ export function tickSpawns(gs: GameState, elapsed: number): Msg[] {
   const newlySpawned: DroneStartConfig[] = [];
   for (const cfg of gs.pending_spawns) {
     if (elapsed >= cfg.spawn_delay) {
-      const newDrone = { ...createDroneFromConfig(cfg), wave_number: gs.current_wave };
+      const label = nextTrackLabel(gs);
+      const newDrone = { ...createDroneFromConfig(cfg), wave_number: gs.current_wave, display_label: label };
       gs.drones.push(newDrone);
       gs.behaviors.set(cfg.id, cfg.behavior);
       newlySpawned.push(cfg);
       events.push({
         type: 'event', timestamp: Math.round(elapsed * 10) / 10,
-        message: `RADAR: New contact emerging \u2014 ${cfg.id.toUpperCase()}`,
+        message: `RADAR: New contact emerging \u2014 ${label}`,
       });
     }
   }
@@ -168,7 +180,8 @@ export function tickSpawns(gs: GameState, elapsed: number): Msg[] {
         gs.ambient_counter = counter;
       }
       gs.drone_configs.set(ambCfg.id, ambCfg);
-      let ambDrone: DroneState = { ...createDroneFromConfig(ambCfg), is_ambient: true, wave_number: 0 };
+      const ambLabel = nextTrackLabel(gs);
+      let ambDrone: DroneState = { ...createDroneFromConfig(ambCfg), is_ambient: true, wave_number: 0, display_label: ambLabel };
       if (ambType === 'commercial_aircraft' || ambType === 'military_jet') {
         ambDrone = {
           ...ambDrone,
@@ -270,7 +283,7 @@ export function tickPassiveJamming(gs: GameState, elapsed: number): Msg[] {
             gs.jam_resist_notified.add(drone.id);
             events.push({
               type: 'event', timestamp: Math.round(elapsed * 10) / 10,
-              message: `RF JAM: ${drone.id.toUpperCase()} \u2014 RESISTANT (no effect)`,
+              message: `RF JAM: ${(drone.display_label || drone.id).toUpperCase()} \u2014 RESISTANT (no effect)`,
             });
           }
         } else {
@@ -283,7 +296,7 @@ export function tickPassiveJamming(gs: GameState, elapsed: number): Msg[] {
           if (!gs.effector_used.has(drone.id)) gs.effector_used.set(drone.id, effState.type);
           events.push({
             type: 'event', timestamp: Math.round(elapsed * 10) / 10,
-            message: `RF JAM: ${drone.id.toUpperCase()} \u2014 ${behavior.replace(/_/g, ' ').toUpperCase()}`,
+            message: `RF JAM: ${(drone.display_label || drone.id).toUpperCase()} \u2014 ${behavior.replace(/_/g, ' ').toUpperCase()}`,
           });
           rfApplied = true;
         }
@@ -304,7 +317,7 @@ export function tickPassiveJamming(gs: GameState, elapsed: number): Msg[] {
               gs.jam_resist_notified.add(pntKey);
               events.push({
                 type: 'event', timestamp: Math.round(elapsed * 10) / 10,
-                message: `PNT: ${drone.id.toUpperCase()} \u2014 NAVIGATION DEGRADED (${Math.round(pntDuration)}s)`,
+                message: `PNT: ${(drone.display_label || drone.id).toUpperCase()} \u2014 NAVIGATION DEGRADED (${Math.round(pntDuration)}s)`,
               });
             }
             if (!gs.engage_times.has(drone.id)) gs.engage_times.set(drone.id, elapsed);
@@ -447,14 +460,14 @@ function _runSensorsForDrone(gs: GameState, i: number, elapsed: number): Msg[] {
     const detectLabel = hasShinobi && !hasNonShinobiRadar ? 'SHINOBI RF' : 'RADAR';
     events.push({
       type: 'event', timestamp: Math.round(elapsed * 10) / 10,
-      message: `${detectLabel}: New contact detected \u2014 ${drone.id.toUpperCase()}`,
+      message: `${detectLabel}: New contact detected \u2014 ${(drone.display_label || drone.id).toUpperCase()}`,
     });
   } else {
     for (const sid of newSensors) {
       const sensorName = sid.toUpperCase().replace(/_/g, ' ');
       events.push({
         type: 'event', timestamp: Math.round(elapsed * 10) / 10,
-        message: `${sensorName}: Acquiring ${drone.id.toUpperCase()}`,
+        message: `${sensorName}: Acquiring ${(drone.display_label || drone.id).toUpperCase()}`,
       });
     }
   }
@@ -463,7 +476,7 @@ function _runSensorsForDrone(gs: GameState, i: number, elapsed: number): Msg[] {
       const sensorName = sid.toUpperCase().replace(/_/g, ' ');
       events.push({
         type: 'event', timestamp: Math.round(elapsed * 10) / 10,
-        message: `${sensorName}: Lost contact \u2014 ${drone.id.toUpperCase()}`,
+        message: `${sensorName}: Lost contact \u2014 ${(drone.display_label || drone.id).toUpperCase()}`,
       });
     }
   }
@@ -579,6 +592,7 @@ export function buildStateMsg(gs: GameState, elapsed: number, timeRemaining: num
 
       tracks.push({
         id: drone.id,
+        display_label: drone.display_label || drone.id,
         dtid_phase: drone.dtid_phase,
         affiliation: drone.affiliation,
         x: Math.round(drone.x * 1000) / 1000,

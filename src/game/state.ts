@@ -69,6 +69,7 @@ export interface DroneState {
   shinobi_cm_state: string | null;
   shinobi_cm_time_remaining: number;
   shinobi_cm_initial_duration: number;
+  display_label: string;
 }
 
 export function createDefaultDrone(overrides: Partial<DroneState> & Pick<DroneState, 'id' | 'drone_type' | 'x' | 'y' | 'altitude' | 'speed' | 'heading'>): DroneState {
@@ -108,6 +109,7 @@ export function createDefaultDrone(overrides: Partial<DroneState> & Pick<DroneSt
     shinobi_cm_state: null,
     shinobi_cm_time_remaining: 0,
     shinobi_cm_initial_duration: 0,
+    display_label: '',
     ...overrides,
   };
 }
@@ -380,6 +382,7 @@ export interface GameState {
   wave_pause_seconds: number;
 
   ambient_counter: number;
+  track_counter: number;
   next_ambient_times: Map<string, number>;
 
   actions: PlayerAction[];
@@ -449,6 +452,7 @@ export function createGameState(
     wave_all_neutralized_time: null,
     wave_pause_seconds: 30 + Math.random() * 30,
     ambient_counter: 0,
+    track_counter: 0,
     next_ambient_times: new Map(),
     actions: [],
     drone_reached_base: false,

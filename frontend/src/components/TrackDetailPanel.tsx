@@ -88,7 +88,7 @@ export default function TrackDetailPanel({ track }: Props) {
           marginBottom: 10,
         }}
       >
-        {track.id.toUpperCase()}
+        {(track.display_label || track.id).toUpperCase()}
       </div>
 
       {/* DTID Phase Stepper */}

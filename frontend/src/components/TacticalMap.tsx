@@ -803,7 +803,7 @@ function TrackDataBlock({
       background:${isSelected ? color : "#30363d"};
     "></div>
     <div style="color:${color};font-size:${isSelected ? "11px" : "10px"};font-weight:700;letter-spacing:0.5px;">
-      ${track.id.toUpperCase()} <span style="color:${phaseColor};font-size:8px;font-weight:600;opacity:0.9;">${phaseChar}</span>${freqLabel}${coastLabel}${hfLabel}${jamLabel}${shinobiLabel}${interceptPhaseLabel}
+      ${(track.display_label || track.id).toUpperCase()} <span style="color:${phaseColor};font-size:8px;font-weight:600;opacity:0.9;">${phaseChar}</span>${freqLabel}${coastLabel}${hfLabel}${jamLabel}${shinobiLabel}${interceptPhaseLabel}
     </div>
     ${!track.neutralized ? `
     <div style="color:#8b949e;font-size:8px;opacity:${isSelected ? 0.9 : 0.65};">
@@ -1645,7 +1645,7 @@ export default function TacticalMap({
                       track.neutralized,
                       track.heading_deg,
                       blinkClass,
-                      track.id.toUpperCase(),
+                      (track.display_label || track.id).toUpperCase(),
                     )
                   : createTrackIcon(
                       track.affiliation,

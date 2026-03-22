@@ -29,6 +29,11 @@ function _randChoice<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+function _label(gs: GameState, droneId: string): string {
+  const d = gs.drones.find(d => d.id === droneId);
+  return d?.display_label || droneId;
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -41,7 +46,8 @@ export function handleConfirmTrack(gs: GameState, targetId: string, elapsed: num
       gs.drones[j] = { ...d, dtid_phase: 'tracked' };
       gs.confirm_times.set(targetId, elapsed);
       gs.actions.push({ action: 'confirm_track', target_id: targetId, timestamp: elapsed });
-      msgs.push(_event(elapsed, `OPERATOR: Track ${targetId.toUpperCase()} confirmed`));
+      const label = gs.drones[j].display_label || targetId;
+      msgs.push(_event(elapsed, `OPERATOR: Track ${label.toUpperCase()} confirmed`));
     }
   }
   return msgs;
@@ -76,7 +82,8 @@ export function handleIdentify(
         affiliation: affiliationStr,
         timestamp: elapsed,
       });
-      msgs.push(_event(elapsed, `OPERATOR: ${targetId.toUpperCase()} identified as ${classification} (${affiliationStr})`));
+      const label = gs.drones[j].display_label || targetId;
+      msgs.push(_event(elapsed, `OPERATOR: ${label.toUpperCase()} identified as ${classification} (${affiliationStr})`));
     }
   }
   return msgs;
@@ -89,13 +96,13 @@ export function handleHoldFire(gs: GameState, targetId: string, elapsed: number)
     if (d.id === targetId) {
       gs.hold_fire_tracks.add(targetId);
       gs.actions.push({ action: 'hold_fire', target_id: targetId, timestamp: elapsed });
-      msgs.push(_event(elapsed, `OPERATOR: HOLD FIRE on ${targetId.toUpperCase()}`));
+      msgs.push(_event(elapsed, `OPERATOR: HOLD FIRE on ${_label(gs, targetId).toUpperCase()}`));
       // Self-destruct JACKALs targeting this track
       for (let ci = 0; ci < gs.drones.length; ci++) {
         const cd = gs.drones[ci];
         if (cd.is_interceptor && !cd.neutralized && cd.interceptor_target === targetId && cd.intercept_phase !== 'self_destruct') {
           gs.drones[ci] = { ...cd, intercept_phase: 'self_destruct' };
-          msgs.push(_event(elapsed, `HOLD FIRE \u2014 ${cd.id.toUpperCase()} ENTERING SELF-DESTRUCT`));
+          msgs.push(_event(elapsed, `HOLD FIRE \u2014 ${(cd.display_label || cd.id).toUpperCase()} ENTERING SELF-DESTRUCT`));
         }
       }
       break;
@@ -109,7 +116,7 @@ export function handleReleaseHoldFire(gs: GameState, targetId: string, elapsed: 
   if (gs.hold_fire_tracks.has(targetId)) {
     gs.hold_fire_tracks.delete(targetId);
     gs.actions.push({ action: 'release_hold_fire', target_id: targetId, timestamp: elapsed });
-    msgs.push(_event(elapsed, `OPERATOR: Hold fire RELEASED on ${targetId.toUpperCase()}`));
+    msgs.push(_event(elapsed, `OPERATOR: Hold fire RELEASED on ${_label(gs, targetId).toUpperCase()}`));
   }
   return msgs;
 }
@@ -125,7 +132,7 @@ export function handleEngage(
 
   // Hold fire check
   if (gs.hold_fire_tracks.has(targetId)) {
-    msgs.push(_event(elapsed, `ENGAGEMENT: BLOCKED \u2014 Hold fire active on ${targetId.toUpperCase()}`));
+    msgs.push(_event(elapsed, `ENGAGEMENT: BLOCKED \u2014 Hold fire active on ${_label(gs, targetId).toUpperCase()}`));
     return msgs;
   }
 
@@ -144,7 +151,7 @@ export function handleEngage(
 
     // Block engaging friendly interceptors
     if (d.is_interceptor) {
-      msgs.push(_event(elapsed, `ENGAGEMENT: BLOCKED \u2014 ${d.id.toUpperCase()} is a friendly interceptor`));
+      msgs.push(_event(elapsed, `ENGAGEMENT: BLOCKED \u2014 ${(d.display_label || d.id).toUpperCase()} is a friendly interceptor`));
       break;
     }
 
@@ -300,7 +307,7 @@ function _engageJammer(
   const msgs: Record<string, unknown>[] = [];
   const inJamRange = checkEffectorInRange(effState, d);
   let radiatingMsg = `EW: ${effState.name} RADIATING`;
-  if (!inJamRange) radiatingMsg += ` \u2014 target ${d.id.toUpperCase()} outside effective range`;
+  if (!inJamRange) radiatingMsg += ` \u2014 target ${(d.display_label || d.id).toUpperCase()} outside effective range`;
   msgs.push(_event(elapsed, radiatingMsg));
   if (!inJamRange) return msgs;
 
@@ -309,7 +316,7 @@ function _engageJammer(
   const pntDuration = pntEffective ? _randUniform(15.0, 25.0) : 0;
 
   if (jamBehavior === null && !pntEffective) {
-    msgs.push(_event(elapsed, `JAM INEFFECTIVE \u2014 AUTONOMOUS NAVIGATION (${d.id.toUpperCase()})`));
+    msgs.push(_event(elapsed, `JAM INEFFECTIVE \u2014 AUTONOMOUS NAVIGATION (${(d.display_label || d.id).toUpperCase()})`));
     msgs.push({ type: 'engagement_result', target_id: targetId, effector: effectorId, effective: false, effectiveness: 0 });
   } else {
     const updateFields: Partial<DroneState> = {};
@@ -325,7 +332,7 @@ function _engageJammer(
       updateFields.jammed_behavior = jamBehavior;
       updateFields.jammed_time_remaining = jamDuration;
       const behaviorLabel = jamBehavior.replace(/_/g, ' ').toUpperCase();
-      msgs.push(_event(elapsed, `EW: ${d.id.toUpperCase()} JAMMED \u2014 ${behaviorLabel}`));
+      msgs.push(_event(elapsed, `EW: ${(d.display_label || d.id).toUpperCase()} JAMMED \u2014 ${behaviorLabel}`));
       engagementResult.jammed = true;
       engagementResult.jammed_behavior = jamBehavior;
     }
@@ -335,12 +342,12 @@ function _engageJammer(
       updateFields.pnt_drift_magnitude = pntDrift;
       updateFields.pnt_jammed_time_remaining = pntDuration;
       if (jamBehavior === null) {
-        msgs.push(_event(elapsed, `PNT: ${d.id.toUpperCase()} \u2014 NAVIGATION DEGRADED (${Math.round(pntDuration)}s)`));
+        msgs.push(_event(elapsed, `PNT: ${(d.display_label || d.id).toUpperCase()} \u2014 NAVIGATION DEGRADED (${Math.round(pntDuration)}s)`));
         engagementResult.pnt_jammed = true;
         engagementResult.effective = true;
         engagementResult.effectiveness = Math.round(pntDrift * 10000) / 100;
       } else {
-        msgs.push(_event(elapsed, `PNT: ${d.id.toUpperCase()} \u2014 GPS DEGRADED (compounding RF jam)`));
+        msgs.push(_event(elapsed, `PNT: ${(d.display_label || d.id).toUpperCase()} \u2014 GPS DEGRADED (compounding RF jam)`));
         engagementResult.pnt_jammed = true;
       }
     }
@@ -386,6 +393,7 @@ function _engageJackal(
     shinobi_cm_active: null, shinobi_cm_state: null,
     shinobi_cm_time_remaining: 0, shinobi_cm_initial_duration: 0,
     neutralized: false,
+    display_label: jackalId,
   };
 
   gs.drones.push(jackalDrone);
@@ -411,7 +419,7 @@ function _engageDirect(
     effective: neutralized, effectiveness: Math.round(effectiveness * 100) / 100,
   });
   const resultStr = neutralized ? 'NEUTRALIZED' : 'INEFFECTIVE';
-  msgs.push(_event(elapsed, `ENGAGEMENT: ${effState.name} vs ${targetId.toUpperCase()} \u2014 ${resultStr}`));
+  msgs.push(_event(elapsed, `ENGAGEMENT: ${effState.name} vs ${_label(gs, targetId).toUpperCase()} \u2014 ${resultStr}`));
   return msgs;
 }
 
@@ -422,24 +430,24 @@ function _engageShinobi(
   const msgs: Record<string, unknown>[] = [];
 
   if (!checkShinobiRfTracking(gs.sensor_configs, d)) {
-    msgs.push(_event(elapsed, `SHINOBI: NO RF TRACK \u2014 ${targetId.toUpperCase()} not detected by SHINOBI sensor`));
+    msgs.push(_event(elapsed, `SHINOBI: NO RF TRACK \u2014 ${_label(gs, targetId).toUpperCase()} not detected by SHINOBI sensor`));
     return msgs;
   }
 
   if (!checkEffectorInRange(effState, d)) {
-    msgs.push(_event(elapsed, `SHINOBI: ${targetId.toUpperCase()} outside defeat range (6km)`));
+    msgs.push(_event(elapsed, `SHINOBI: ${_label(gs, targetId).toUpperCase()} outside defeat range (6km)`));
     return msgs;
   }
 
   if (!isShinobiVulnerable(d)) {
-    msgs.push(_event(elapsed, `SHINOBI: ${targetId.toUpperCase()} \u2014 NO PROTOCOL MATCH (not in library)`));
+    msgs.push(_event(elapsed, `SHINOBI: ${_label(gs, targetId).toUpperCase()} \u2014 NO PROTOCOL MATCH (not in library)`));
     msgs.push({ type: 'engagement_result', target_id: targetId, effector: effectorId, effective: false, effectiveness: 0 });
     return msgs;
   }
 
   if (!pickShinobiCmEffectiveness(d, cmType)) {
     const cmLabel = cmType.replace('shinobi_', '').toUpperCase();
-    msgs.push(_event(elapsed, `SHINOBI: ${cmLabel} INEFFECTIVE \u2014 autonomous navigation (${targetId.toUpperCase()})`));
+    msgs.push(_event(elapsed, `SHINOBI: ${cmLabel} INEFFECTIVE \u2014 autonomous navigation (${_label(gs, targetId).toUpperCase()})`));
     msgs.push({ type: 'engagement_result', target_id: targetId, effector: effectorId, effective: false, effectiveness: 0, shinobi_cm: cmType });
     return msgs;
   }
@@ -461,7 +469,7 @@ function _engageShinobi(
   gs.engage_times.set(targetId, elapsed);
   gs.effector_used.set(targetId, effState.type);
   gs.actions.push({ action: 'engage', target_id: targetId, effector: effectorId, timestamp: elapsed });
-  msgs.push(_event(elapsed, `SHINOBI: ${cmLabel} command sent to ${targetId.toUpperCase()} on ${freq}`));
+  msgs.push(_event(elapsed, `SHINOBI: ${cmLabel} command sent to ${_label(gs, targetId).toUpperCase()} on ${freq}`));
   msgs.push({
     type: 'engagement_result', target_id: targetId, effector: effectorId,
     effective: true, effectiveness: Math.round(effectiveness * 100) / 100,

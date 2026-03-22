@@ -77,6 +77,7 @@ export function createDroneFromConfig(config: DroneStartConfig): DroneState {
     shinobi_cm_state: null,
     shinobi_cm_time_remaining: 0,
     shinobi_cm_initial_duration: 0,
+    display_label: '',
   };
 }
 

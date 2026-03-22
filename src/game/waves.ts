@@ -154,7 +154,7 @@ export function generateAmbientObject(
   _elapsed: number,
 ): [DroneStartConfig, number] {
   ambientCounter += 1;
-  let ambId = `AMB-${String(ambientCounter).padStart(3, '0')}`;
+  let ambId = `TRN-${String(ambientCounter).padStart(3, '0')}`;
 
   let cfg: DroneStartConfig;
 
@@ -218,7 +218,7 @@ export function generateAmbientObject(
       should_engage: false,
     };
   } else if (objType === 'bird') {
-    ambId = `AMB-${String(ambientCounter).padStart(3, '0')}`;
+    ambId = `TRN-${String(ambientCounter).padStart(3, '0')}`;
     const angle = uniform(0, 2 * Math.PI);
     const startDist = uniform(2.0, 5.0);
     const startX = startDist * Math.cos(angle);
@@ -244,7 +244,7 @@ export function generateAmbientObject(
       should_engage: false,
     };
   } else if (objType === 'weather_balloon') {
-    ambId = `AMB-${String(ambientCounter).padStart(3, '0')}`;
+    ambId = `TRN-${String(ambientCounter).padStart(3, '0')}`;
     const angle = uniform(0, 2 * Math.PI);
     const startDist = uniform(1.5, 4.0);
     const startX = startDist * Math.cos(angle);
