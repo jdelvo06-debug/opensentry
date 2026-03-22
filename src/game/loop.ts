@@ -30,6 +30,26 @@ function nextTrackLabel(gs: GameState): string {
 }
 
 // ---------------------------------------------------------------------------
+// Spawn variance helpers
+// ---------------------------------------------------------------------------
+
+function uniformRandom(min: number, max: number): number {
+  return min + Math.random() * (max - min);
+}
+
+function applySpawnVariance(cfg: DroneStartConfig): DroneStartConfig {
+  const v = cfg.spawn_variance;
+  if (!v) return cfg;
+  return {
+    ...cfg,
+    start_x: cfg.start_x + uniformRandom(v.x_range[0], v.x_range[1]),
+    start_y: cfg.start_y + uniformRandom(v.y_range[0], v.y_range[1]),
+    heading: cfg.heading + uniformRandom(-v.heading_variance, v.heading_variance),
+    speed: cfg.speed + uniformRandom(-v.speed_variance, v.speed_variance),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Init helpers
 // ---------------------------------------------------------------------------
 
@@ -43,16 +63,17 @@ export function initGameState(
 ): GameState {
   const gs = createGameState(scenario, sensorConfigs, effectorConfigsList, placementConfig, baseTemplate, terrain);
 
-  // Spawn initial drones
+  // Spawn initial drones (apply spawn variance for randomization)
   for (const droneCfg of scenario.drones) {
-    gs.drone_configs.set(droneCfg.id, droneCfg);
-    if (droneCfg.spawn_delay <= 0) {
-      const drone = createDroneFromConfig(droneCfg);
+    const cfg = applySpawnVariance(droneCfg);
+    gs.drone_configs.set(cfg.id, cfg);
+    if (cfg.spawn_delay <= 0) {
+      const drone = createDroneFromConfig(cfg);
       drone.display_label = nextTrackLabel(gs);
       gs.drones.push(drone);
-      gs.behaviors.set(droneCfg.id, droneCfg.behavior);
+      gs.behaviors.set(cfg.id, cfg.behavior);
     } else {
-      gs.pending_spawns.push(droneCfg);
+      gs.pending_spawns.push(cfg);
     }
   }
 

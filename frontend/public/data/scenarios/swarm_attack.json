@@ -96,7 +96,13 @@
         "shinobi_pm"
       ],
       "roe_violations": [],
-      "should_engage": true
+      "should_engage": true,
+      "spawn_variance": {
+        "x_range": [-1.5, 1.5],
+        "y_range": [-1.5, 1.5],
+        "heading_variance": 25,
+        "speed_variance": 8
+      }
     },
     {
       "id": "bogey-2",
@@ -120,7 +126,13 @@
         "shinobi_pm"
       ],
       "roe_violations": [],
-      "should_engage": true
+      "should_engage": true,
+      "spawn_variance": {
+        "x_range": [-1.5, 1.5],
+        "y_range": [-1.5, 1.5],
+        "heading_variance": 25,
+        "speed_variance": 8
+      }
     },
     {
       "id": "bogey-3",
@@ -143,7 +155,13 @@
         "electronic"
       ],
       "roe_violations": [],
-      "should_engage": true
+      "should_engage": true,
+      "spawn_variance": {
+        "x_range": [-2.0, 2.0],
+        "y_range": [-2.0, 2.0],
+        "heading_variance": 20,
+        "speed_variance": 10
+      }
     },
     {
       "id": "bogey-4",
@@ -168,7 +186,13 @@
         "shinobi_pm"
       ],
       "roe_violations": [],
-      "should_engage": true
+      "should_engage": true,
+      "spawn_variance": {
+        "x_range": [-1.0, 1.0],
+        "y_range": [-1.0, 1.0],
+        "heading_variance": 20,
+        "speed_variance": 5
+      }
     },
     {
       "id": "bogey-5",
@@ -190,7 +214,13 @@
         "kinetic"
       ],
       "roe_violations": [],
-      "should_engage": true
+      "should_engage": true,
+      "spawn_variance": {
+        "x_range": [-2.0, 2.0],
+        "y_range": [-2.0, 2.0],
+        "heading_variance": 15,
+        "speed_variance": 10
+      }
     },
     {
       "id": "bogey-6",
@@ -225,7 +255,13 @@
         "electronic",
         "kinetic"
       ],
-      "should_engage": false
+      "should_engage": false,
+      "spawn_variance": {
+        "x_range": [-1.0, 1.0],
+        "y_range": [-1.0, 1.0],
+        "heading_variance": 15,
+        "speed_variance": 3
+      }
     }
   ]
 }

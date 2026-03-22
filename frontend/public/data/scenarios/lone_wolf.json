@@ -83,7 +83,13 @@
       "speed": 35,
       "heading": 225,
       "behavior": "direct_approach",
-      "rf_emitting": true
+      "rf_emitting": true,
+      "spawn_variance": {
+        "x_range": [-1.5, 1.5],
+        "y_range": [-1.5, 1.5],
+        "heading_variance": 25,
+        "speed_variance": 8
+      }
     }
   ]
 }

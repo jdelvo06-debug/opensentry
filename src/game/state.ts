@@ -155,6 +155,13 @@ export interface EngagementZones {
   engagement_range_km: number;
 }
 
+export interface SpawnVariance {
+  x_range: [number, number];
+  y_range: [number, number];
+  heading_variance: number;
+  speed_variance: number;
+}
+
 export interface DroneStartConfig {
   id: string;
   drone_type: DroneType;
@@ -175,6 +182,7 @@ export interface DroneStartConfig {
   acceptable_effectors?: string[] | null;
   roe_violations?: string[] | null;
   should_engage: boolean;
+  spawn_variance?: SpawnVariance | null;
 }
 
 export interface ScenarioConfig {

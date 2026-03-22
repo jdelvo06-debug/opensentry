@@ -124,7 +124,13 @@
         "shinobi_pm"
       ],
       "roe_violations": [],
-      "should_engage": true
+      "should_engage": true,
+      "spawn_variance": {
+        "x_range": [-1.5, 1.5],
+        "y_range": [-1.5, 1.5],
+        "heading_variance": 20,
+        "speed_variance": 5
+      }
     }
   ]
 }
