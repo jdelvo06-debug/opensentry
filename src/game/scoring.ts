@@ -143,6 +143,9 @@ function _scoreDroneComponents(
   }
 
   // --- Identification (25%) ---
+  // TODO: Consider adjusting identification time expectations based on camera aspect angle.
+  // Head-on views (aspect 0-30°) make visual ID much harder than broadside (60-120°);
+  // could grant extra time or reduce penalty for slow ID at unfavorable aspects.
   if (classificationGiven != null && affiliationGiven != null) {
     const classCorrect = classificationGiven === correctClass;
     const affilCorrect = affiliationGiven === correctAffil;

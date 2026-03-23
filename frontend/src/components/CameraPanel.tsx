@@ -68,6 +68,37 @@ function angleDiff(a: number, b: number): number {
   return d;
 }
 
+/**
+ * Compute the aspect angle: the angle between the camera→drone bearing and the
+ * drone's own heading.  Returns 0-180 where 0 = head-on, 90 = broadside, 180 = tail-on.
+ * Also returns a signed visual rotation angle (-180..180) for orienting the silhouette
+ * on the canvas (positive = drone crossing left-to-right from camera's POV).
+ */
+function calcAspectAngle(
+  droneX: number,
+  droneY: number,
+  headingDeg: number,
+): { aspect: number; visualRotationDeg: number } {
+  const bearingToDrone = calcBearing(droneX, droneY); // bearing from base/camera to drone
+  // Signed difference: how far the drone heading deviates from the bearing *toward* the camera
+  // If the drone is flying straight at the camera, heading ≈ bearingToDrone + 180
+  const inboundBearing = (bearingToDrone + 180) % 360;
+  const signed = angleDiff(headingDeg, inboundBearing); // [-180, 180]
+  const aspect = Math.abs(signed); // 0 = head-on, 180 = tail-on
+  return { aspect, visualRotationDeg: signed };
+}
+
+/**
+ * Compute horizontal scale compression based on aspect angle.
+ * Head-on / tail-on views compress the silhouette laterally;
+ * broadside views show full width.
+ */
+function aspectScaleX(aspect: number): number {
+  // 0° (head-on) → 0.35, 90° (broadside) → 1.0, 180° (tail-on) → 0.35
+  const t = Math.abs(aspect - 90) / 90; // 0 at broadside, 1 at head/tail
+  return 1 - t * 0.65;
+}
+
 // ---------------------------------------------------------------------------
 // Silhouette drawing helpers — all accept `time` (seconds) for animation
 // ---------------------------------------------------------------------------
@@ -787,15 +818,36 @@ function drawSilhouette(
   scale: number,
   mode: CameraMode,
   time: number,
+  aspect?: { aspect: number; visualRotationDeg: number },
 ) {
+  // Civilian aircraft: light grey in daylight to distinguish from military
+  const isCivilian = classification === "passenger_aircraft";
   if (mode === "thermal") {
     ctx.fillStyle = "rgba(230,230,230,0.9)";
     ctx.strokeStyle = "rgba(230,230,230,0.9)";
+  } else if (isCivilian) {
+    ctx.fillStyle = "rgba(200,210,220,0.85)";
+    ctx.strokeStyle = "rgba(200,210,220,0.85)";
   } else {
     ctx.fillStyle = "rgba(40,50,60,0.85)";
     ctx.strokeStyle = "rgba(40,50,60,0.85)";
   }
   ctx.lineWidth = Math.max(1, 1.5 * scale);
+
+  // Apply aspect-angle orientation: rotate silhouette and compress horizontally
+  // for head-on / tail-on views. Birds, balloons, and unknowns are exempt
+  // (symmetrical or irrelevant).
+  const orientable = classification != null && ![
+    "bird", "weather_balloon",
+  ].includes(classification);
+
+  if (aspect && orientable) {
+    const rotRad = (aspect.visualRotationDeg * Math.PI) / 180;
+    const sx = aspectScaleX(aspect.aspect);
+    ctx.save();
+    ctx.rotate(rotRad);
+    ctx.scale(sx, 1);
+  }
 
   switch (classification) {
     case "commercial_quad":
@@ -827,6 +879,10 @@ function drawSilhouette(
     default:
       drawUnknownBlob(ctx, scale, time);
       break;
+  }
+
+  if (aspect && orientable) {
+    ctx.restore();
   }
 }
 
@@ -1514,7 +1570,8 @@ export default function CameraPanel({
 
       // Use drone_type for silhouette (always available) — camera shows what it sees.
       // classification only matters for scoring; visuals use ground truth type.
-      drawSilhouette(ctx, vt.drone_type ?? vt.classification, scale, mode, time);
+      const aspectInfo = calcAspectAngle(vt.x, vt.y, vt.heading_deg);
+      drawSilhouette(ctx, vt.drone_type ?? vt.classification, scale, mode, time, aspectInfo);
       ctx.restore();
 
       // Draw approaching JACKAL as bright dot if one is targeting this track
