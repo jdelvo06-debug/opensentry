@@ -59,6 +59,11 @@ export default function TrackList({ tracks, selectedTrackId, onSelectTrack }: Pr
             const badge = PHASE_BADGE[track.dtid_phase] || PHASE_BADGE.detected;
             const selected = track.id === selectedTrackId;
 
+            const classificationLabel =
+              track.classification && (track.dtid_phase === "identified" || track.dtid_phase === "defeated")
+                ? track.classification.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+                : null;
+
             return (
               <div
                 key={track.id}
@@ -67,8 +72,8 @@ export default function TrackList({ tracks, selectedTrackId, onSelectTrack }: Pr
                   display: "flex",
                   alignItems: "center",
                   gap: 6,
-                  height: 28,
-                  padding: "0 4px",
+                  minHeight: 28,
+                  padding: "2px 4px",
                   borderRadius: 4,
                   marginBottom: 1,
                   cursor: "pointer",
@@ -86,20 +91,39 @@ export default function TrackList({ tracks, selectedTrackId, onSelectTrack }: Pr
                     flexShrink: 0,
                   }}
                 />
-                {/* Track ID */}
+                {/* Track ID + classification */}
                 <div
                   style={{
                     flex: 1,
-                    fontSize: 11,
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontWeight: 500,
-                    color: "#e6edf3",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
+                    minWidth: 0,
                   }}
                 >
-                  {track.display_label || track.id}
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontWeight: 500,
+                      color: "#e6edf3",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {track.display_label || track.id}
+                  </div>
+                  {classificationLabel && (
+                    <div
+                      style={{
+                        fontSize: 9,
+                        color: "#8b949e",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {classificationLabel}
+                    </div>
+                  )}
                 </div>
                 {/* DTID phase badge */}
                 <div

@@ -47,6 +47,7 @@ export default function TrackDetailPanel({ track }: Props) {
   const range = Math.sqrt(track.x ** 2 + track.y ** 2);
   const bearing = ((Math.atan2(track.x, track.y) * 180) / Math.PI + 360) % 360;
   const currentPhaseIdx = phaseIndex(track.dtid_phase);
+  const isIdentified = track.dtid_phase === "identified" || track.dtid_phase === "defeated";
   const affColor = AFFILIATION_COLORS[track.affiliation] || "#8b949e";
 
   const confidenceColor =
@@ -213,6 +214,19 @@ export default function TrackDetailPanel({ track }: Props) {
 
       {/* Data grid */}
       <div style={{ marginTop: 10 }}>
+        <DataRow
+          label="TYPE"
+          value={
+            isIdentified && track.classification
+              ? track.classification.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+              : "\u2014"
+          }
+        />
+        <DataRow
+          label="AFFILIATION"
+          value={isIdentified ? track.affiliation.toUpperCase() : "\u2014"}
+          valueColor={isIdentified ? affColor : undefined}
+        />
         <DataRow label="RANGE" value={`${range.toFixed(2)} km`} />
         <DataRow label="BEARING" value={`${bearing.toFixed(0)}\u00B0`} />
         <DataRow label="ALTITUDE" value={`${track.altitude_ft.toFixed(0)} ft`} />
