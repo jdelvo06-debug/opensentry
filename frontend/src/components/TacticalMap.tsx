@@ -1403,7 +1403,7 @@ export default function TacticalMap({
         {/* Camera FOV Cone — only shown when slewed to a track */}
         {(() => {
           if (!cameraTrackId) return null;
-          const cameraTarget = tracks.find((t) => t.id === cameraTrackId);
+          const cameraTarget = tracks.find((t) => t.id === cameraTrackId && !t.neutralized);
           if (!cameraTarget) return null;
 
           const cameraSensor = sensorConfigs.find(
@@ -1566,8 +1566,8 @@ export default function TacticalMap({
           );
         })()}
 
-        {/* Tracks */}
-        {tracks.map((track) => {
+        {/* Tracks — filter out defeated/neutralized drones (ghost track fix #24) */}
+        {tracks.filter((t) => !t.neutralized).map((track) => {
           const pos = trackPosition(track);
           const isSelected = track.id === selectedTrackId;
           const isInterceptor = !!track.is_interceptor;
