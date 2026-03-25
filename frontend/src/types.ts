@@ -199,6 +199,22 @@ export type ServerMessage =
   | TutorialFeedbackMsg
   | ErrorMsg;
 
+export interface DebriefStats {
+  scenarioName: string;
+  durationSeconds: number;
+  tracksSpawned: number;
+  tracksDetected: number;
+  tracksConfirmed: number;
+  tracksIdentified: number;
+  tracksDefeated: number;
+  blueOnBlueCount: number;
+  atcCallsMade: number;
+  atcCallLog: { trackId: string; response: string }[];
+  roeViolations: string[];
+  success: boolean;
+  isTutorial?: boolean;
+}
+
 // Phase 2: Base Defense Planner types
 
 export interface ProtectedAsset {

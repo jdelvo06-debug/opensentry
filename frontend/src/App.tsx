@@ -27,6 +27,7 @@ import type {
   CatalogCombined,
   CatalogEffector,
   CatalogSensor,
+  DebriefStats,
   EffectorStatus,
   EngagementZones,
   EventEntry,
@@ -234,6 +235,18 @@ export default function App() {
 
   const atcIffAssignedRef = useRef<Set<string>>(new Set()); // track IDs already assigned iff_status
 
+  // Debrief scorecard state
+  const [debriefStats, setDebriefStats] = useState<DebriefStats | null>(null);
+  const tracksSpawnedRef = useRef<Set<string>>(new Set());
+  const tracksDetectedRef = useRef<Set<string>>(new Set());
+  const tracksConfirmedRef = useRef<Set<string>>(new Set());
+  const tracksIdentifiedRef = useRef<Set<string>>(new Set());
+  const tracksDefeatedRef = useRef<Set<string>>(new Set());
+  const blueOnBlueRef = useRef<number>(0);
+  const atcCallsMadeRef = useRef<number>(0);
+  const atcCallLogRef = useRef<{ trackId: string; response: string }[]>([]);
+  const roeViolationsRef = useRef<string[]>([]);
+
   const handleToggleMute = useCallback(() => {
     soundEngine.init();
     const next = !soundEngine.muted;
@@ -313,6 +326,23 @@ export default function App() {
             return t;
           });
         });
+        // Track debrief stats from incoming tracks
+        for (const t of msg.tracks) {
+          if (t.is_ambient || t.is_interceptor) continue;
+          tracksSpawnedRef.current.add(t.id);
+          if (t.dtid_phase === "detected" || t.dtid_phase === "tracked" || t.dtid_phase === "identified" || t.dtid_phase === "defeated") {
+            tracksDetectedRef.current.add(t.id);
+          }
+          if (t.dtid_phase === "tracked" || t.dtid_phase === "identified" || t.dtid_phase === "defeated") {
+            tracksConfirmedRef.current.add(t.id);
+          }
+          if (t.dtid_phase === "identified" || t.dtid_phase === "defeated") {
+            tracksIdentifiedRef.current.add(t.id);
+          }
+          if (t.dtid_phase === "defeated" || t.neutralized) {
+            tracksDefeatedRef.current.add(t.id);
+          }
+        }
         setElapsed(msg.elapsed);
         setTimeRemaining(msg.time_remaining);
         setThreatLevel(msg.threat_level);
@@ -456,6 +486,21 @@ export default function App() {
         setDroneReachedBase(msg.drone_reached_base);
         setWavesCompleted(msg.waves_completed ?? 1);
         setPhase("debrief");
+        setDebriefStats({
+          scenarioName: scenarioNameRef.current || "Unknown",
+          durationSeconds: elapsedRef.current,
+          tracksSpawned: tracksSpawnedRef.current.size,
+          tracksDetected: tracksDetectedRef.current.size,
+          tracksConfirmed: tracksConfirmedRef.current.size,
+          tracksIdentified: tracksIdentifiedRef.current.size,
+          tracksDefeated: tracksDefeatedRef.current.size,
+          blueOnBlueCount: blueOnBlueRef.current,
+          atcCallsMade: atcCallsMadeRef.current,
+          atcCallLog: [...atcCallLogRef.current],
+          roeViolations: [...roeViolationsRef.current],
+          success: !msg.drone_reached_base && tracksDefeatedRef.current.size > 0,
+          isTutorial: isTutorialRef.current,
+        });
         if (msg.drone_reached_base) {
           soundEngine.play("mission_fail");
           soundEngine.play("critical_alarm");
@@ -568,7 +613,16 @@ export default function App() {
     }
   }, [threatLevel, phase]);
 
-  // --- Refs for keyboard shortcut callbacks ---
+  // --- Refs for callbacks that need current values ---
+  const scenarioNameRef = useRef(scenarioName);
+  scenarioNameRef.current = scenarioName;
+  const elapsedRef = useRef(elapsed);
+  elapsedRef.current = elapsed;
+  const isTutorialRef = useRef(isTutorial);
+  isTutorialRef.current = isTutorial;
+  const droneReachedBaseRef = useRef(droneReachedBase);
+  droneReachedBaseRef.current = droneReachedBase;
+
   const tracksRef = useRef(tracks);
   tracksRef.current = tracks;
   const selectedTrackIdRef = useRef(selectedTrackId);
@@ -807,6 +861,17 @@ export default function App() {
     setAtcPanelTrackId(null);
     window.clearTimeout(atcPanelTimerRef.current);
     atcIffAssignedRef.current.clear();
+    // Debrief stats reset
+    setDebriefStats(null);
+    tracksSpawnedRef.current = new Set();
+    tracksDetectedRef.current = new Set();
+    tracksConfirmedRef.current = new Set();
+    tracksIdentifiedRef.current = new Set();
+    tracksDefeatedRef.current = new Set();
+    blueOnBlueRef.current = 0;
+    atcCallsMadeRef.current = 0;
+    atcCallLogRef.current = [];
+    roeViolationsRef.current = [];
   };
 
   const handleRestart = () => {
@@ -826,6 +891,8 @@ export default function App() {
     const ct = tracks.find((t) => t.id === trackId);
     if (ct?.iff_status === "unknown" && !ct.atc_response_received) {
       const label = ct.display_label ?? trackId;
+      blueOnBlueRef.current++;
+      roeViolationsRef.current.push(`Confirmed UNKNOWN track ${label.toUpperCase()} without ATC clearance`);
       setEvents((prev) => [
         ...prev,
         { timestamp: elapsed, message: `BLUE-ON-BLUE: Action on unverified track ${label.toUpperCase()} — ATC not consulted! Score penalty applied.` },
@@ -853,6 +920,8 @@ export default function App() {
     const engTrack = tracks.find((t) => t.id === trackId);
     if (engTrack?.iff_status === "unknown" && !engTrack.atc_response_received) {
       const label = engTrack.display_label ?? trackId;
+      blueOnBlueRef.current++;
+      roeViolationsRef.current.push(`Engaged UNKNOWN track ${label.toUpperCase()} without ATC clearance`);
       setEvents((prev) => [
         ...prev,
         { timestamp: elapsed, message: `BLUE-ON-BLUE: Engagement on unverified track ${label.toUpperCase()} — ATC not consulted! Score penalty applied.` },
@@ -910,6 +979,7 @@ export default function App() {
   };
 
   const callATC = useCallback((trackId: string) => {
+    atcCallsMadeRef.current++;
     setTracks((prev) =>
       prev.map((t) =>
         t.id === trackId ? { ...t, atc_called: true, atc_response_pending: true } : t,
@@ -941,6 +1011,7 @@ export default function App() {
         ),
       );
       const inMsg = responseText;
+      atcCallLogRef.current.push({ trackId: label.toUpperCase(), response: responseText });
       setAtcCommsMessages((prev) => ({ ...prev, [trackId]: [...(prev[trackId] ?? []), { direction: "in", text: inMsg }] }));
       setEvents((prev) => [...prev, { timestamp: elapsed, message: `ATC RESPONSE: ${responseText}` }]);
       // Auto-dismiss panel 10s after response
@@ -1159,6 +1230,17 @@ export default function App() {
         setPaused(false);
         setPlacementConfig(placement);
         setWaveNumber(1);
+        // Reset debrief stats
+        setDebriefStats(null);
+        tracksSpawnedRef.current = new Set();
+        tracksDetectedRef.current = new Set();
+        tracksConfirmedRef.current = new Set();
+        tracksIdentifiedRef.current = new Set();
+        tracksDefeatedRef.current = new Set();
+        blueOnBlueRef.current = 0;
+        atcCallsMadeRef.current = 0;
+        atcCallLogRef.current = [];
+        roeViolationsRef.current = [];
 
         connect({ scenarioId, baseId, placement });
       };
@@ -1490,15 +1572,12 @@ export default function App() {
   }
 
   // --- Phase: Debrief ---
-  if (phase === "debrief" && score) {
+  if (phase === "debrief" && debriefStats) {
     return (
       <DebriefScreen
-        score={score}
-        droneReachedBase={droneReachedBase}
-        scenarioName={scenarioName}
-        onRestart={handleRestart}
-        onMainMenu={handleMainMenu}
-        wavesCompleted={wavesCompleted}
+        stats={debriefStats}
+        onMainMenu={() => { setDebriefStats(null); handleMainMenu(); }}
+        onReplay={() => { setDebriefStats(null); handleRestart(); }}
       />
     );
   }

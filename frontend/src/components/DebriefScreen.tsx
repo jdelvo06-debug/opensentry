@@ -1,111 +1,58 @@
-import type { ScoreBreakdown } from "../types";
+import type { DebriefStats } from "../types";
 
 interface Props {
-  score: ScoreBreakdown;
-  droneReachedBase: boolean;
-  scenarioName: string;
-  onRestart: () => void;
+  stats: DebriefStats;
   onMainMenu: () => void;
-  wavesCompleted?: number;
+  onReplay: () => void;
+}
+
+function formatDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function computeRating(stats: DebriefStats): { score: number; grade: string } {
+  let score = 0;
+  const detectionRate = stats.tracksSpawned > 0 ? stats.tracksDetected / stats.tracksSpawned : 0;
+  const neutralizationRate = stats.tracksSpawned > 0 ? stats.tracksDefeated / stats.tracksSpawned : 0;
+  if (detectionRate >= 0.8) score += 25;
+  if (neutralizationRate >= 0.8) score += 25;
+  if (stats.blueOnBlueCount === 0) score += 25;
+  if (stats.roeViolations.length === 0) score += 25;
+  let grade: string;
+  if (score >= 90) grade = "A";
+  else if (score >= 80) grade = "B";
+  else if (score >= 70) grade = "C";
+  else if (score >= 60) grade = "D";
+  else grade = "F";
+  return { score, grade };
 }
 
 const GRADE_COLORS: Record<string, string> = {
-  S: "#d29922",
   A: "#3fb950",
   B: "#58a6ff",
   C: "#d29922",
+  D: "#f0883e",
   F: "#f85149",
 };
 
-interface BarProps {
-  label: string;
-  score: number;
-  detail: string;
-}
-
-function ScoreBar({ label, score, detail }: BarProps) {
-  const color =
-    score >= 80 ? "#3fb950" : score >= 50 ? "#d29922" : "#f85149";
-
-  return (
-    <div style={{ marginBottom: 16 }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 4,
-          fontSize: 12,
-        }}
-      >
-        <span style={{ color: "#e6edf3", letterSpacing: 0.5, fontWeight: 500 }}>
-          {label}
-        </span>
-        <span
-          style={{
-            color,
-            fontWeight: 700,
-            fontFamily: "'JetBrains Mono', monospace",
-          }}
-        >
-          {score.toFixed(0)}
-        </span>
-      </div>
-      <div
-        style={{
-          height: 6,
-          background: "#1c2333",
-          borderRadius: 3,
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: `${Math.min(score, 100)}%`,
-            height: "100%",
-            background: color,
-            borderRadius: 3,
-            boxShadow: `0 0 8px ${color}44`,
-            transition: "width 1s ease-out",
-          }}
-        />
-      </div>
-      {detail && (
-        <div
-          style={{
-            fontSize: 10,
-            color: "#8b949e",
-            marginTop: 3,
-          }}
-        >
-          {detail}
-        </div>
-      )}
-    </div>
-  );
-}
-
-export default function DebriefScreen({
-  score,
-  droneReachedBase,
-  scenarioName,
-  onRestart,
-  onMainMenu,
-  wavesCompleted,
-}: Props) {
-  const gradeColor = GRADE_COLORS[score.grade] || "#8b949e";
-  const hasPlacement =
-    score.placement_score !== null && score.placement_score !== undefined;
+export default function DebriefScreen({ stats, onMainMenu, onReplay }: Props) {
+  const detectionRate = stats.tracksSpawned > 0 ? stats.tracksDetected / stats.tracksSpawned : 0;
+  const neutralizationRate = stats.tracksSpawned > 0 ? stats.tracksDefeated / stats.tracksSpawned : 0;
+  const { score, grade } = computeRating(stats);
+  const gradeColor = GRADE_COLORS[grade] || "#8b949e";
 
   return (
     <div
       style={{
         position: "fixed",
         inset: 0,
-        background: "#0d1117",
+        background: "rgba(0,0,0,0.85)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        zIndex: 100,
+        zIndex: 1000,
         overflowY: "auto",
       }}
     >
@@ -115,269 +62,278 @@ export default function DebriefScreen({
           border: "1px solid #30363d",
           borderRadius: 8,
           padding: 32,
-          maxWidth: 520,
+          maxWidth: 600,
           width: "90%",
           margin: "32px auto",
+          fontFamily: "'JetBrains Mono', 'Courier New', monospace",
         }}
       >
-        <div style={{ textAlign: "center", marginBottom: 28 }}>
+        {/* Header */}
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: 24,
+            fontSize: 16,
+            fontWeight: 700,
+            color: "#22d3ee",
+            letterSpacing: 2,
+          }}
+        >
+          MISSION DEBRIEF
+        </div>
+
+        {/* Mission Summary */}
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: 24,
+            paddingBottom: 20,
+            borderBottom: "1px solid #30363d",
+          }}
+        >
+          <div style={{ fontSize: 14, color: "#e6edf3", fontWeight: 600, marginBottom: 8 }}>
+            {stats.scenarioName}
+          </div>
+          <div style={{ fontSize: 12, color: "#8b949e", marginBottom: 12 }}>
+            Duration: {formatDuration(stats.durationSeconds)}
+          </div>
+          <div
+            style={{
+              display: "inline-block",
+              padding: "6px 16px",
+              borderRadius: 4,
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: 1,
+              color: stats.success ? "#3fb950" : "#f85149",
+              background: stats.success ? "#3fb95015" : "#f8514915",
+              border: `1px solid ${stats.success ? "#3fb95044" : "#f8514944"}`,
+            }}
+          >
+            {stats.success ? "MISSION SUCCESS" : "MISSION FAILED"}
+          </div>
+        </div>
+
+        {/* Performance Metrics */}
+        <div style={{ marginBottom: 20 }}>
           <div
             style={{
               fontSize: 10,
               color: "#8b949e",
-              letterSpacing: 2,
-              marginBottom: 6,
+              letterSpacing: 1.5,
               fontWeight: 600,
+              marginBottom: 12,
             }}
           >
-            MISSION DEBRIEF
+            PERFORMANCE METRICS
           </div>
           <div
             style={{
-              fontSize: 13,
-              color: "#e6edf3",
-              marginBottom: 16,
-              fontWeight: 500,
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "8px 24px",
             }}
           >
-            {scenarioName}
-            {wavesCompleted != null && wavesCompleted > 1 && (
-              <span style={{ marginLeft: 8, color: "#58a6ff", fontSize: 11 }}>
-                ({wavesCompleted} WAVES)
-              </span>
-            )}
+            <MetricRow label="Tracks Detected" value={stats.tracksDetected} />
+            <MetricRow label="Tracks Confirmed" value={stats.tracksConfirmed} />
+            <MetricRow label="Tracks Identified" value={stats.tracksIdentified} />
+            <MetricRow label="Tracks Defeated" value={stats.tracksDefeated} />
+            <MetricRow label="Detection Rate" value={`${(detectionRate * 100).toFixed(0)}%`} />
+            <MetricRow label="Neutralization Rate" value={`${(neutralizationRate * 100).toFixed(0)}%`} />
+            <MetricRow
+              label="Blue-on-Blue Incidents"
+              value={stats.blueOnBlueCount}
+              highlight={stats.blueOnBlueCount > 0 ? "#f85149" : undefined}
+            />
+            <MetricRow label="ATC Calls Made" value={stats.atcCallsMade} />
           </div>
+        </div>
 
-          {droneReachedBase && (
+        {/* ROE Violations */}
+        {stats.roeViolations.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
             <div
               style={{
+                fontSize: 10,
                 color: "#f85149",
-                fontSize: 12,
-                fontWeight: 700,
-                padding: "8px 16px",
-                border: "1px solid #f8514944",
-                borderRadius: 6,
-                background: "#f8514911",
-                marginBottom: 16,
-                letterSpacing: 1,
-              }}
-            >
-              BASE COMPROMISED
-            </div>
-          )}
-
-          <div
-            style={{
-              fontSize: 72,
-              fontWeight: 700,
-              color: gradeColor,
-              lineHeight: 1,
-              fontFamily: "'JetBrains Mono', monospace",
-            }}
-          >
-            {score.grade}
-          </div>
-          <div
-            style={{
-              fontSize: 22,
-              color: gradeColor,
-              marginTop: 4,
-              fontFamily: "'JetBrains Mono', monospace",
-              fontWeight: 600,
-            }}
-          >
-            {score.total_score.toFixed(0)} / 100
-          </div>
-
-          {score.completion_multiplier < 1.0 && (
-            <div
-              style={{
-                color: "#d29922",
-                fontSize: 11,
+                letterSpacing: 1.5,
                 fontWeight: 600,
-                padding: "6px 14px",
-                border: "1px solid #d2992244",
-                borderRadius: 6,
-                background: "#d2992211",
-                marginTop: 12,
-                letterSpacing: 0.5,
+                marginBottom: 8,
               }}
             >
-              {score.time_bonus_detail}
+              ROE VIOLATIONS
             </div>
-          )}
-        </div>
+            {stats.roeViolations.map((v, i) => (
+              <div
+                key={i}
+                style={{
+                  fontSize: 11,
+                  color: "#f85149",
+                  padding: "4px 0",
+                  borderBottom: i < stats.roeViolations.length - 1 ? "1px solid #30363d" : undefined,
+                }}
+              >
+                {v}
+              </div>
+            ))}
+          </div>
+        )}
 
-        {/* Execution scores */}
-        <div
-          style={{
-            fontSize: 10,
-            color: "#8b949e",
-            letterSpacing: 1.5,
-            fontWeight: 600,
-            marginBottom: 12,
-          }}
-        >
-          EXECUTION
-        </div>
-
-        <ScoreBar
-          label="DETECTION AWARENESS (12%)"
-          score={score.detection_awareness_score}
-          detail={score.details.detection_awareness || ""}
-        />
-        <ScoreBar
-          label="CONFIRMATION QUALITY (8%)"
-          score={score.confirmation_quality_score}
-          detail={score.details.confirmation_quality || ""}
-        />
-        <ScoreBar
-          label="TRACKING (15%)"
-          score={score.tracking_score}
-          detail={score.details.tracking || ""}
-        />
-        <ScoreBar
-          label="IDENTIFICATION (25%)"
-          score={score.identification_score}
-          detail={score.details.identification || ""}
-        />
-        <ScoreBar
-          label="DEFEAT METHOD (25%)"
-          score={score.defeat_score}
-          detail={score.details.defeat || ""}
-        />
-        <ScoreBar
-          label="ROE COMPLIANCE (15%)"
-          score={score.roe_score}
-          detail={score.details.roe || ""}
-        />
-
-        {/* Placement scores */}
-        {hasPlacement && score.placement_details && (
-          <>
+        {/* ATC Call Log */}
+        {stats.atcCallLog.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
             <div
               style={{
                 fontSize: 10,
                 color: "#8b949e",
                 letterSpacing: 1.5,
                 fontWeight: 600,
-                marginTop: 20,
-                marginBottom: 12,
-                paddingTop: 16,
-                borderTop: "1px solid #30363d",
+                marginBottom: 8,
               }}
             >
-              DEFENSE PLANNING
+              ATC CALL LOG
             </div>
-
-            <ScoreBar
-              label="OVERALL PLACEMENT"
-              score={score.placement_score!}
-              detail=""
-            />
-            <ScoreBar
-              label="APPROACH COVERAGE (40%)"
-              score={
-                parseScoreFromDetail(score.placement_details.coverage)
-              }
-              detail={score.placement_details.coverage || ""}
-            />
-            <ScoreBar
-              label="SENSOR OVERLAP (25%)"
-              score={
-                parseScoreFromDetail(score.placement_details.overlap)
-              }
-              detail={score.placement_details.overlap || ""}
-            />
-            <ScoreBar
-              label="EFFECTOR REACH (25%)"
-              score={
-                parseScoreFromDetail(score.placement_details.effector_reach)
-              }
-              detail={score.placement_details.effector_reach || ""}
-            />
-            <ScoreBar
-              label="LOS MANAGEMENT (10%)"
-              score={
-                parseScoreFromDetail(score.placement_details.los)
-              }
-              detail={score.placement_details.los || ""}
-            />
-          </>
+            {stats.atcCallLog.map((entry, i) => (
+              <div
+                key={i}
+                style={{
+                  fontSize: 11,
+                  padding: "4px 0",
+                  borderBottom: i < stats.atcCallLog.length - 1 ? "1px solid #30363d" : undefined,
+                }}
+              >
+                <span style={{ color: "#22d3ee" }}>{entry.trackId}</span>
+                <span style={{ color: "#8b949e" }}> — {entry.response}</span>
+              </div>
+            ))}
+          </div>
         )}
 
-        <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
-          <button
-            onClick={onRestart}
+        {/* Performance Rating */}
+        <div
+          style={{
+            textAlign: "center",
+            paddingTop: 20,
+            borderTop: "1px solid #30363d",
+            marginBottom: 24,
+          }}
+        >
+          <div
             style={{
-              flex: 1,
-              padding: 14,
-              background: "#58a6ff18",
-              border: "1px solid #58a6ff55",
-              borderRadius: 6,
-              color: "#58a6ff",
-              fontFamily: "'Inter', sans-serif",
-              fontSize: 13,
+              fontSize: 10,
+              color: "#8b949e",
+              letterSpacing: 1.5,
               fontWeight: 600,
-              letterSpacing: 1,
-              cursor: "pointer",
-              transition: "all 0.15s",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background = "#58a6ff30";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.background = "#58a6ff18";
+              marginBottom: 12,
             }}
           >
-            NEW MISSION
-          </button>
+            PERFORMANCE RATING
+          </div>
+          <div
+            style={{
+              fontSize: 64,
+              fontWeight: 700,
+              color: gradeColor,
+              lineHeight: 1,
+            }}
+          >
+            {grade}
+          </div>
+          <div
+            style={{
+              fontSize: 18,
+              color: gradeColor,
+              marginTop: 4,
+              fontWeight: 600,
+            }}
+          >
+            {score} / 100
+          </div>
+        </div>
+
+        {/* Buttons */}
+        <div style={{ display: "flex", gap: 12 }}>
           <button
             onClick={onMainMenu}
             style={{
               flex: 1,
               padding: 14,
               background: "transparent",
-              border: "1px solid #30363d",
+              border: "1px solid #22d3ee",
               borderRadius: 6,
-              color: "#8b949e",
-              fontFamily: "'Inter', sans-serif",
-              fontSize: 13,
+              color: "#22d3ee",
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 12,
               fontWeight: 600,
               letterSpacing: 1,
               cursor: "pointer",
               transition: "all 0.15s",
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "#8b949e";
-              (e.currentTarget as HTMLElement).style.color = "#e6edf3";
+              (e.currentTarget as HTMLElement).style.background = "#22d3ee18";
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "#30363d";
-              (e.currentTarget as HTMLElement).style.color = "#8b949e";
+              (e.currentTarget as HTMLElement).style.background = "transparent";
             }}
           >
-            MAIN MENU
+            RETURN TO MAIN MENU
           </button>
+          {!stats.isTutorial && (
+            <button
+              onClick={onReplay}
+              style={{
+                flex: 1,
+                padding: 14,
+                background: "transparent",
+                border: "1px solid #30363d",
+                borderRadius: 6,
+                color: "#8b949e",
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: 1,
+                cursor: "pointer",
+                transition: "all 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = "#8b949e";
+                (e.currentTarget as HTMLElement).style.color = "#e6edf3";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = "#30363d";
+                (e.currentTarget as HTMLElement).style.color = "#8b949e";
+              }}
+            >
+              REPLAY SCENARIO
+            </button>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-function parseScoreFromDetail(detail: string | undefined): number {
-  if (!detail) return 0;
-  // Extract fraction like "3/5" and convert to percentage
-  const match = detail.match(/(\d+)\/(\d+)/);
-  if (match) {
-    const num = parseInt(match[1], 10);
-    const den = parseInt(match[2], 10);
-    return den > 0 ? (num / den) * 100 : 0;
-  }
-  // Extract percentage like "85%"
-  const pctMatch = detail.match(/(\d+)%/);
-  if (pctMatch) {
-    return parseInt(pctMatch[1], 10);
-  }
-  return 0;
+function MetricRow({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value: number | string;
+  highlight?: string;
+}) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
+      <span style={{ fontSize: 11, color: "#8b949e" }}>{label}</span>
+      <span
+        style={{
+          fontSize: 12,
+          fontWeight: 700,
+          color: highlight || "#e6edf3",
+        }}
+      >
+        {value}
+      </span>
+    </div>
+  );
 }
