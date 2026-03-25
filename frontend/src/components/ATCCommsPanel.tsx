@@ -41,10 +41,10 @@ export default function ATCCommsPanel({ messages, onClose }: Props) {
     <div
       style={{
         position: "fixed",
-        bottom: 130,
-        left: 8,
-        zIndex: 200,
-        width: 320,
+        bottom: 16,
+        right: 280,
+        zIndex: 500,
+        width: 300,
         maxHeight: 260,
         background: "rgba(12, 16, 21, 0.92)",
         border: "1px solid #22d3ee",

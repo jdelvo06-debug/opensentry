@@ -16,6 +16,7 @@ import CameraPanel from "./components/CameraPanel";
 import TutorialStepTracker from "./components/TutorialStepTracker";
 import FeedbackModal from "./components/FeedbackModal";
 import TutorialFeedback from "./components/TutorialFeedback";
+import ATCCommsPanel from "./components/ATCCommsPanel";
 import PauseOverlay from "./components/PauseOverlay";
 import ROEBriefing from "./components/ROEBriefing";
 
@@ -228,6 +229,8 @@ export default function App() {
 
   // ATC coordination state
   const [atcCommsMessages, setAtcCommsMessages] = useState<Record<string, { direction: "out" | "in"; text: string }[]>>({});
+  const [atcPanelTrackId, setAtcPanelTrackId] = useState<string | null>(null);
+  const atcPanelTimerRef = useRef<number>(0);
 
   const atcIffAssignedRef = useRef<Set<string>>(new Set()); // track IDs already assigned iff_status
 
@@ -801,6 +804,8 @@ export default function App() {
     setShowRoeOverlay(false);
     // ATC reset
     setAtcCommsMessages({});
+    setAtcPanelTrackId(null);
+    window.clearTimeout(atcPanelTimerRef.current);
     atcIffAssignedRef.current.clear();
   };
 
@@ -913,6 +918,8 @@ export default function App() {
     const label = tracks.find((t) => t.id === trackId)?.display_label ?? trackId;
     const outMsg = `Requesting IFF check — Track ${label.toUpperCase()}`;
     setAtcCommsMessages((prev) => ({ ...prev, [trackId]: [...(prev[trackId] ?? []), { direction: "out", text: outMsg }] }));
+    setAtcPanelTrackId(trackId);
+    window.clearTimeout(atcPanelTimerRef.current);
     setEvents((prev) => [...prev, { timestamp: elapsed, message: `ATC CALL: IFF check requested — ${label.toUpperCase()}` }]);
 
     const delay = 6000 + Math.random() * 2000;
@@ -936,6 +943,9 @@ export default function App() {
       const inMsg = responseText;
       setAtcCommsMessages((prev) => ({ ...prev, [trackId]: [...(prev[trackId] ?? []), { direction: "in", text: inMsg }] }));
       setEvents((prev) => [...prev, { timestamp: elapsed, message: `ATC RESPONSE: ${responseText}` }]);
+      // Auto-dismiss panel 10s after response
+      window.clearTimeout(atcPanelTimerRef.current);
+      atcPanelTimerRef.current = window.setTimeout(() => setAtcPanelTrackId(null), 10000);
     }, delay);
   }, [tracks, elapsed]);
 
@@ -1704,7 +1714,7 @@ export default function App() {
             onEngage={engage}
             onSlewCamera={handleSlewCamera}
             onCallATC={callATC}
-            atcMessages={selectedTrack ? (atcCommsMessages[selectedTrack.id] ?? []) : []}
+
             tutorialStep={isTutorial ? tutorialStep : undefined}
           />
         </div>
@@ -1723,6 +1733,14 @@ export default function App() {
         onCallATC={callATC}
         onTagFriendly={tagFriendly}
       />
+
+      {/* ATC Comms Popup */}
+      {atcPanelTrackId && (atcCommsMessages[atcPanelTrackId]?.length ?? 0) > 0 && (
+        <ATCCommsPanel
+          messages={atcCommsMessages[atcPanelTrackId]}
+          onClose={() => { window.clearTimeout(atcPanelTimerRef.current); setAtcPanelTrackId(null); }}
+        />
+      )}
 
       {/* Keyboard shortcuts hint */}
       {phase === "running" && (
