@@ -23,6 +23,9 @@ interface Props {
   onSlewCamera: (trackId: string) => void;
   onHoldFire?: (trackId: string) => void;
   onReleaseHoldFire?: (trackId: string) => void;
+  onCallATC?: (trackId: string) => void;
+  iffStatus?: string;
+  atcCalled?: boolean;
   onClose: () => void;
 }
 
@@ -65,15 +68,27 @@ const PHASE_COLORS: Record<DTIDPhase, string> = {
 
 type SubMenu = "none" | "identify" | "engage" | "nexus_cm";
 
-function getActionsForPhase(dtidPhase: DTIDPhase, holdFire?: boolean): WheelAction[] {
+function getActionsForPhase(dtidPhase: DTIDPhase, holdFire?: boolean, iffStatus?: string, atcCalled?: boolean): WheelAction[] {
   switch (dtidPhase) {
-    case "detected":
-      return [
+    case "detected": {
+      const actions: WheelAction[] = [
         { id: "confirm_track", label: "CONFIRM", icon: "\u2714", color: "#58a6ff" },
         { id: "slew_camera", label: "SLEW CAM", icon: "\u25CE", color: "#d29922" },
-        { id: "monitor", label: "MONITOR", icon: "\u25C9", color: "#484f58", disabled: true },
-        { id: "dismiss", label: "DISMISS", icon: "\u2715", color: "#484f58", disabled: true },
       ];
+      if (iffStatus === "unknown") {
+        actions.push({
+          id: "call_atc",
+          label: atcCalled ? "ATC CALLED" : "CALL ATC",
+          icon: "\u{1F4DE}",
+          color: atcCalled ? "#484f58" : "#22d3ee",
+          disabled: atcCalled,
+        });
+      } else {
+        actions.push({ id: "monitor", label: "MONITOR", icon: "\u25C9", color: "#484f58", disabled: true });
+      }
+      actions.push({ id: "dismiss", label: "DISMISS", icon: "\u2715", color: "#484f58", disabled: true });
+      return actions;
+    }
     case "tracked":
       return [
         { id: "slew_camera", label: "SLEW CAM", icon: "\u25CE", color: "#d29922" },
@@ -294,6 +309,9 @@ export default function RadialActionWheel({
   onSlewCamera,
   onHoldFire,
   onReleaseHoldFire,
+  onCallATC,
+  iffStatus,
+  atcCalled,
   onClose,
 }: Props) {
   const [subMenu, setSubMenu] = useState<SubMenu>("none");
@@ -358,11 +376,15 @@ export default function RadialActionWheel({
           onReleaseHoldFire?.(trackId);
           animatedClose();
           break;
+        case "call_atc":
+          onCallATC?.(trackId);
+          animatedClose();
+          break;
         default:
           break;
       }
     },
-    [trackId, onConfirmTrack, onSlewCamera, onHoldFire, onReleaseHoldFire, animatedClose],
+    [trackId, onConfirmTrack, onSlewCamera, onHoldFire, onReleaseHoldFire, onCallATC, animatedClose],
   );
 
   const handleClassify = useCallback(
@@ -398,7 +420,7 @@ export default function RadialActionWheel({
     [trackId, selectedNexusEffector, onEngage, animatedClose],
   );
 
-  const actions = getActionsForPhase(dtidPhase, holdFire);
+  const actions = getActionsForPhase(dtidPhase, holdFire, iffStatus, atcCalled);
 
   // Clamp position so wheel stays on screen
   const size = WHEEL_RADIUS * 2;
