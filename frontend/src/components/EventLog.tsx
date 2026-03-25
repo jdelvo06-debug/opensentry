@@ -5,10 +5,16 @@ interface Props {
   events: EventEntry[];
   hookedTracks?: TrackData[];
   onUnhook?: (id: string) => void;
+  onCallATC?: (id: string) => void;
+  onTagFriendly?: (id: string) => void;
 }
 
 function getEventColor(message: string): string {
   const lower = message.toLowerCase();
+  if (lower.includes("blue-on-blue")) return "#ff2222";
+  if (lower.includes("atc response")) return "#3fb950";
+  if (lower.includes("atc call")) return "#22d3ee";
+  if (lower.includes("tagged friendly")) return "#3fb950";
   if (lower.includes("engag") || lower.includes("neutraliz") || lower.includes("defeat") || lower.includes("missed") || lower.includes("effective")) return "#f85149";
   if (lower.includes("warning") || lower.includes("caution") || lower.includes("unknown") || lower.includes("lost")) return "#d29922";
   if (lower.includes("detect") || lower.includes("track") || lower.includes("sensor") || lower.includes("identif")) return "#58a6ff";
@@ -22,7 +28,7 @@ const AFF_COLOR: Record<string, string> = {
   friendly: "#58a6ff",
 };
 
-function HookCard({ track, onUnhook }: { track: TrackData; onUnhook: () => void }) {
+function HookCard({ track, onUnhook, onCallATC, onTagFriendly }: { track: TrackData; onUnhook: () => void; onCallATC?: (id: string) => void; onTagFriendly?: (id: string) => void }) {
   const color = AFF_COLOR[track.affiliation] ?? "#8b949e";
   return (
     <div style={{
@@ -77,6 +83,50 @@ function HookCard({ track, onUnhook }: { track: TrackData; onUnhook: () => void 
         <Field label="TYPE" value={track.drone_type ?? "---"} />
         <Field label="RF" value={track.frequency_band ?? "---"} />
       </div>
+      {/* ATC buttons for UNKNOWN tracks */}
+      {track.iff_status === "unknown" && (
+        <div style={{ display: "flex", gap: 4, marginTop: 2 }}>
+          <button
+            onClick={() => onCallATC?.(track.id)}
+            disabled={!!track.atc_called}
+            style={{
+              flex: 1,
+              fontSize: 8,
+              fontWeight: 700,
+              fontFamily: "'JetBrains Mono', monospace",
+              padding: "3px 0",
+              border: "1px solid #22d3ee",
+              borderRadius: 3,
+              background: track.atc_called ? "#1a2a2a" : "rgba(34, 211, 238, 0.12)",
+              color: track.atc_called ? "#484f58" : "#22d3ee",
+              cursor: track.atc_called ? "default" : "pointer",
+              letterSpacing: 0.5,
+            }}
+          >
+            {track.atc_response_pending ? "ATC PENDING..." : track.atc_called ? "ATC CALLED" : "CALL ATC"}
+          </button>
+          {track.atc_response_received && track.atc_response_text?.includes("authorized") && track.affiliation !== "friendly" && (
+            <button
+              onClick={() => onTagFriendly?.(track.id)}
+              style={{
+                flex: 1,
+                fontSize: 8,
+                fontWeight: 700,
+                fontFamily: "'JetBrains Mono', monospace",
+                padding: "3px 0",
+                border: "1px solid #3fb950",
+                borderRadius: 3,
+                background: "rgba(63, 185, 80, 0.12)",
+                color: "#3fb950",
+                cursor: "pointer",
+                letterSpacing: 0.5,
+              }}
+            >
+              TAG FRIENDLY
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -90,7 +140,7 @@ function Field({ label, value, color }: { label: string; value: string; color?: 
   );
 }
 
-export default function EventLog({ events, hookedTracks = [], onUnhook }: Props) {
+export default function EventLog({ events, hookedTracks = [], onUnhook, onCallATC, onTagFriendly }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const cardsScrollRef = useRef<HTMLDivElement>(null);
 
@@ -156,7 +206,7 @@ export default function EventLog({ events, hookedTracks = [], onUnhook }: Props)
             </div>
           ) : (
             hookedTracks.map((t) => (
-              <HookCard key={t.id} track={t} onUnhook={() => onUnhook?.(t.id)} />
+              <HookCard key={t.id} track={t} onUnhook={() => onUnhook?.(t.id)} onCallATC={onCallATC} onTagFriendly={onTagFriendly} />
             ))
           )}
         </div>

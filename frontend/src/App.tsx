@@ -18,6 +18,7 @@ import FeedbackModal from "./components/FeedbackModal";
 import TutorialFeedback from "./components/TutorialFeedback";
 import PauseOverlay from "./components/PauseOverlay";
 import ROEBriefing from "./components/ROEBriefing";
+import ATCCommsPanel from "./components/ATCCommsPanel";
 import { useGameEngine as useWebSocket } from "./hooks/useGameEngine";
 import { soundEngine } from "./audio/SoundEngine";
 import type {
@@ -225,6 +226,12 @@ export default function App() {
   const engagedTracksRef = useRef<Set<string>>(new Set());
   const detectionPingedRef = useRef<Set<string>>(new Set()); // tracks that have already triggered a detection ping
 
+  // ATC coordination state
+  const [atcCommsMessages, setAtcCommsMessages] = useState<{ direction: "out" | "in"; text: string }[]>([]);
+  const [atcPanelVisible, setAtcPanelVisible] = useState(false);
+  const atcPanelTimerRef = useRef<number>(0);
+  const atcIffAssignedRef = useRef<Set<string>>(new Set()); // track IDs already assigned iff_status
+
   const handleToggleMute = useCallback(() => {
     soundEngine.init();
     const next = !soundEngine.muted;
@@ -269,7 +276,40 @@ export default function App() {
         break;
 
       case "state":
-        setTracks(msg.tracks);
+        setTracks((prev) => {
+          return msg.tracks.map((t) => {
+            // Preserve ATC fields from previous state
+            const prevTrack = prev.find((p) => p.id === t.id);
+            if (prevTrack?.iff_status != null) {
+              return {
+                ...t,
+                iff_status: prevTrack.iff_status,
+                atc_called: prevTrack.atc_called,
+                atc_response_pending: prevTrack.atc_response_pending,
+                atc_response_received: prevTrack.atc_response_received,
+                atc_response_text: prevTrack.atc_response_text,
+                // Preserve affiliation override if tagged friendly
+                affiliation: prevTrack.affiliation === "friendly" && prevTrack.atc_response_received ? "friendly" : t.affiliation,
+              };
+            }
+            // Assign iff_status to new tracks: 15% chance of UNKNOWN
+            if (!atcIffAssignedRef.current.has(t.id)) {
+              atcIffAssignedRef.current.add(t.id);
+              if (!t.is_ambient && !t.is_interceptor && Math.random() < 0.15) {
+                return {
+                  ...t,
+                  affiliation: "unknown" as const,
+                  iff_status: "unknown" as const,
+                  atc_called: false,
+                  atc_response_pending: false,
+                  atc_response_received: false,
+                  atc_response_text: "",
+                };
+              }
+            }
+            return t;
+          });
+        });
         setElapsed(msg.elapsed);
         setTimeRemaining(msg.time_remaining);
         setThreatLevel(msg.threat_level);
@@ -759,6 +799,11 @@ export default function App() {
     setNotes([]);
     setWaveNumber(1);
     setShowRoeOverlay(false);
+    // ATC reset
+    setAtcCommsMessages([]);
+    setAtcPanelVisible(false);
+    window.clearTimeout(atcPanelTimerRef.current);
+    atcIffAssignedRef.current.clear();
   };
 
   const handleRestart = () => {
@@ -774,6 +819,15 @@ export default function App() {
   };
 
   const confirmTrack = (trackId: string) => {
+    // BLUE-ON-BLUE check for confirm on UNKNOWN track without ATC
+    const ct = tracks.find((t) => t.id === trackId);
+    if (ct?.iff_status === "unknown" && !ct.atc_response_received) {
+      const label = ct.display_label ?? trackId;
+      setEvents((prev) => [
+        ...prev,
+        { timestamp: elapsed, message: `BLUE-ON-BLUE: Action on unverified track ${label.toUpperCase()} — ATC not consulted! Score penalty applied.` },
+      ]);
+    }
     send({ type: "action", action: "confirm_track", target_id: trackId });
   };
 
@@ -792,6 +846,15 @@ export default function App() {
   };
 
   const engage = (trackId: string, effectorId: string, nexusCm?: string) => {
+    // BLUE-ON-BLUE check: engaging UNKNOWN track without ATC response
+    const engTrack = tracks.find((t) => t.id === trackId);
+    if (engTrack?.iff_status === "unknown" && !engTrack.atc_response_received) {
+      const label = engTrack.display_label ?? trackId;
+      setEvents((prev) => [
+        ...prev,
+        { timestamp: elapsed, message: `BLUE-ON-BLUE: Engagement on unverified track ${label.toUpperCase()} — ATC not consulted! Score penalty applied.` },
+      ]);
+    }
     if (nexusCm) {
       // NEXUS Protocol Manipulation — send specific CM action
       send({
@@ -842,6 +905,52 @@ export default function App() {
   const handleClearAirspace = () => {
     send({ type: "action", action: "clear_airspace" });
   };
+
+  const callATC = useCallback((trackId: string) => {
+    setTracks((prev) =>
+      prev.map((t) =>
+        t.id === trackId ? { ...t, atc_called: true, atc_response_pending: true } : t,
+      ),
+    );
+    const label = tracks.find((t) => t.id === trackId)?.display_label ?? trackId;
+    const outMsg = `Ops: Requesting IFF check on Track ${label.toUpperCase()}`;
+    setAtcCommsMessages((prev) => [...prev, { direction: "out", text: outMsg }]);
+    setAtcPanelVisible(true);
+    window.clearTimeout(atcPanelTimerRef.current);
+    setEvents((prev) => [...prev, { timestamp: elapsed, message: `ATC CALL: IFF check requested — ${label.toUpperCase()}` }]);
+
+    const delay = 6000 + Math.random() * 2000;
+    const isAuthorized = Math.random() < 0.5;
+    const responseText = isAuthorized
+      ? `Track ${label.toUpperCase()} — confirmed authorized aircraft`
+      : `Track ${label.toUpperCase()} — not in our system`;
+
+    setTimeout(() => {
+      setTracks((prev) =>
+        prev.map((t) =>
+          t.id === trackId
+            ? { ...t, atc_response_pending: false, atc_response_received: true, atc_response_text: responseText }
+            : t,
+        ),
+      );
+      const inMsg = `ATC: ${responseText}`;
+      setAtcCommsMessages((prev) => [...prev, { direction: "in", text: inMsg }]);
+      setEvents((prev) => [...prev, { timestamp: elapsed, message: `ATC RESPONSE: ${responseText}` }]);
+      // Auto-dismiss panel 10s after last response
+      window.clearTimeout(atcPanelTimerRef.current);
+      atcPanelTimerRef.current = window.setTimeout(() => setAtcPanelVisible(false), 10000);
+    }, delay);
+  }, [tracks, elapsed]);
+
+  const tagFriendly = useCallback((trackId: string) => {
+    setTracks((prev) =>
+      prev.map((t) =>
+        t.id === trackId ? { ...t, affiliation: "friendly" } : t,
+      ),
+    );
+    const label = tracks.find((t) => t.id === trackId)?.display_label ?? trackId;
+    setEvents((prev) => [...prev, { timestamp: elapsed, message: `TAGGED FRIENDLY: ${label.toUpperCase()} re-classified as FRIENDLY by operator` }]);
+  }, [tracks, elapsed]);
 
   const handlePause = () => {
     send({ type: "action", action: "pause_mission" });
@@ -1611,7 +1720,17 @@ export default function App() {
         events={events}
         hookedTracks={tracks.filter((t) => hookedTrackIds.has(t.id))}
         onUnhook={(id) => setHookedTrackIds((prev) => { const next = new Set(prev); next.delete(id); return next; })}
+        onCallATC={callATC}
+        onTagFriendly={tagFriendly}
       />
+
+      {/* ATC Comms Panel */}
+      {atcPanelVisible && (
+        <ATCCommsPanel
+          messages={atcCommsMessages}
+          onClose={() => setAtcPanelVisible(false)}
+        />
+      )}
 
       {/* Keyboard shortcuts hint */}
       {phase === "running" && (
