@@ -6,6 +6,23 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.3.0] — 2026-03-25
+
+### Added
+- **ATC Coordination Mechanic** — ~15% of contacts spawn as UNKNOWN (yellow). Operators can call ATC for IFF clearance before engaging. ATC responds after a realistic 6–8s delay via a floating comms window (bottom-right of map). Engaging an UNKNOWN track without clearance triggers a Blue-on-Blue ROE penalty.
+- **CALL ATC Action** — Available in the radial action wheel (right-click) and Engagement Panel for all UNKNOWN tracks.
+- **Tag FRIENDLY Workflow** — After ATC confirms an authorized aircraft, operator must manually tag the track as FRIENDLY. No auto-update.
+- **ATC Comms Panel** — Floating chat window showing outbound ops request (gray) and inbound ATC response (cyan, typewriter effect). Auto-dismisses 10s after last response. Per-track message history.
+- **Blue-on-Blue Penalty** — Score deduction and red event log entry when engaging UNKNOWN tracks without ATC response.
+
+### Changed
+- All sensitive system designator references scrubbed from codebase and git history.
+
+### Fixed
+- Radial action wheel (WOD) not appearing on left-click — root cause traced to Leaflet marker event propagation conflict with tablet layout PR. Rolled main back to v1.2.0 baseline and rebuilt cleanly.
+
+---
+
 ## [1.2.0] — 2026-03-22
 
 ### Added

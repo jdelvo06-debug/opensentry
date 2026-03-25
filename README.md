@@ -8,7 +8,7 @@
 
 > No install. No account. Just open the link and train.
 
-**Version:** v1.2.0 | **Status:** Active development
+**Version:** v1.3.0 | **Status:** Active development
 
 ---
 
@@ -58,7 +58,23 @@ All systems are fictional but specification-accurate — no real program of reco
 | Improvised UAS | 50% | Unknown electronics; NEXUS library miss likely |
 | Shahed-style | 100% (RF-immune) | INS-primary; **RF jamming has no effect**; kinetic defeat required |
 | Bird / Balloon | — | Ambient traffic; cannot be engaged (ROE) |
-| Passenger / Military Jet | — | ATC-clearable via CLEAR AIRSPACE |
+| Passenger / Military Jet | — | ATC-clearable; may appear as UNKNOWN contacts |
+
+---
+
+## ATC Coordination Mechanic
+
+Some contacts spawn as **UNKNOWN** (yellow) — unidentified aircraft that may or may not be in the ATC system. Before engaging, operators can:
+
+1. Select the UNKNOWN track → click **CALL ATC** in the Engagement Panel or radial WOD
+2. Wait 6–8 seconds for ATC response (floating comms window, bottom-right of map)
+3. ATC responds: *"confirmed authorized aircraft"* or *"not in our system"*
+4. If authorized → tag as **FRIENDLY** and stand down
+5. If not in system → proceed with identification and engagement
+
+**Engaging an UNKNOWN track before ATC clearance triggers a Blue-on-Blue penalty.**
+
+UAS and drone contacts are never ATC-authorized — only manned aircraft can receive clearance.
 
 ---
 
@@ -82,13 +98,14 @@ All systems are fictional but specification-accurate — no real program of reco
 
 - **Real-world satellite maps** via Leaflet.js — train at any location on Earth
 - **Pre-mission ROE briefing** — review Rules of Engagement before each scenario
+- **ATC coordination mechanic** — UNKNOWN contacts require IFF clearance before engagement
 - **Neutral track labels** — contacts spawn as TRN-### until you identify them
 - **Track type display** — classification and affiliation shown post-identification
 - **Camera orientation** — aircraft rotate in the camera view based on viewing angle
 - **Spawn randomization** — threat positions, headings, and speeds vary each run
-- **Radial action wheel** — WOD-style engagement controls
+- **Radial action wheel** — WOD-style engagement controls (right-click any track)
 - **Event log** — full engagement history, color-coded by severity
-- **Debrief screen** — per-category scoring breakdown with letter grade
+- **Post-scenario debrief** — performance metrics, ROE violation summary, letter grade
 
 ---
 
@@ -103,7 +120,7 @@ src/game/           ← TypeScript game engine (10Hz, runs in browser)
   drone.ts          ← 4 movement behaviors
   detection.ts      ← Multi-sensor detection (FOV, LOS, noise)
   jamming.ts        ← RF + PNT jamming logic
-  nexus.ts        ← NEXUS protocol manipulation state machine
+  nexus.ts          ← NEXUS protocol manipulation state machine
   jackal.ts         ← JACKAL interceptor lifecycle
   waves.ts          ← Wave + ambient traffic spawning
   scoring.ts        ← Full DTID scoring engine
@@ -140,15 +157,23 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 
 ## Roadmap
 
-### Open Issues (v1.3+)
-- [ ] **#10** — ATC coordination mechanic for unidentified tracks
-- [ ] **#22** — Tablet-responsive layout (iPad landscape)
+### Completed (v1.3.0)
+- [x] **#10** — ATC coordination mechanic for UNKNOWN tracks
+- [x] **#22** — Tablet-responsive layout (iPad landscape)
+- [x] **#23** — Track type and affiliation display post-identification
+- [x] **#24** — Remove ghost tracks from map after defeat
+- [x] **#25** — Tutorial single-contact mode (waves disabled)
+- [x] **#29** — Camera orientation by viewing angle + civilian aircraft color
 
-### Future
-- After-action replay (timeline scrub on debrief)
-- Terrain LOS checks
-- Multi-operator / shared mission
-- Community-contributed scenarios
+### In Progress (v1.3.x)
+- [ ] **#33** — Post-scenario debrief scorecard with performance metrics
+
+### Backlog
+- [ ] **#31** — C-UAS training library / study mode
+- [ ] OPEN SKIES free-play scenario (escalating chaos mode)
+- [ ] After-action replay (timeline scrub)
+- [ ] Terrain LOS checks
+- [ ] Multi-operator / shared mission
 
 ---
 
