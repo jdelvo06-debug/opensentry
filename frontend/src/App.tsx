@@ -916,7 +916,11 @@ export default function App() {
     setEvents((prev) => [...prev, { timestamp: elapsed, message: `ATC CALL: IFF check requested — ${label.toUpperCase()}` }]);
 
     const delay = 6000 + Math.random() * 2000;
-    const isAuthorized = Math.random() < 0.5;
+    const track = tracks.find((t) => t.id === trackId);
+    const cls = (track?.classification ?? "").toLowerCase();
+    // Only manned aircraft can be ATC-authorized; UAS/drone/quad/rotor are never in the system
+    const canBeAuthorized = cls.includes("fixed-wing") || cls.includes("manned") || cls.includes("helicopter") || cls.includes("aircraft");
+    const isAuthorized = canBeAuthorized && Math.random() < 0.5;
     const responseText = isAuthorized
       ? `Track ${label.toUpperCase()} — confirmed authorized aircraft`
       : `Track ${label.toUpperCase()} — not in our system`;
