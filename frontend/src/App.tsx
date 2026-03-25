@@ -18,7 +18,7 @@ import FeedbackModal from "./components/FeedbackModal";
 import TutorialFeedback from "./components/TutorialFeedback";
 import PauseOverlay from "./components/PauseOverlay";
 import ROEBriefing from "./components/ROEBriefing";
-import ATCCommsPanel from "./components/ATCCommsPanel";
+
 import { useGameEngine as useWebSocket } from "./hooks/useGameEngine";
 import { soundEngine } from "./audio/SoundEngine";
 import type {
@@ -227,9 +227,8 @@ export default function App() {
   const detectionPingedRef = useRef<Set<string>>(new Set()); // tracks that have already triggered a detection ping
 
   // ATC coordination state
-  const [atcCommsMessages, setAtcCommsMessages] = useState<{ direction: "out" | "in"; text: string }[]>([]);
-  const [atcPanelVisible, setAtcPanelVisible] = useState(false);
-  const atcPanelTimerRef = useRef<number>(0);
+  const [atcCommsMessages, setAtcCommsMessages] = useState<Record<string, { direction: "out" | "in"; text: string }[]>>({});
+
   const atcIffAssignedRef = useRef<Set<string>>(new Set()); // track IDs already assigned iff_status
 
   const handleToggleMute = useCallback(() => {
@@ -801,9 +800,7 @@ export default function App() {
     setWaveNumber(1);
     setShowRoeOverlay(false);
     // ATC reset
-    setAtcCommsMessages([]);
-    setAtcPanelVisible(false);
-    window.clearTimeout(atcPanelTimerRef.current);
+    setAtcCommsMessages({});
     atcIffAssignedRef.current.clear();
   };
 
@@ -914,10 +911,8 @@ export default function App() {
       ),
     );
     const label = tracks.find((t) => t.id === trackId)?.display_label ?? trackId;
-    const outMsg = `Ops: Requesting IFF check on Track ${label.toUpperCase()}`;
-    setAtcCommsMessages((prev) => [...prev, { direction: "out", text: outMsg }]);
-    setAtcPanelVisible(true);
-    window.clearTimeout(atcPanelTimerRef.current);
+    const outMsg = `Requesting IFF check — Track ${label.toUpperCase()}`;
+    setAtcCommsMessages((prev) => ({ ...prev, [trackId]: [...(prev[trackId] ?? []), { direction: "out", text: outMsg }] }));
     setEvents((prev) => [...prev, { timestamp: elapsed, message: `ATC CALL: IFF check requested — ${label.toUpperCase()}` }]);
 
     const delay = 6000 + Math.random() * 2000;
@@ -934,12 +929,9 @@ export default function App() {
             : t,
         ),
       );
-      const inMsg = `ATC: ${responseText}`;
-      setAtcCommsMessages((prev) => [...prev, { direction: "in", text: inMsg }]);
+      const inMsg = responseText;
+      setAtcCommsMessages((prev) => ({ ...prev, [trackId]: [...(prev[trackId] ?? []), { direction: "in", text: inMsg }] }));
       setEvents((prev) => [...prev, { timestamp: elapsed, message: `ATC RESPONSE: ${responseText}` }]);
-      // Auto-dismiss panel 10s after last response
-      window.clearTimeout(atcPanelTimerRef.current);
-      atcPanelTimerRef.current = window.setTimeout(() => setAtcPanelVisible(false), 10000);
     }, delay);
   }, [tracks, elapsed]);
 
@@ -1708,6 +1700,7 @@ export default function App() {
             onEngage={engage}
             onSlewCamera={handleSlewCamera}
             onCallATC={callATC}
+            atcMessages={selectedTrack ? (atcCommsMessages[selectedTrack.id] ?? []) : []}
             tutorialStep={isTutorial ? tutorialStep : undefined}
           />
         </div>
@@ -1726,14 +1719,6 @@ export default function App() {
         onCallATC={callATC}
         onTagFriendly={tagFriendly}
       />
-
-      {/* ATC Comms Panel */}
-      {atcPanelVisible && (
-        <ATCCommsPanel
-          messages={atcCommsMessages}
-          onClose={() => setAtcPanelVisible(false)}
-        />
-      )}
 
       {/* Keyboard shortcuts hint */}
       {phase === "running" && (

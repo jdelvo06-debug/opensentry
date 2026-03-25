@@ -1,6 +1,11 @@
 import { useState } from "react";
 import type { EffectorStatus, TrackData } from "../types";
 
+interface AtcMessage {
+  direction: "out" | "in";
+  text: string;
+}
+
 interface Props {
   track: TrackData | null;
   effectors: EffectorStatus[];
@@ -9,6 +14,7 @@ interface Props {
   onEngage: (trackId: string, effectorId: string, nexusCm?: string) => void;
   onSlewCamera?: (trackId: string) => void;
   onCallATC?: (trackId: string) => void;
+  atcMessages?: AtcMessage[];
   tutorialStep?: number;
 }
 
@@ -57,6 +63,7 @@ export default function EngagementPanel({
   onEngage,
   onSlewCamera,
   onCallATC,
+  atcMessages = [],
   tutorialStep,
 }: Props) {
   const [nexusSubMenu, setNexusSubMenu] = useState<string | null>(null);
@@ -175,6 +182,35 @@ export default function EngagementPanel({
             >
               {track.atc_response_pending ? "ATC PENDING..." : track.atc_called ? "ATC CALLED" : "📞 CALL ATC"}
             </button>
+          )}
+          {/* ATC comms log — inline, shows after call is made */}
+          {atcMessages.length > 0 && (
+            <div style={{
+              marginTop: 6,
+              background: "#0a1a1a",
+              border: "1px solid #22d3ee33",
+              borderRadius: 5,
+              padding: "6px 8px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 4,
+            }}>
+              <div style={{ fontSize: 8, fontWeight: 600, color: "#22d3ee99", letterSpacing: 1.5, marginBottom: 2 }}>ATC COMMS</div>
+              {atcMessages.map((msg, i) => (
+                <div key={i} style={{
+                  fontSize: 9,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  color: msg.direction === "in" ? "#22d3ee" : "#8b949e",
+                  textAlign: msg.direction === "in" ? "left" : "right",
+                  lineHeight: 1.4,
+                }}>
+                  <span style={{ color: msg.direction === "in" ? "#22d3ee66" : "#484f58", marginRight: 4 }}>
+                    {msg.direction === "in" ? "ATC›" : "OPS›"}
+                  </span>
+                  {msg.text}
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}
