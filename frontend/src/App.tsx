@@ -19,6 +19,8 @@ import TutorialFeedback from "./components/TutorialFeedback";
 import ATCCommsPanel from "./components/ATCCommsPanel";
 import PauseOverlay from "./components/PauseOverlay";
 import ROEBriefing from "./components/ROEBriefing";
+import StudyLibrary from "./components/StudyLibrary";
+import StudyModule from "./components/StudyModule";
 
 import { useGameEngine as useWebSocket } from "./hooks/useGameEngine";
 import { soundEngine } from "./audio/SoundEngine";
@@ -137,6 +139,7 @@ export default function App() {
   // --- Flow state ---
   const [phase, setPhase] = useState<GamePhase>("waiting");
   const [showFeedback, setShowFeedback] = useState(false);
+  const [selectedStudyModule, setSelectedStudyModule] = useState<string | null>(null);
 
   // ROE briefing
   const [roeBriefing, setRoeBriefing] = useState<string[]>([]);
@@ -1493,6 +1496,35 @@ export default function App() {
             CUSTOM MISSION
           </button>
 
+          <button
+            onClick={() => setPhase("study_library")}
+            style={{
+              padding: "12px 40px",
+              background: "transparent",
+              border: "1px solid #30363d",
+              borderRadius: 6,
+              color: "#8b949e",
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 13,
+              fontWeight: 600,
+              letterSpacing: 2,
+              cursor: "pointer",
+              transition: "all 0.15s",
+              width: "100%",
+              maxWidth: 640,
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.borderColor = "#58a6ff";
+              (e.currentTarget as HTMLElement).style.color = "#58a6ff";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.borderColor = "#30363d";
+              (e.currentTarget as HTMLElement).style.color = "#8b949e";
+            }}
+          >
+            STUDY
+          </button>
+
           {/* Footer */}
           <div style={{ marginTop: 40, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <button
@@ -1564,6 +1596,36 @@ export default function App() {
           {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
         </div>
       </div>
+    );
+  }
+
+  // --- Phase: Study Library ---
+  if (phase === "study_library") {
+    return (
+      <StudyLibrary
+        onSelectModule={(moduleId) => {
+          setSelectedStudyModule(moduleId);
+          setPhase("study_module");
+        }}
+        onBack={() => setPhase("waiting")}
+      />
+    );
+  }
+
+  // --- Phase: Study Module ---
+  if (phase === "study_module" && selectedStudyModule) {
+    return (
+      <StudyModule
+        moduleId={selectedStudyModule}
+        onBack={() => {
+          setSelectedStudyModule(null);
+          setPhase("study_library");
+        }}
+        onLaunchScenario={() => {
+          setSelectedStudyModule(null);
+          setPhase("waiting");
+        }}
+      />
     );
   }
 

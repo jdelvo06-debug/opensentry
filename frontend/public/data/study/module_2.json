@@ -1,0 +1,46 @@
+{
+  "id": "module_2",
+  "title": "Procedural Fluency Under Time Pressure",
+  "subtitle": "Easy | 15–25 min",
+  "scenario": "Lone Wolf",
+  "difficulty": "Easy",
+  "slides": [
+    {
+      "title": "Overview",
+      "type": "overview",
+      "content": "Speed matters. Module 2 removes the tutorial guardrails — you execute the full DTID kill chain without prompting. The Lone Wolf scenario gives you a single target and a ticking clock. Hesitation is the enemy."
+    },
+    {
+      "title": "Learning Objectives",
+      "type": "objectives",
+      "content": [
+        "Execute the full DTID kill chain without prompting",
+        "Use the Radial Action Wheel efficiently",
+        "Operate NEXUS protocol manipulation (1/2 → 2/2 state progression)",
+        "Select between RF jamming and NEXUS based on situational factors",
+        "Monitor the event log and track list simultaneously",
+        "Interpret the debrief score by category"
+      ]
+    },
+    {
+      "title": "Key Concepts",
+      "type": "concepts",
+      "content": [
+        "NEXUS 4-band RF detection: 2.4 / 5.8 / 430 / 900 MHz",
+        "Defeat modes: HOLD vs. LAND NOW vs. DEAFEN",
+        "Effector recharge cycles — plan ahead, do not let effectors go dry simultaneously",
+        "Track data block: speed, altitude, heading, ETA to base"
+      ]
+    },
+    {
+      "title": "Standards",
+      "type": "standards",
+      "content": [
+        "Time to first engagement: initiated within 60 seconds of detection",
+        "Kill chain sequencing: zero ROE violations — no engagement before identification",
+        "NEXUS proficiency: correct 1/2→2/2 progression and defeat mode selection",
+        "Debrief: operator can explain each score category"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "id": "module_1",
+  "title": "Foundation of the DTID Kill Chain",
+  "subtitle": "Beginner | 20–30 min",
+  "scenario": "Tutorial",
+  "difficulty": "Beginner",
+  "slides": [
+    {
+      "title": "Overview",
+      "type": "overview",
+      "content": "The DTID Kill Chain is the foundation of all C-UAS operations. Before you can defeat a threat, you must Detect it, Track it, and Identify it. This module walks you through each phase using the Tutorial scenario — a single slow-moving commercial quadcopter on direct approach."
+    },
+    {
+      "title": "Learning Objectives",
+      "type": "objectives",
+      "content": [
+        "Identify the four phases of the DTID kill chain",
+        "Use the L-Band surveillance radar to detect an inbound contact",
+        "Confirm a track and explain why correlation is required before engagement",
+        "Slew the EO/IR camera and classify the threat type",
+        "Select the appropriate countermeasure and engage",
+        "State the primary limitation of RF/PNT jamming"
+      ]
+    },
+    {
+      "title": "Key Concepts",
+      "type": "concepts",
+      "content": [
+        "Sensor vs. effector — sensors detect and identify; effectors defeat",
+        "Why you identify before you engage: ROE and engagement authority",
+        "EO/IR camera: thermal vs. daylight mode",
+        "RF/PNT jamming is ineffective against autonomous (INS-navigated) threats"
+      ]
+    },
+    {
+      "title": "Standards",
+      "type": "standards",
+      "content": [
+        "Radar detection: contact detected within 10s of entering radar range",
+        "Track confirmation: confirmed before engagement — zero unconfirmed engagements",
+        "Camera ID: correct threat classification before defeat action",
+        "Effector selection: RF Jammer (not JACKAL) for commercial quad",
+        "Engagement: drone neutralized before reaching protected area"
+      ]
+    }
+  ]
+}
