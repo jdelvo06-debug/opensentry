@@ -10,7 +10,7 @@ export default function ROEBriefing({ scenarioName, roeBriefing, onConfirm, onBa
     <div
       style={{
         width: "100vw",
-        minHeight: "100vh",
+        height: "100vh",
         overflowY: "auto",
         background: "#0d1117",
         display: "flex",
@@ -21,6 +21,7 @@ export default function ROEBriefing({ scenarioName, roeBriefing, onConfirm, onBa
         paddingBottom: 40,
         fontFamily: "'Inter', sans-serif",
         color: "#e6edf3",
+        boxSizing: "border-box",
       }}
     >
       <div
