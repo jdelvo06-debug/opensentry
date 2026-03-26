@@ -41,12 +41,16 @@
     "zoom": 13
   },
   "roe_briefing": [
-    "Positive identification required before any engagement",
-    "Do not engage tracks classified as FRIENDLY or CIVILIAN",
-    "Electronic countermeasures authorized against confirmed hostile UAS",
-    "Kinetic engagement authorized only when electronic defeat is ineffective or unavailable",
-    "All engagements must occur within the weapon engagement zone (WEZ)",
-    "Free-play mode — end mission at your discretion"
+    "LISTEN UP.",
+    "Welcome to OPEN SKIES — an unscripted free-play exercise. There is no scripted threat package and no predetermined end state. The airspace will get progressively more complex. How long you last is up to you.",
+    "SITUATION — Threat UAS activity has been observed in the area. All contact types are possible — from commercial quads to autonomous fixed-wing. Expect a slow build. Do not let the quiet early phase make you complacent.",
+    "UNKNOWN contacts (yellow) — Do not engage. Call ATC for IFF clearance first. Engaging without clearance is a blue-on-blue incident and will be scored accordingly.",
+    "HOSTILE / SUSPECT contacts — Cleared to engage with appropriate effector. Match the threat.",
+    "FRIENDLY contacts — Weapons safe. Any engagement is a ROE violation.",
+    "Birds and balloons — Ambient traffic. Cannot be engaged under any circumstances.",
+    "EXECUTION — Full sensor and effector loadout available. Use it wisely — this exercise does not end on its own. End the mission manually when you are satisfied with your performance.",
+    "ENDSTATE — No base breach. Maximum threat neutralization. Full ROE compliance.",
+    "Good luck out there."
   ],
   "engagement_zones": {
     "detection_range_km": 5.0,
