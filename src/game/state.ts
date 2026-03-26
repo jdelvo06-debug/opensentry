@@ -508,6 +508,6 @@ export function createGameState(
     pause_start_time: 0,
     total_paused_seconds: 0,
     free_play_spawn_counter: 0,
-    free_play_last_spawn_time: 0,
+    free_play_last_spawn_time: -30,
   };
 }

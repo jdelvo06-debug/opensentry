@@ -501,7 +501,7 @@ export default function App() {
           atcCallsMade: atcCallsMadeRef.current,
           atcCallLog: [...atcCallLogRef.current],
           roeViolations: [...roeViolationsRef.current],
-          success: !msg.drone_reached_base && tracksDefeatedRef.current.size > 0,
+          success: isFreePlayRef.current ? !msg.drone_reached_base : !msg.drone_reached_base && tracksDefeatedRef.current.size > 0,
           isTutorial: isTutorialRef.current,
         });
         if (msg.drone_reached_base) {
@@ -623,6 +623,8 @@ export default function App() {
   elapsedRef.current = elapsed;
   const isTutorialRef = useRef(isTutorial);
   isTutorialRef.current = isTutorial;
+  const isFreePlayRef = useRef(isFreePlay);
+  isFreePlayRef.current = isFreePlay;
   const droneReachedBaseRef = useRef(droneReachedBase);
   droneReachedBaseRef.current = droneReachedBase;
 

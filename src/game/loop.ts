@@ -330,7 +330,9 @@ export function tickFreePlaySpawns(gs: GameState, elapsed: number): Msg[] {
 
   gs.drone_configs.set(cfg.id, cfg);
   const label = nextTrackLabel(gs);
-  const drone = { ...createDroneFromConfig(cfg), wave_number: gs.current_wave, display_label: label };
+  // Birds and balloons in free-play are ambient — they despawn when off-map and don't count as threats
+  const isAmbientType = chosenType === 'bird' || chosenType === 'balloon';
+  const drone = { ...createDroneFromConfig(cfg), wave_number: gs.current_wave, display_label: label, is_ambient: isAmbientType };
   gs.drones.push(drone);
   gs.behaviors.set(cfg.id, cfg.behavior);
   gs.free_play_last_spawn_time = elapsed;
