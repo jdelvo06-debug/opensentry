@@ -1106,8 +1106,8 @@ export default function App() {
       duration: "12 min",
     },
     {
-      id: "open_skies",
-      name: "OPEN SKIES",
+      id: "thermopylae",
+      name: "THERMOPYLAE",
       subtitle: "Free Play",
       description: "Unscripted free-play. Three escalating phases then endless chaos. End when done.",
       difficulty: "VARIABLE",
@@ -1195,7 +1195,7 @@ export default function App() {
       ],
     };
 
-    // Open Skies gets the full swarm loadout (heavy threat environment)
+    // Thermopylae gets the full swarm loadout (heavy threat environment)
     const openSkiesPlacement: PlacementConfig = {
       base_id: "medium_airbase",
       sensors: [
@@ -1221,7 +1221,7 @@ export default function App() {
       lone_wolf: loneWolfPlacement,
       swarm_attack: swarmPlacement,
       recon_probe: reconPlacement,
-      open_skies: openSkiesPlacement,
+      thermopylae: openSkiesPlacement,
     };
     const placement = placementMap[scenarioId] ?? loneWolfPlacement;
 
@@ -1261,7 +1261,7 @@ export default function App() {
         detectionPingedRef.current.clear();
         setTutorialMessage(null);
         setIsTutorial(isTut);
-        setIsFreePlay(scenarioId === "open_skies");
+        setIsFreePlay(scenarioId === "thermopylae");
         setTutorialStep(0);
         setTutorialFeedback(null);
         setPaused(false);

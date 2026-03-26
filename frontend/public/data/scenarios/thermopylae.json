@@ -1,6 +1,6 @@
 {
-  "id": "open_skies",
-  "name": "OPEN SKIES",
+  "id": "thermopylae",
+  "name": "THERMOPYLAE",
   "description": "Unscripted free-play. Three escalating threat phases then endless chaos.",
   "difficulty": "Variable",
   "duration_seconds": 1200,
@@ -42,7 +42,7 @@
   },
   "roe_briefing": [
     "LISTEN UP.",
-    "Welcome to OPEN SKIES — an unscripted free-play exercise. There is no scripted threat package and no predetermined end state. The airspace will get progressively more complex. How long you last is up to you.",
+    "Welcome to THERMOPYLAE — an unscripted free-play exercise. There is no scripted threat package and no predetermined end state. The airspace will get progressively more complex. How long you last is up to you.",
     "SITUATION — Threat UAS activity has been observed in the area. All contact types are possible — from commercial quads to autonomous fixed-wing. Expect a slow build. Do not let the quiet early phase make you complacent.",
     "UNKNOWN contacts (yellow) — Do not engage. Call ATC for IFF clearance first. Engaging without clearance is a blue-on-blue incident and will be scored accordingly.",
     "HOSTILE / SUSPECT contacts — Cleared to engage with appropriate effector. Match the threat.",

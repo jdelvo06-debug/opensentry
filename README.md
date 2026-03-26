@@ -170,7 +170,7 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 
 ### Backlog
 - [ ] **#31** — C-UAS training library / study mode
-- [ ] OPEN SKIES free-play scenario (escalating chaos mode)
+- [ ] THERMOPYLAE free-play scenario (escalating chaos mode)
 - [ ] After-action replay (timeline scrub)
 - [ ] Terrain LOS checks
 - [ ] Multi-operator / shared mission
