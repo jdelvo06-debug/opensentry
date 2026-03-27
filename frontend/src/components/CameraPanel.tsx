@@ -111,10 +111,10 @@ function drawCommercialQuad(ctx: CanvasRenderingContext2D, s: number, time: numb
   ctx.translate(0, wobbleY);
   ctx.rotate(wobbleRot);
 
-  const bodyW = 24 * s;   // wider than tall — bulky rectangular body
-  const bodyH = 16 * s;
-  const armLen = 24 * s;
-  const rotorR = 13 * s;
+  const bodyW = 32 * s;   // wider than tall — bulky rectangular body
+  const bodyH = 20 * s;
+  const armLen = 34 * s;
+  const rotorR = 16 * s;
   const rotorSpeed = 22;
 
   // ── 4 fixed diagonal arms (X-configuration, straight out from corners) ──
@@ -158,7 +158,7 @@ function drawCommercialQuad(ctx: CanvasRenderingContext2D, s: number, time: numb
   ctx.save();
   ctx.globalAlpha = 0.25;
   ctx.beginPath();
-  ctx.ellipse(0, -bodyH * 0.15, bodyW * 0.35, bodyH * 0.18, 0, 0, Math.PI * 2);
+  ctx.ellipse(0, -bodyH * 0.15, bodyW * 0.4, bodyH * 0.22, 0, 0, Math.PI * 2);
   ctx.fillStyle = "#ffffff";
   ctx.fill();
   ctx.restore();
@@ -167,13 +167,13 @@ function drawCommercialQuad(ctx: CanvasRenderingContext2D, s: number, time: numb
   ctx.lineWidth = Math.max(1.5, 2 * s);
   const legs = [
     // Front-left: attach at front-left of body, splay forward-left
-    { bx: -bodyW * 0.4, by: -bodyH / 2, ex: -bodyW * 0.5, ey: -bodyH / 2 - 13 * s },
+    { bx: -bodyW * 0.4, by: -bodyH / 2, ex: -bodyW * 0.65, ey: -bodyH / 2 - 14 * s },
     // Front-right: attach at front-right, splay forward-right
-    { bx: bodyW * 0.4, by: -bodyH / 2, ex: bodyW * 0.5, ey: -bodyH / 2 - 13 * s },
+    { bx: bodyW * 0.4, by: -bodyH / 2, ex: bodyW * 0.65, ey: -bodyH / 2 - 14 * s },
     // Rear-left: attach at rear-left, splay backward-left
-    { bx: -bodyW * 0.4, by: bodyH / 2, ex: -bodyW * 0.5, ey: bodyH / 2 + 15 * s },
+    { bx: -bodyW * 0.4, by: bodyH / 2, ex: -bodyW * 0.65, ey: bodyH / 2 + 20 * s },
     // Rear-right: attach at rear-right, splay backward-right
-    { bx: bodyW * 0.4, by: bodyH / 2, ex: bodyW * 0.5, ey: bodyH / 2 + 15 * s },
+    { bx: bodyW * 0.4, by: bodyH / 2, ex: bodyW * 0.65, ey: bodyH / 2 + 20 * s },
   ];
   for (let i = 0; i < 4; i++) {
     ctx.beginPath();
@@ -210,12 +210,12 @@ function drawCommercialQuad(ctx: CanvasRenderingContext2D, s: number, time: numb
   arms.forEach((arm, i) => {
     // Motor hub
     ctx.beginPath();
-    ctx.arc(arm.ex, arm.ey, 3.5 * s, 0, Math.PI * 2);
+    ctx.arc(arm.ex, arm.ey, 4.5 * s, 0, Math.PI * 2);
     ctx.fill();
 
     // Rotor disc blur (spinning effect)
     ctx.save();
-    ctx.globalAlpha = 0.18;
+    ctx.globalAlpha = 0.22;
     ctx.beginPath();
     ctx.arc(arm.ex, arm.ey, rotorR, 0, Math.PI * 2);
     ctx.fill();
@@ -719,12 +719,12 @@ function drawImprovised(ctx: CanvasRenderingContext2D, s: number, time: number) 
   ctx.translate(drift, 0);
   ctx.rotate(wobble);
 
-  const armLen = 18 * s;
-  const propR = 8 * s;
+  const armLen = 26 * s;
+  const propR = 11 * s;
 
   // ── Exposed carbon fiber X-frame (thin arm tubes) ──
-  const stackW = 8 * s;
-  const stackH = 10 * s;
+  const stackW = 11 * s;
+  const stackH = 13 * s;
   const armAngles = [Math.PI / 4, 3 * Math.PI / 4, 5 * Math.PI / 4, 7 * Math.PI / 4];
   const armEnds = armAngles.map(a => ({
     x: Math.cos(a) * armLen,
