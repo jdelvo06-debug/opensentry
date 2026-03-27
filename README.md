@@ -8,6 +8,8 @@
 
 > No install. No account. Just open the link and train.
 
+> 🗺️ **Train at your actual base.** Drop a pin anywhere on Earth — real satellite imagery loads automatically. Set your perimeter, place your sensors, and run scenarios on terrain your operators actually defend. Not a demo airfield. Your location.
+
 **Version:** v1.5.0 | **Status:** Active development
 
 ---
@@ -97,7 +99,8 @@ UAS and drone contacts are never ATC-authorized — only manned aircraft can rec
 
 ## Features
 
-- **Real-world satellite maps** via Leaflet.js — train at any location on Earth
+- **📍 Custom base location** — Before any scenario, drop a pin anywhere on Earth. Real satellite imagery loads for that location. Place your sensors, set your perimeter, and train on the terrain you actually defend. Your base. Your airspace.
+- **Real-world satellite maps** via Leaflet.js — OpenStreetMap + CartoDB imagery, global coverage
 - **Pre-mission ROE briefing** — review Rules of Engagement before each scenario
 - **ATC coordination mechanic** — UNKNOWN contacts require IFF clearance before engagement
 - **Neutral track labels** — contacts spawn as TRN-### until you identify them
@@ -172,7 +175,7 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 - [x] **#35** — THERMOPYLAE free-play scenario ✓
 
 ### Backlog (v1.6.0+)
-- [ ] EO/IR silhouette visual overhaul (all threat types)
+- [x] **#43** — EO/IR silhouette visual overhaul (all threat types) ✓
 - [ ] After-action replay (timeline scrub)
 - [ ] Terrain LOS checks
 - [ ] Multi-operator / shared mission
