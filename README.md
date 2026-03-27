@@ -165,7 +165,6 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 
 ### Completed (v1.5.0)
 - [x] **#10** — ATC coordination mechanic for UNKNOWN tracks
-- [x] **#22** — Tablet-responsive layout (iPad landscape)
 - [x] **#23** — Track type and affiliation display post-identification
 - [x] **#24** — Remove ghost tracks from map after defeat
 - [x] **#25** — Tutorial single-contact mode (waves disabled)
