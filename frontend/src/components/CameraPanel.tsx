@@ -104,27 +104,34 @@ function aspectScaleX(aspect: number): number {
 // ---------------------------------------------------------------------------
 
 function drawCommercialQuad(ctx: CanvasRenderingContext2D, s: number, time: number) {
-  // Mavic/Phantom-style: compact folded-arm body, gimbal pod, 4 rotors
+  // DJI Phantom style: bulky rectangular body, fixed X-arms, landing gear, center gimbal
   const wobbleY = Math.sin(time * 2.8) * 1.2 * s;
   const wobbleRot = Math.sin(time * 1.9) * 0.025;
   ctx.save();
   ctx.translate(0, wobbleY);
   ctx.rotate(wobbleRot);
 
-  const bodyW = 18 * s;
-  const bodyH = 8 * s;
-  const rotorR = 12 * s;
+  const bodyW = 22 * s;   // wider than tall — bulky rectangular body
+  const bodyH = 14 * s;
+  const armLen = 24 * s;
+  const rotorR = 13 * s;
   const rotorSpeed = 22;
 
-  // ── Folded arms (angled outward like Mavic) ──
-  // Front-left, front-right, rear-left, rear-right arm endpoints
+  // ── 4 fixed diagonal arms (X-configuration, straight out from corners) ──
+  const armAngle = Math.PI / 4; // 45° diagonals
   const arms = [
-    { sx: -bodyW * 0.38, sy: -bodyH * 0.3, ex: -bodyW * 0.9, ey: -bodyH * 1.9 },  // FL
-    { sx:  bodyW * 0.38, sy: -bodyH * 0.3, ex:  bodyW * 0.9, ey: -bodyH * 1.9 },  // FR
-    { sx: -bodyW * 0.38, sy:  bodyH * 0.3, ex: -bodyW * 0.85, ey: bodyH * 1.9 },  // RL
-    { sx:  bodyW * 0.38, sy:  bodyH * 0.3, ex:  bodyW * 0.85, ey: bodyH * 1.9 },  // RR
-  ];
-  ctx.lineWidth = Math.max(1.5, 2.5 * s);
+    { ax: -armAngle, label: "FL" },           // front-left
+    { ax: armAngle, label: "FR" },            // front-right
+    { ax: Math.PI - armAngle, label: "RL" },  // rear-left
+    { ax: -(Math.PI - armAngle), label: "RR" }, // rear-right
+  ].map(a => ({
+    sx: Math.cos(a.ax) * bodyW * 0.35,
+    sy: Math.sin(a.ax) * bodyH * 0.35,
+    ex: Math.cos(a.ax) * armLen,
+    ey: Math.sin(a.ax) * armLen,
+  }));
+
+  ctx.lineWidth = Math.max(2, 3 * s);
   arms.forEach(arm => {
     ctx.beginPath();
     ctx.moveTo(arm.sx, arm.sy);
@@ -132,86 +139,101 @@ function drawCommercialQuad(ctx: CanvasRenderingContext2D, s: number, time: numb
     ctx.stroke();
   });
 
-  // ── Main body — tapered fuselage (wider front, narrower rear) ──
+  // ── Large bulky rectangular/rounded body ──
+  const br = 4 * s; // corner radius
   ctx.beginPath();
-  ctx.moveTo(-bodyW * 0.42, -bodyH / 2);       // front-left top
-  ctx.lineTo( bodyW * 0.42, -bodyH / 2);       // front-right top
-  ctx.lineTo( bodyW * 0.3,   bodyH / 2);       // rear-right bottom
-  ctx.lineTo(-bodyW * 0.3,   bodyH / 2);       // rear-left bottom
+  ctx.moveTo(-bodyW / 2 + br, -bodyH / 2);
+  ctx.lineTo(bodyW / 2 - br, -bodyH / 2);
+  ctx.quadraticCurveTo(bodyW / 2, -bodyH / 2, bodyW / 2, -bodyH / 2 + br);
+  ctx.lineTo(bodyW / 2, bodyH / 2 - br);
+  ctx.quadraticCurveTo(bodyW / 2, bodyH / 2, bodyW / 2 - br, bodyH / 2);
+  ctx.lineTo(-bodyW / 2 + br, bodyH / 2);
+  ctx.quadraticCurveTo(-bodyW / 2, bodyH / 2, -bodyW / 2, bodyH / 2 - br);
+  ctx.lineTo(-bodyW / 2, -bodyH / 2 + br);
+  ctx.quadraticCurveTo(-bodyW / 2, -bodyH / 2, -bodyW / 2 + br, -bodyH / 2);
   ctx.closePath();
   ctx.fill();
 
   // Body highlight (top ridge)
   ctx.save();
-  ctx.globalAlpha = 0.35;
+  ctx.globalAlpha = 0.25;
   ctx.beginPath();
-  ctx.moveTo(-bodyW * 0.3, -bodyH / 2);
-  ctx.lineTo( bodyW * 0.3, -bodyH / 2);
-  ctx.lineTo( bodyW * 0.2, -bodyH * 0.05);
-  ctx.lineTo(-bodyW * 0.2, -bodyH * 0.05);
-  ctx.closePath();
+  ctx.ellipse(0, -bodyH * 0.15, bodyW * 0.35, bodyH * 0.18, 0, 0, Math.PI * 2);
   ctx.fillStyle = "#ffffff";
   ctx.fill();
   ctx.restore();
 
-  // Nose sensor bump (front)
-  ctx.beginPath();
-  ctx.ellipse(0, -bodyH / 2 - 2 * s, 4 * s, 2.5 * s, 0, 0, Math.PI * 2);
-  ctx.fill();
+  // ── 4 landing gear legs hanging down from body (spider-like) ──
+  ctx.lineWidth = Math.max(1.5, 2 * s);
+  const legOffsets = [
+    { bx: -bodyW * 0.4, by: bodyH / 2 },
+    { bx: bodyW * 0.4, by: bodyH / 2 },
+    { bx: -bodyW * 0.4, by: bodyH / 2 },
+    { bx: bodyW * 0.4, by: bodyH / 2 },
+  ];
+  // Front two legs splay forward slightly, rear two splay back
+  const legEnds = [
+    { ex: -bodyW * 0.55, ey: bodyH / 2 + 14 * s },
+    { ex: bodyW * 0.55, ey: bodyH / 2 + 14 * s },
+    { ex: -bodyW * 0.55, ey: bodyH / 2 + 14 * s },
+    { ex: bodyW * 0.55, ey: bodyH / 2 + 14 * s },
+  ];
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath();
+    ctx.moveTo(legOffsets[i].bx, legOffsets[i].by);
+    ctx.lineTo(legEnds[i].ex, legEnds[i].ey);
+    ctx.stroke();
+    // Foot bar
+    ctx.beginPath();
+    ctx.moveTo(legEnds[i].ex - 3 * s, legEnds[i].ey);
+    ctx.lineTo(legEnds[i].ex + 3 * s, legEnds[i].ey);
+    ctx.stroke();
+  }
 
-  // ── Gimbal pod (hanging below center, 3-axis style) ──
-  // Gimbal arm
+  // ── Gimbal camera pod hanging under CENTER of body ──
   ctx.lineWidth = Math.max(1, 1.5 * s);
   ctx.beginPath();
   ctx.moveTo(0, bodyH / 2);
   ctx.lineTo(0, bodyH / 2 + 5 * s);
   ctx.stroke();
-  // Gimbal housing (sphere-ish)
+  // Gimbal housing (sphere)
   ctx.beginPath();
-  ctx.arc(0, bodyH / 2 + 8 * s, 4.5 * s, 0, Math.PI * 2);
+  ctx.arc(0, bodyH / 2 + 8 * s, 5 * s, 0, Math.PI * 2);
   ctx.fill();
   // Lens glint
   ctx.save();
   ctx.globalAlpha = 0.6;
   ctx.fillStyle = "#58a6ff";
   ctx.beginPath();
-  ctx.arc(0.8 * s, bodyH / 2 + 7.5 * s, 1.8 * s, 0, Math.PI * 2);
+  ctx.arc(1 * s, bodyH / 2 + 7.5 * s, 2 * s, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 
-  // ── Motor hubs + spinning rotors ──
+  // ── Motor hubs + spinning rotor discs at arm tips ──
   arms.forEach((arm, i) => {
-    const ex = arm.ex;
-    const ey = arm.ey;
-
     // Motor hub
     ctx.beginPath();
-    ctx.arc(ex, ey, 3 * s, 0, Math.PI * 2);
+    ctx.arc(arm.ex, arm.ey, 3.5 * s, 0, Math.PI * 2);
     ctx.fill();
 
-    // Rotor disc blur
+    // Rotor disc blur (spinning effect)
     ctx.save();
-    ctx.globalAlpha = 0.12;
+    ctx.globalAlpha = 0.13;
     ctx.beginPath();
-    ctx.arc(ex, ey, rotorR, 0, Math.PI * 2);
+    ctx.arc(arm.ex, arm.ey, rotorR, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
-    // 2-blade prop
+    // 2-blade prop spinning
     const phase = time * rotorSpeed + i * (Math.PI / 2);
     ctx.lineWidth = Math.max(1.5, 2.5 * s);
     ctx.save();
-    ctx.globalAlpha = 0.75;
+    ctx.globalAlpha = 0.7;
     for (let b = 0; b < 2; b++) {
       const angle = phase + b * Math.PI;
-      // Slightly tapered blade: wider at tip
-      const bx1 = ex + Math.cos(angle) * rotorR;
-      const by1 = ey + Math.sin(angle) * rotorR;
-      const bx2 = ex - Math.cos(angle) * rotorR;
-      const by2 = ey - Math.sin(angle) * rotorR;
       ctx.beginPath();
-      ctx.moveTo(bx1, by1);
-      ctx.lineTo(bx2, by2);
+      ctx.moveTo(arm.ex + Math.cos(angle) * rotorR, arm.ey + Math.sin(angle) * rotorR);
+      ctx.lineTo(arm.ex - Math.cos(angle) * rotorR, arm.ey - Math.sin(angle) * rotorR);
       ctx.stroke();
     }
     ctx.restore();
@@ -221,63 +243,87 @@ function drawCommercialQuad(ctx: CanvasRenderingContext2D, s: number, time: numb
 }
 
 function drawFixedWing(ctx: CanvasRenderingContext2D, s: number, time: number) {
-  // Slight bank/roll oscillation
+  // Penguin/VTOL fixed wing: high-span straight wing, slender fuselage, pusher prop, sensor nose
   const bankAngle = Math.sin(time * 1.5) * 0.06;
   ctx.save();
   ctx.rotate(bankAngle);
 
-  // Narrow fuselage
   const fuseL = 44 * s;
-  const fuseW = 5 * s;
+  const fuseW = 4.5 * s;
+  const wingSpan = 42 * s; // high aspect ratio — very long span
+
+  // ── Slender cylindrical fuselage ──
   ctx.beginPath();
-  ctx.moveTo(fuseL / 2 + 4 * s, 0); // nose point
-  ctx.lineTo(fuseL / 2, -fuseW / 2);
-  ctx.lineTo(-fuseL / 2, -fuseW / 2);
-  ctx.lineTo(-fuseL / 2 - 2 * s, 0);
-  ctx.lineTo(-fuseL / 2, fuseW / 2);
-  ctx.lineTo(fuseL / 2, fuseW / 2);
+  ctx.ellipse(0, 0, fuseL / 2, fuseW / 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── Sensor/camera ball on nose ──
+  ctx.beginPath();
+  ctx.arc(fuseL / 2 + 3 * s, 0, 3.5 * s, 0, Math.PI * 2);
+  ctx.fill();
+  // Lens glint
+  ctx.save();
+  ctx.globalAlpha = 0.5;
+  ctx.fillStyle = "#58a6ff";
+  ctx.beginPath();
+  ctx.arc(fuseL / 2 + 4 * s, -0.5 * s, 1.5 * s, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // ── High aspect ratio straight wings (very long span, narrow chord) ──
+  const wingChord = 8 * s;
+  const wingX = 2 * s; // slightly forward of center
+  // Left wing
+  ctx.beginPath();
+  ctx.moveTo(wingX + wingChord / 2, -fuseW / 2);
+  ctx.lineTo(wingX + wingChord / 2, -wingSpan);
+  ctx.lineTo(wingX - wingChord / 2, -wingSpan);
+  ctx.lineTo(wingX - wingChord / 2, -fuseW / 2);
+  ctx.closePath();
+  ctx.fill();
+  // Rounded wingtip left
+  ctx.beginPath();
+  ctx.ellipse(wingX, -wingSpan, wingChord / 2, 2 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Right wing
+  ctx.beginPath();
+  ctx.moveTo(wingX + wingChord / 2, fuseW / 2);
+  ctx.lineTo(wingX + wingChord / 2, wingSpan);
+  ctx.lineTo(wingX - wingChord / 2, wingSpan);
+  ctx.lineTo(wingX - wingChord / 2, fuseW / 2);
+  ctx.closePath();
+  ctx.fill();
+  // Rounded wingtip right
+  ctx.beginPath();
+  ctx.ellipse(wingX, wingSpan, wingChord / 2, 2 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── Inverted V-tail (twin boom style) ──
+  const tailX = -fuseL / 2;
+  // Left V-tail fin (angled inward-down = inverted V)
+  ctx.beginPath();
+  ctx.moveTo(tailX, 0);
+  ctx.lineTo(tailX - 8 * s, -10 * s);
+  ctx.lineTo(tailX - 6 * s, -10 * s);
+  ctx.lineTo(tailX + 2 * s, 0);
+  ctx.closePath();
+  ctx.fill();
+  // Right V-tail fin
+  ctx.beginPath();
+  ctx.moveTo(tailX, 0);
+  ctx.lineTo(tailX - 8 * s, 10 * s);
+  ctx.lineTo(tailX - 6 * s, 10 * s);
+  ctx.lineTo(tailX + 2 * s, 0);
   ctx.closePath();
   ctx.fill();
 
-  // Delta/swept wings
-  ctx.beginPath();
-  ctx.moveTo(8 * s, 0);
-  ctx.lineTo(-12 * s, -32 * s);
-  ctx.lineTo(-18 * s, -30 * s);
-  ctx.lineTo(-6 * s, 0);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.moveTo(8 * s, 0);
-  ctx.lineTo(-12 * s, 32 * s);
-  ctx.lineTo(-18 * s, 30 * s);
-  ctx.lineTo(-6 * s, 0);
-  ctx.closePath();
-  ctx.fill();
-
-  // V-tail
-  ctx.beginPath();
-  ctx.moveTo(-fuseL / 2, 0);
-  ctx.lineTo(-fuseL / 2 - 8 * s, -12 * s);
-  ctx.lineTo(-fuseL / 2 - 4 * s, -11 * s);
-  ctx.lineTo(-fuseL / 2 + 2 * s, 0);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.moveTo(-fuseL / 2, 0);
-  ctx.lineTo(-fuseL / 2 - 8 * s, 12 * s);
-  ctx.lineTo(-fuseL / 2 - 4 * s, 11 * s);
-  ctx.lineTo(-fuseL / 2 + 2 * s, 0);
-  ctx.closePath();
-  ctx.fill();
-
-  // Rear propeller (spinning)
+  // ── Pusher prop at tail (rear-facing) ──
   const propR = 7 * s;
   const propPhase = time * 22;
-  const px = -fuseL / 2 - 2 * s;
+  const px = tailX - 3 * s;
   ctx.lineWidth = Math.max(1, 2 * s);
+  ctx.save();
   ctx.globalAlpha = 0.7;
   for (let b = 0; b < 3; b++) {
     const ba = propPhase + b * (Math.PI * 2 / 3);
@@ -286,12 +332,14 @@ function drawFixedWing(ctx: CanvasRenderingContext2D, s: number, time: number) {
     ctx.lineTo(px - Math.cos(ba) * propR, -Math.sin(ba) * propR);
     ctx.stroke();
   }
+  ctx.restore();
   // Prop disc blur
+  ctx.save();
   ctx.globalAlpha = 0.12;
   ctx.beginPath();
   ctx.arc(px, 0, propR, 0, Math.PI * 2);
   ctx.fill();
-  ctx.globalAlpha = 1;
+  ctx.restore();
 
   ctx.restore();
 }
@@ -537,160 +585,227 @@ function drawBird(ctx: CanvasRenderingContext2D, s: number, time: number) {
 }
 
 function drawBalloon(ctx: CanvasRenderingContext2D, s: number, time: number) {
-  // Gentle sway
+  // Weather/surveillance balloon: large sphere, long tether, dangling payload stack
   const swayX = Math.sin(time * 0.8) * 3 * s;
-  const swayRot = Math.sin(time * 0.6) * 0.04;
+  const swayRot = Math.sin(time * 0.6) * 0.03;
   ctx.save();
   ctx.translate(swayX, 0);
   ctx.rotate(swayRot);
 
-  // Large balloon envelope
+  const sphereR = 26 * s; // dominant feature — large perfect sphere
+  const sphereY = -22 * s; // sphere center (top of frame)
+
+  // ── Large perfect sphere ──
   ctx.beginPath();
-  ctx.ellipse(0, -16 * s, 22 * s, 28 * s, 0, 0, Math.PI * 2);
+  ctx.arc(0, sphereY, sphereR, 0, Math.PI * 2);
   ctx.fill();
 
-  // Balloon highlight (thermal hotspot)
-  ctx.globalAlpha = 0.15;
+  // Sphere highlight (specular)
+  ctx.save();
+  ctx.globalAlpha = 0.18;
   ctx.beginPath();
-  ctx.ellipse(-5 * s, -22 * s, 8 * s, 12 * s, -0.3, 0, Math.PI * 2);
+  ctx.arc(-8 * s, sphereY - 8 * s, sphereR * 0.4, 0, Math.PI * 2);
+  ctx.fillStyle = "#ffffff";
   ctx.fill();
-  ctx.globalAlpha = 1;
+  ctx.restore();
 
-  // Neck/skirt at bottom of balloon
+  // Neck/valve at bottom of sphere
+  const neckY = sphereY + sphereR;
   ctx.beginPath();
-  ctx.moveTo(-6 * s, 11 * s);
-  ctx.lineTo(-4 * s, 16 * s);
-  ctx.lineTo(4 * s, 16 * s);
-  ctx.lineTo(6 * s, 11 * s);
+  ctx.moveTo(-4 * s, neckY - 2 * s);
+  ctx.lineTo(-3 * s, neckY + 4 * s);
+  ctx.lineTo(3 * s, neckY + 4 * s);
+  ctx.lineTo(4 * s, neckY - 2 * s);
   ctx.closePath();
   ctx.fill();
 
-  // Tether lines (slight sway)
-  const tetherSway = Math.sin(time * 1.2 + 1) * 2 * s;
+  // ── Long thin tether line ──
+  const tetherSway = Math.sin(time * 1.2 + 1) * 2.5 * s;
+  const tetherTop = neckY + 4 * s;
+  const tetherEnd = tetherTop + 60 * s; // very tall aspect ratio
   ctx.lineWidth = Math.max(1, 1 * s);
   ctx.beginPath();
-  ctx.moveTo(-2 * s, 16 * s);
-  ctx.quadraticCurveTo(tetherSway, 28 * s, 0, 40 * s);
-  ctx.moveTo(2 * s, 16 * s);
-  ctx.quadraticCurveTo(tetherSway * 0.7, 28 * s, 0, 40 * s);
+  ctx.moveTo(0, tetherTop);
+  ctx.quadraticCurveTo(tetherSway, tetherTop + 30 * s, 0, tetherEnd);
   ctx.stroke();
 
-  // Payload box
-  ctx.fillRect(-7 * s, 40 * s, 14 * s, 9 * s);
-
-  // Payload antenna
+  // ── Payload module 1: small instrument package just below sphere ──
+  const pkg1Y = tetherTop + 14 * s;
+  ctx.fillRect(-5 * s, pkg1Y - 3 * s, 10 * s, 6 * s);
+  // Antenna on instrument package
   ctx.lineWidth = Math.max(1, 0.8 * s);
   ctx.beginPath();
-  ctx.moveTo(0, 40 * s);
-  ctx.lineTo(0, 36 * s);
-  ctx.moveTo(-3 * s, 36 * s);
-  ctx.lineTo(3 * s, 36 * s);
+  ctx.moveTo(0, pkg1Y - 3 * s);
+  ctx.lineTo(0, pkg1Y - 7 * s);
+  ctx.moveTo(-3 * s, pkg1Y - 7 * s);
+  ctx.lineTo(3 * s, pkg1Y - 7 * s);
+  ctx.stroke();
+
+  // ── Payload module 2: larger box/crate further down ──
+  const pkg2Y = tetherTop + 42 * s;
+  ctx.fillRect(-8 * s, pkg2Y - 5 * s, 16 * s, 10 * s);
+  // Cross strapping detail on crate
+  ctx.lineWidth = Math.max(1, 0.7 * s);
+  ctx.beginPath();
+  ctx.moveTo(-8 * s, pkg2Y - 5 * s);
+  ctx.lineTo(8 * s, pkg2Y + 5 * s);
+  ctx.moveTo(8 * s, pkg2Y - 5 * s);
+  ctx.lineTo(-8 * s, pkg2Y + 5 * s);
   ctx.stroke();
 
   ctx.restore();
 }
 
 function drawShahed(ctx: CanvasRenderingContext2D, s: number, _time: number) {
-  // Shahed-136 / loitering munition: wide flat delta wing, small central body, pusher prop at tail
-  // Top-down view — wide triangular planform
+  // Shahed-136: near-equilateral triangle delta wing, bullet nose, pusher prop at tail center
+  // Very flat — mostly wing, minimal fuselage
 
-  // Main delta wing — very wide, short chord
+  const wingSpan = 40 * s;  // half-span
+  const chordLen = 36 * s;  // nose to trailing edge
+
+  // ── Near-equilateral triangle delta wing (wide flat triangle) ──
   ctx.beginPath();
-  ctx.moveTo(18 * s, 0);           // nose
-  ctx.lineTo(-10 * s, -38 * s);   // left wingtip
-  ctx.lineTo(-16 * s, -34 * s);   // left trailing edge
-  ctx.lineTo(-18 * s, 0);         // tail center-left
-  ctx.lineTo(-16 * s, 34 * s);    // right trailing edge
-  ctx.lineTo(-10 * s, 38 * s);    // right wingtip
+  ctx.moveTo(chordLen / 2, 0);              // bullet nose tip (extends forward)
+  ctx.lineTo(-chordLen / 2, -wingSpan);     // left wingtip trailing edge
+  ctx.lineTo(-chordLen / 2, wingSpan);      // right wingtip trailing edge
   ctx.closePath();
   ctx.fill();
 
-  // Narrow central fuselage stripe
-  ctx.save();
-  const prevFill = ctx.fillStyle;
-  ctx.fillStyle = "rgba(80,90,100,0.6)";
+  // ── Bullet-shaped nose cone extending forward from leading edge ──
   ctx.beginPath();
-  ctx.ellipse(2 * s, 0, 14 * s, 3 * s, 0, 0, Math.PI * 2);
+  ctx.ellipse(chordLen / 2 + 5 * s, 0, 7 * s, 3.5 * s, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = prevFill;
+  // Nose tip
+  ctx.beginPath();
+  ctx.moveTo(chordLen / 2 + 10 * s, 0);
+  ctx.lineTo(chordLen / 2 + 3 * s, -2.5 * s);
+  ctx.lineTo(chordLen / 2 + 3 * s, 2.5 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // ── Subtle fuselage spine (minimal — mostly wing) ──
+  ctx.save();
+  ctx.globalAlpha = 0.3;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, chordLen * 0.35, 3.5 * s, 0, 0, Math.PI * 2);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
   ctx.restore();
 
-  // Pusher prop circle at tail
+  // ── Small rectangular wingtip stabilizers/fins at each tip ──
+  const tipFinW = 6 * s;
+  const tipFinH = 3 * s;
+  // Left wingtip fin
+  ctx.fillRect(-chordLen / 2 - tipFinW, -wingSpan - tipFinH / 2, tipFinW, tipFinH);
+  // Right wingtip fin
+  ctx.fillRect(-chordLen / 2 - tipFinW, wingSpan - tipFinH / 2, tipFinW, tipFinH);
+
+  // ── Pusher prop at tail center ──
+  const propX = -chordLen / 2 - 2 * s;
+  const propR = 5 * s;
+  // Prop disc
+  ctx.lineWidth = Math.max(1, 1.5 * s);
   ctx.beginPath();
-  ctx.arc(-18 * s, 0, 4 * s, 0, Math.PI * 2);
+  ctx.arc(propX, 0, propR, 0, Math.PI * 2);
   ctx.stroke();
-
-  // Small V-tail fins
+  // Prop hub
   ctx.beginPath();
-  ctx.moveTo(-14 * s, 0);
-  ctx.lineTo(-20 * s, -8 * s);
-  ctx.lineTo(-18 * s, -7 * s);
-  ctx.lineTo(-13 * s, 0);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.moveTo(-14 * s, 0);
-  ctx.lineTo(-20 * s, 8 * s);
-  ctx.lineTo(-18 * s, 7 * s);
-  ctx.lineTo(-13 * s, 0);
-  ctx.closePath();
+  ctx.arc(propX, 0, 2 * s, 0, Math.PI * 2);
   ctx.fill();
 }
 
 function drawImprovised(ctx: CanvasRenderingContext2D, s: number, time: number) {
-  // Slight wobble — improvised drones are unstable
+  // FPV racing/attack drone: exposed X-frame, no shell, front camera, box cam on top
   const wobble = Math.sin(time * 4.5) * 0.06;
   const drift = Math.sin(time * 2.3) * 1.5 * s;
   ctx.save();
   ctx.translate(drift, 0);
   ctx.rotate(wobble);
 
-  // Irregular body
-  ctx.beginPath();
-  const pts: [number, number][] = [
-    [14 * s, -5 * s],
-    [10 * s, -16 * s],
-    [-4 * s, -15 * s],
-    [-18 * s, -3 * s],
-    [-12 * s, 13 * s],
-    [8 * s, 15 * s],
-  ];
-  ctx.moveTo(pts[0][0], pts[0][1]);
-  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
-  ctx.closePath();
-  ctx.fill();
+  const armLen = 18 * s;
+  const propR = 8 * s;
 
-  // Strapped-on appendages
-  ctx.fillRect(14 * s, -9 * s, 12 * s, 5 * s);
-  ctx.fillRect(-18 * s, 5 * s, 10 * s, 4 * s);
-  ctx.fillRect(-3 * s, 15 * s, 6 * s, 10 * s);
-
-  // Spinning rotors (taped-on look, uneven)
-  const rotorPositions: [number, number][] = [
-    [-12 * s, -14 * s],
-    [10 * s, -14 * s],
-    [-14 * s, 12 * s],
-    [8 * s, 13 * s],
-  ];
-  ctx.lineWidth = Math.max(1, 1.5 * s);
-  for (let i = 0; i < rotorPositions.length; i++) {
-    const [rx, ry] = rotorPositions[i];
-    const rr = 6 * s;
-    const phase = time * (16 + i * 3) + i * 2; // uneven speeds
-    ctx.globalAlpha = 0.5;
-    for (let b = 0; b < 2; b++) {
-      const ba = phase + b * Math.PI;
-      ctx.beginPath();
-      ctx.moveTo(rx + Math.cos(ba) * rr, ry + Math.sin(ba) * rr);
-      ctx.lineTo(rx - Math.cos(ba) * rr, ry - Math.sin(ba) * rr);
-      ctx.stroke();
-    }
-    ctx.globalAlpha = 0.1;
+  // ── Exposed carbon fiber X-frame (thin arm tubes) ──
+  const armAngles = [Math.PI / 4, 3 * Math.PI / 4, 5 * Math.PI / 4, 7 * Math.PI / 4];
+  const armEnds = armAngles.map(a => ({
+    x: Math.cos(a) * armLen,
+    y: Math.sin(a) * armLen,
+  }));
+  ctx.lineWidth = Math.max(1.5, 2 * s);
+  armEnds.forEach(end => {
     ctx.beginPath();
-    ctx.arc(rx, ry, rr, 0, Math.PI * 2);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(end.x, end.y);
+    ctx.stroke();
+  });
+
+  // ── Compact aggressive squarish center stack (FC, ESC, battery) ──
+  const stackW = 8 * s;
+  const stackH = 10 * s;
+  ctx.fillRect(-stackW / 2, -stackH / 2, stackW, stackH);
+
+  // Battery pack on bottom (slightly wider)
+  ctx.fillRect(-stackW * 0.65, stackH * 0.1, stackW * 1.3, 4 * s);
+
+  // ── Front-facing FPV camera at ~35° angle on nose ──
+  ctx.save();
+  ctx.translate(stackW / 2 + 2 * s, -stackH / 2 + 1 * s);
+  ctx.rotate(-0.6); // ~35° tilt up
+  ctx.fillRect(-1.5 * s, -2 * s, 3 * s, 4 * s);
+  // Lens
+  ctx.save();
+  ctx.globalAlpha = 0.6;
+  ctx.fillStyle = "#ff6666";
+  ctx.beginPath();
+  ctx.arc(1.5 * s, 0, 1.5 * s, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  ctx.restore();
+
+  // ── Action camera (GoPro style box) mounted on top ──
+  const camW = 6 * s;
+  const camH = 5 * s;
+  ctx.fillRect(-camW / 2, -stackH / 2 - camH - 1 * s, camW, camH);
+  // Camera lens (front face)
+  ctx.save();
+  ctx.globalAlpha = 0.5;
+  ctx.fillStyle = "#58a6ff";
+  ctx.beginPath();
+  ctx.arc(0, -stackH / 2 - camH / 2 - 1 * s, 2 * s, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // ── 4 colored props (actual blade shapes, NOT just discs) ──
+  ctx.lineWidth = Math.max(1.5, 2 * s);
+  for (let i = 0; i < armEnds.length; i++) {
+    const { x: ex, y: ey } = armEnds[i];
+    const phase = time * (18 + i * 3) + i * 1.8; // slightly uneven speeds
+
+    // Draw 3 visible blades (tri-blade props typical on FPV)
+    ctx.save();
+    ctx.globalAlpha = 0.7;
+    for (let b = 0; b < 3; b++) {
+      const ba = phase + b * (Math.PI * 2 / 3);
+      const tipX = ex + Math.cos(ba) * propR;
+      const tipY = ey + Math.sin(ba) * propR;
+      // Blade shape — tapered: wide at hub, narrow at tip
+      const perpAngle = ba + Math.PI / 2;
+      const hubW = 2 * s;
+      const tipW = 0.8 * s;
+      ctx.beginPath();
+      ctx.moveTo(ex + Math.cos(perpAngle) * hubW, ey + Math.sin(perpAngle) * hubW);
+      ctx.lineTo(tipX + Math.cos(perpAngle) * tipW, tipY + Math.sin(perpAngle) * tipW);
+      ctx.lineTo(tipX - Math.cos(perpAngle) * tipW, tipY - Math.sin(perpAngle) * tipW);
+      ctx.lineTo(ex - Math.cos(perpAngle) * hubW, ey - Math.sin(perpAngle) * hubW);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // Motor hub dot
+    ctx.beginPath();
+    ctx.arc(ex, ey, 2 * s, 0, Math.PI * 2);
     ctx.fill();
-    ctx.globalAlpha = 1;
   }
 
   ctx.restore();
