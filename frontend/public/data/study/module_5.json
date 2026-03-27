@@ -1,0 +1,45 @@
+{
+  "id": "module_5",
+  "title": "Operator Proficiency Assessment",
+  "subtitle": "Variable | 30–60 min",
+  "scenario": "Custom (user-defined)",
+  "difficulty": "Variable",
+  "slides": [
+    {
+      "title": "Overview",
+      "type": "overview",
+      "content": "No script. No guardrails. You configure the base location, place your sensors and effectors, and execute the mission. Module 5 is the evaluation scenario — it tests whether you can apply everything from Modules 1–4 in an environment you have never seen before."
+    },
+    {
+      "title": "Learning Objectives",
+      "type": "objectives",
+      "content": [
+        "Configure a realistic C-UAS defensive layout using the placement screen",
+        "Identify coverage gaps in your own layout before mission execution",
+        "Execute a full mission without tutorial assistance",
+        "Self-assess performance using the debrief screen",
+        "Identify at least 2 areas for improvement from your own score"
+      ]
+    },
+    {
+      "title": "Key Concepts",
+      "type": "concepts",
+      "content": [
+        "Sensor placement: radar and EO/IR must cover primary approach corridors",
+        "Effector positioning: JACKAL within Ku-Band FCS coverage; jammer within 5km of threat axes",
+        "Coverage gaps are exploited by adversaries — find them before the mission does",
+        "Debrief is the most important part of training — what you learn after the run is what sticks"
+      ]
+    },
+    {
+      "title": "Standards",
+      "type": "standards",
+      "content": [
+        "Radar and EO/IR correctly positioned to cover primary approach corridors",
+        "JACKAL within Ku-Band FCS coverage; jammer within 5km of likely threat axes",
+        "Zero unengaged hostile tracks reaching protected area",
+        "Operator correctly identifies ≥2 areas for improvement from their own debrief score"
+      ]
+    }
+  ]
+}

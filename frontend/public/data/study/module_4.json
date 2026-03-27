@@ -1,0 +1,46 @@
+{
+  "id": "module_4",
+  "title": "Multi-Threat Management and Effector Economy",
+  "subtitle": "Hard | 25–45 min",
+  "scenario": "Swarm Attack",
+  "difficulty": "Hard",
+  "slides": [
+    {
+      "title": "Overview",
+      "type": "overview",
+      "content": "Six contacts. Multiple vectors. One Shahed that laughs at your jammer. Module 4 is where operators learn that C-UAS is a resource management problem as much as a targeting problem. Waste JACKAL rounds on jammable targets and you will run dry."
+    },
+    {
+      "title": "Learning Objectives",
+      "type": "objectives",
+      "content": [
+        "Prioritize 5 simultaneous tracks by ETA-to-base",
+        "Manage effector economy — conserve JACKAL rounds, sequence jammer recharges",
+        "Recognize and correctly respond to a Shahed-style autonomous threat (jam-immune)",
+        "Coordinate simultaneous engagements across multiple effector types",
+        "Maintain awareness of all tracks while actively engaging 2+ contacts"
+      ]
+    },
+    {
+      "title": "Key Concepts",
+      "type": "concepts",
+      "content": [
+        "Autonomous/INS-navigated threats: jam-immune, kinetic defeat only",
+        "Layered defense: EW as first resort, kinetic as last",
+        "Jammer mutual exclusion — active jamming can affect friendly GPS",
+        "Swarm tactics: saturation and prioritization under cognitive load"
+      ]
+    },
+    {
+      "title": "Standards",
+      "type": "standards",
+      "content": [
+        "Shahed correctly identified as jam-immune; JACKAL or kinetic used",
+        "≤2 JACKAL rounds wasted on jammable targets",
+        "No hostile track reaches the protected area unengaged",
+        "≥2 different effector types used simultaneously",
+        "Closest/fastest tracks engaged first"
+      ]
+    }
+  ]
+}

@@ -8,7 +8,7 @@
 
 > No install. No account. Just open the link and train.
 
-**Version:** v1.3.0 | **Status:** Active development
+**Version:** v1.5.0 | **Status:** Active development
 
 ---
 
@@ -28,6 +28,7 @@ Scoring is based on operational doctrine: detection speed, identification accura
 | **Lone Wolf** | 8 min | Single drone threat; build the kill chain start to finish | Easy |
 | **Recon Probe** | 12 min | Multi-contact with trigger discipline — not everything gets engaged | Medium |
 | **Swarm Attack** | 15 min | High-volume multi-wave with Shahed-style autonomous threat | Hard |
+| **THERMOPYLAE** | 20 min+ | Unscripted free-play — 3 escalating phases, endless mode, all threat types | Variable |
 
 ---
 
@@ -106,6 +107,8 @@ UAS and drone contacts are never ATC-authorized — only manned aircraft can rec
 - **Radial action wheel** — WOD-style engagement controls (right-click any track)
 - **Event log** — full engagement history, color-coded by severity
 - **Post-scenario debrief** — performance metrics, ROE violation summary, letter grade
+- **Training library** — 5-module slide-style study curriculum, accessible from main menu
+- **THERMOPYLAE free-play scenario** — Escalating chaos mode with endless toggle and manual end
 
 ---
 
@@ -157,20 +160,19 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 
 ## Roadmap
 
-### Completed (v1.3.0)
+### Completed (v1.5.0)
 - [x] **#10** — ATC coordination mechanic for UNKNOWN tracks
 - [x] **#22** — Tablet-responsive layout (iPad landscape)
 - [x] **#23** — Track type and affiliation display post-identification
 - [x] **#24** — Remove ghost tracks from map after defeat
 - [x] **#25** — Tutorial single-contact mode (waves disabled)
 - [x] **#29** — Camera orientation by viewing angle + civilian aircraft color
+- [x] **#33** — Post-scenario debrief scorecard ✓
+- [x] **#31** — C-UAS training library ✓
+- [x] **#35** — THERMOPYLAE free-play scenario ✓
 
-### In Progress (v1.3.x)
-- [ ] **#33** — Post-scenario debrief scorecard with performance metrics
-
-### Backlog
-- [ ] **#31** — C-UAS training library / study mode
-- [ ] THERMOPYLAE free-play scenario (escalating chaos mode)
+### Backlog (v1.6.0+)
+- [ ] EO/IR silhouette visual overhaul (all threat types)
 - [ ] After-action replay (timeline scrub)
 - [ ] Terrain LOS checks
 - [ ] Multi-operator / shared mission

@@ -6,6 +6,19 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.5.0] — 2026-03-26
+
+### Added
+- **THERMOPYLAE Scenario** — Unscripted free-play exercise. Three escalating threat phases (RECON → BUILDUP → OVERWHELM) followed by endless mode. All threat types, bird false alarms, 20-min base duration. Operator ends the mission manually. Full debrief on completion.
+- **Debrief Scorecard v2** — Post-scenario debrief screen with full performance metrics: per-category breakdown, ROE violation summary, effector economy rating, letter grade (S/A/B/C/F), and phase timeline.
+- **C-UAS Training Library** — Standalone study module accessible from the main menu. Five-module slide-style curriculum (Foundation → Mastery), aligned to AFJQS 3CS and ATP 3-01.81. Covers DTID kill chain, ROE, threat discrimination, multi-threat management, and operator proficiency assessment.
+- **Training Curriculum Reference Doc** — Full 5-module curriculum added to `docs/TRAINING-CURRICULUM.md`.
+
+### Fixed
+- ROE Briefing screen scroll bug — `minHeight: 100vh` was preventing scroll on scenarios with long ROE lists (THERMOPYLAE). Fixed to `height: 100vh` + `boxSizing: border-box`.
+
+---
+
 ## [1.3.0] — 2026-03-25
 
 ### Added

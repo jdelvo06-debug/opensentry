@@ -1,0 +1,46 @@
+{
+  "id": "module_3",
+  "title": "Rules of Engagement and Threat Discrimination",
+  "subtitle": "Medium | 20–35 min",
+  "scenario": "Recon Probe",
+  "difficulty": "Medium",
+  "slides": [
+    {
+      "title": "Overview",
+      "type": "overview",
+      "content": "Pulling the trigger at the wrong target is worse than not pulling it at all. Module 3 introduces multi-contact scenarios where one of the targets is a bird — and one is a neutral surveillance drone. Your discipline under pressure is what is being evaluated."
+    },
+    {
+      "title": "Learning Objectives",
+      "type": "objectives",
+      "content": [
+        "Apply ROE to determine engagement authority",
+        "Distinguish between hostile, unknown, and non-engageable contacts",
+        "Justify a hold-fire or no-engagement decision",
+        "Use the Hold Fire function correctly",
+        "Recognize ambient traffic types and classify them correctly"
+      ]
+    },
+    {
+      "title": "Key Concepts",
+      "type": "concepts",
+      "content": [
+        "Positive ID requirement before engagement — always",
+        "Surveillance UAS vs. attack UAS: assessing intent, not just type",
+        "CLEAR AIRSPACE function and ATC coordination procedures",
+        "When NOT to engage is as important as when to engage",
+        "ROE violations: consequences in real-world operations"
+      ]
+    },
+    {
+      "title": "Standards",
+      "type": "standards",
+      "content": [
+        "Zero ROE violations — no birds, balloons, or neutral tracks engaged",
+        "Correct non-engagement: surveillance contacts identified and not engaged",
+        "Hold Fire applied correctly to at least one ambiguous track",
+        "Threat discrimination: ≥2/3 hostile tracks correctly identified and defeated"
+      ]
+    }
+  ]
+}
