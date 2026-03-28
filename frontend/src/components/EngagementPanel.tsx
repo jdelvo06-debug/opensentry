@@ -483,6 +483,35 @@ export default function EngagementPanel({
             padding: "16px 0",
           }}
         >
+          {/* SLEW CAMERA for BDA on defeated tracks */}
+          {onSlewCamera && (
+            <button
+              onClick={() => onSlewCamera(track.id)}
+              style={{
+                width: "100%",
+                padding: "9px 12px",
+                marginBottom: 8,
+                background: "#d2992218",
+                border: "1px solid #d2992244",
+                borderRadius: 5,
+                color: "#d29922",
+                fontSize: 11,
+                fontWeight: 600,
+                fontFamily: "'Inter', sans-serif",
+                letterSpacing: 1,
+                cursor: "pointer",
+              }}
+              onMouseOver={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "#d2992233";
+              }}
+              onMouseOut={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "#d2992218";
+              }}
+            >
+              SLEW CAMERA
+            </button>
+          )}
+
           {/* Shenobi Protocol Manipulation active */}
           {track.shenobi_cm_active && !track.neutralized ? (() => {
             const cmLabel = track.shenobi_cm_active.replace("shenobi_", "").replace("_", " ").toUpperCase();
