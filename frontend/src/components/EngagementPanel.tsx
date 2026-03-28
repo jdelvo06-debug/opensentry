@@ -160,7 +160,7 @@ export default function EngagementPanel({
             SLEW CAMERA
           </button>
           {/* CALL ATC button — only for UNKNOWN IFF tracks */}
-          {(track.iff_status === "unknown" || track.affiliation?.toLowerCase() === "unknown") && onCallATC && (
+          {(track.iff_status === "unknown" || track.affiliation?.toLowerCase() === "unknown") && track.classification !== "bird" && track.classification !== "weather_balloon" && onCallATC && (
             <button
               onClick={() => !track.atc_called && onCallATC(track.id)}
               disabled={!!track.atc_called}

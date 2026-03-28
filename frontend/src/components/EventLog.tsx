@@ -84,7 +84,7 @@ function HookCard({ track, onUnhook, onCallATC, onTagFriendly }: { track: TrackD
         <Field label="RF" value={track.frequency_band ?? "---"} />
       </div>
       {/* ATC buttons for UNKNOWN tracks */}
-      {track.iff_status === "unknown" && (
+      {track.iff_status === "unknown" && track.classification !== "bird" && track.classification !== "weather_balloon" && (
         <div style={{ display: "flex", gap: 4, marginTop: 2 }}>
           <button
             onClick={() => onCallATC?.(track.id)}

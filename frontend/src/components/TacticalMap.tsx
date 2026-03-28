@@ -1994,6 +1994,7 @@ export default function TacticalMap({
             onCallATC={onCallATC}
             iffStatus={wheelTrack.iff_status ?? (wheelTrack.affiliation?.toLowerCase() === "unknown" ? "unknown" : undefined)}
             atcCalled={wheelTrack.atc_called}
+            classification={wheelTrack.classification ?? undefined}
             onClose={() => setWheelState(null)}
           />
         );

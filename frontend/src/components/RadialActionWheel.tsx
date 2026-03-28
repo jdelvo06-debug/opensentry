@@ -26,6 +26,7 @@ interface Props {
   onCallATC?: (trackId: string) => void;
   iffStatus?: string;
   atcCalled?: boolean;
+  classification?: string;
   onClose: () => void;
 }
 
@@ -68,14 +69,14 @@ const PHASE_COLORS: Record<DTIDPhase, string> = {
 
 type SubMenu = "none" | "identify" | "engage" | "shenobi_cm";
 
-function getActionsForPhase(dtidPhase: DTIDPhase, holdFire?: boolean, iffStatus?: string, atcCalled?: boolean): WheelAction[] {
+function getActionsForPhase(dtidPhase: DTIDPhase, holdFire?: boolean, iffStatus?: string, atcCalled?: boolean, classification?: string): WheelAction[] {
   switch (dtidPhase) {
     case "detected": {
       const actions: WheelAction[] = [
         { id: "confirm_track", label: "CONFIRM", icon: "\u2714", color: "#58a6ff" },
         { id: "slew_camera", label: "SLEW CAM", icon: "\u25CE", color: "#d29922" },
       ];
-      if (iffStatus === "unknown") {
+      if (iffStatus === "unknown" && classification !== "bird" && classification !== "weather_balloon") {
         actions.push({
           id: "call_atc",
           label: atcCalled ? "ATC CALLED" : "CALL ATC",
@@ -312,6 +313,7 @@ export default function RadialActionWheel({
   onCallATC,
   iffStatus,
   atcCalled,
+  classification,
   onClose,
 }: Props) {
   const [subMenu, setSubMenu] = useState<SubMenu>("none");
@@ -420,7 +422,7 @@ export default function RadialActionWheel({
     [trackId, selectedNexusEffector, onEngage, animatedClose],
   );
 
-  const actions = getActionsForPhase(dtidPhase, holdFire, iffStatus, atcCalled);
+  const actions = getActionsForPhase(dtidPhase, holdFire, iffStatus, atcCalled, classification);
 
   // Clamp position so wheel stays on screen
   const size = WHEEL_RADIUS * 2;
