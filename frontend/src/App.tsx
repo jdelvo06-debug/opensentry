@@ -19,6 +19,8 @@ import TutorialFeedback from "./components/TutorialFeedback";
 import ATCCommsPanel from "./components/ATCCommsPanel";
 import PauseOverlay from "./components/PauseOverlay";
 import ROEBriefing from "./components/ROEBriefing";
+import StudyLibrary from "./components/StudyLibrary";
+import StudyModule from "./components/StudyModule";
 
 import { useGameEngine as useWebSocket } from "./hooks/useGameEngine";
 import { soundEngine } from "./audio/SoundEngine";
@@ -137,6 +139,7 @@ export default function App() {
   // --- Flow state ---
   const [phase, setPhase] = useState<GamePhase>("waiting");
   const [showFeedback, setShowFeedback] = useState(false);
+  const [activeStudyModule, setActiveStudyModule] = useState<string | null>(null);
 
   // ROE briefing
   const [roeBriefing, setRoeBriefing] = useState<string[]>([]);
@@ -1560,10 +1563,65 @@ export default function App() {
               </span>
               <span style={{ fontSize: 11, opacity: 0.5 }}>↗</span>
             </a>
+            <button
+              onClick={() => { setPhase("study"); setActiveStudyModule(null); }}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 10,
+                color: "#8b949e", fontSize: 13, textDecoration: "none",
+                letterSpacing: 1, padding: "10px 20px",
+                border: "1px solid #21262d", borderRadius: 8,
+                background: "#161b22", transition: "all 0.15s", cursor: "pointer",
+                fontFamily: "'Inter', sans-serif",
+              }}
+              onMouseEnter={(e) => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.borderColor = "#d29922";
+                el.style.color = "#d29922";
+                el.style.background = "#2a2215";
+              }}
+              onMouseLeave={(e) => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.borderColor = "#21262d";
+                el.style.color = "#8b949e";
+                el.style.background = "#161b22";
+              }}
+            >
+              <span style={{ fontSize: 16 }}>📚</span>
+              <span><span style={{ fontWeight: 700, letterSpacing: 1.5 }}>Training Library</span><span style={{ color: "#484f58", margin: "0 6px" }}>·</span><span style={{ fontWeight: 400 }}>5-module C-UAS curriculum</span></span>
+            </button>
           </div>
           {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
         </div>
       </div>
+    );
+  }
+
+  // --- Phase: Study (Training Library) ---
+  if (phase === "study") {
+    if (activeStudyModule) {
+      return (
+        <StudyModule
+          moduleId={activeStudyModule}
+          onBack={() => setActiveStudyModule(null)}
+          onLaunchScenario={(scenario) => {
+            setActiveStudyModule(null);
+            setPhase("waiting");
+            // Find matching scenario card and launch it
+            const match = SCENARIO_CARDS.find(
+              (sc) => sc.name.toLowerCase() === scenario.toLowerCase()
+            );
+            if (match) {
+              handleScenarioLaunch(match.id);
+            }
+          }}
+        />
+      );
+    }
+    return (
+      <StudyLibrary
+        onSelectModule={(id) => setActiveStudyModule(id)}
+        onBack={() => { setPhase("waiting"); setActiveStudyModule(null); }}
+      />
     );
   }
 
