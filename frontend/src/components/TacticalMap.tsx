@@ -1569,7 +1569,7 @@ export default function TacticalMap({
         })()}
 
         {/* Tracks — filter out defeated/neutralized drones (ghost track fix #24) */}
-        {tracks.filter((t) => !t.neutralized && !(t.dtid_phase === "defeated" && t.jammed)).map((track) => {
+        {tracks.filter((t) => !t.neutralized).map((track) => {
           const pos = trackPosition(track);
           const isSelected = track.id === selectedTrackId;
           const isInterceptor = !!track.is_interceptor;

@@ -76,6 +76,7 @@ export function createDroneFromConfig(config: DroneStartConfig): DroneState {
     shenobi_cm_time_remaining: 0,
     shenobi_cm_initial_duration: 0,
     display_label: '',
+    jam_cooldown: 0,
   };
 }
 

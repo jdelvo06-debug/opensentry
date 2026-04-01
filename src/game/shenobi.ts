@@ -188,20 +188,38 @@ export function updateShenobiDrone(
 // Individual CM behavior implementations
 // ---------------------------------------------------------------------------
 
-/** HOLD: Freeze drone in place — zero out speed, maintain altitude. */
+/** HOLD: Freeze drone in place, then force controlled descent to ground. */
 function applyHold(
   drone: DroneState,
   tickRate: number,
-  _elapsed: number,
+  elapsed: number,
 ): [DroneState, NexusEvent[]] {
   const events: NexusEvent[] = [];
+  // First decelerate to a stop
   if (drone.speed > 1) {
-    // Rapid deceleration to hover
     const newSpeed = Math.max(0, drone.speed - 20 * tickRate);
     drone = { ...drone, speed: newSpeed };
-  } else {
-    // Hovering in place
-    drone = { ...drone, speed: 0 };
+    return [drone, events];
+  }
+  // Once stopped, force slow descent to ground
+  drone = { ...drone, speed: 0 };
+  const descentRate = 40.0; // ft/s — slow controlled descent
+  const newAlt = Math.max(0, drone.altitude - descentRate * tickRate);
+  drone = { ...drone, altitude: newAlt };
+  if (newAlt <= 0) {
+    drone = {
+      ...drone,
+      neutralized: true,
+      dtid_phase: 'defeated',
+      altitude: 0,
+      speed: 0,
+      shenobi_cm_time_remaining: 0,
+    };
+    events.push({
+      type: 'event',
+      timestamp: Math.round(elapsed * 10) / 10,
+      message: `Shenobi: ${(drone.display_label || drone.id).toUpperCase()} — HOLD COMPLETE — FORCED LANDING`,
+    });
   }
   return [drone, events];
 }
@@ -222,6 +240,7 @@ function applyLandNow(
     drone = {
       ...drone,
       neutralized: true,
+      dtid_phase: 'defeated',
       altitude: 0,
       speed: 0,
       shenobi_cm_time_remaining: 0,
@@ -266,6 +285,7 @@ function applyDeafen(
       drone = {
         ...drone,
         neutralized: true,
+        dtid_phase: 'defeated',
         altitude: 0,
         speed: 0,
         shenobi_cm_time_remaining: 0,
@@ -293,6 +313,7 @@ function applyDeafen(
       drone = {
         ...drone,
         neutralized: true,
+        dtid_phase: 'defeated',
         shenobi_cm_time_remaining: 0,
       };
       events.push({

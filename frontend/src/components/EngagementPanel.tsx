@@ -23,7 +23,7 @@ const CLASSIFICATIONS = [
   { value: "fixed_wing", label: "FIXED-WING UAS", affiliation: "hostile" },
   { value: "micro", label: "MICRO UAS", affiliation: "hostile" },
   { value: "improvised", label: "IMPROVISED UAS", affiliation: "hostile" },
-  { value: "shahed", label: "SHAHED-136 (AUTONOMOUS)", affiliation: "hostile" },
+  { value: "shahed", label: "OW-UAS (AUTONOMOUS)", affiliation: "hostile" },
   { value: "passenger_aircraft", label: "PASSENGER AIRCRAFT (FRIENDLY)", affiliation: "friendly" },
   { value: "military_jet", label: "MILITARY JET (FRIENDLY)", affiliation: "friendly" },
   { value: "bird", label: "BIRD (FALSE ALARM)", affiliation: "neutral" },
@@ -476,7 +476,7 @@ export default function EngagementPanel({
         </div>
       )}
 
-      {track.dtid_phase === "defeated" && (
+      {(track.dtid_phase === "defeated" || (track.dtid_phase === "identified" && !!track.shenobi_cm_active)) && (
         <div
           style={{
             textAlign: "center",

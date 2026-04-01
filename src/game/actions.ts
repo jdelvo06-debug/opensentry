@@ -322,6 +322,16 @@ function _engageJammer(
   msgs.push(_event(elapsed, radiatingMsg));
   if (!inJamRange) return msgs;
 
+  // FHSS mechanic: improvised_hardened auto-resists first jam attempt (30s cooldown)
+  if (d.drone_type === 'improvised_hardened') {
+    if (d.last_jam_attempt_ts === undefined || (elapsed - d.last_jam_attempt_ts) > 30) {
+      gs.drones[droneIdx] = { ...d, last_jam_attempt_ts: elapsed };
+      msgs.push(_event(elapsed, `EW: ${(d.display_label || d.id).toUpperCase()} \u2014 FREQUENCY HOP DETECTED, JAM INEFFECTIVE \u2014 FHSS ACTIVE`));
+      msgs.push({ type: 'engagement_result', target_id: targetId, effector: effectorId, effective: false, effectiveness: 0 });
+      return msgs;
+    }
+  }
+
   const jamBehavior = pickJamBehavior(d.drone_type);
   const [pntEffective, pntDrift] = applyPntJamming(d.drone_type);
   const pntDuration = pntEffective ? _randUniform(15.0, 25.0) : 0;
@@ -337,13 +347,19 @@ function _engageJammer(
     };
 
     if (jamBehavior !== null) {
-      const jamDuration = _randUniform(5.0, 10.0);
+      const jamDuration = jamBehavior === 'atti_mode'
+        ? _randUniform(20.0, 40.0)
+        : _randUniform(5.0, 10.0);
       updateFields.dtid_phase = 'defeated';
       updateFields.jammed = true;
       updateFields.jammed_behavior = jamBehavior;
       updateFields.jammed_time_remaining = jamDuration;
       const behaviorLabel = jamBehavior.replace(/_/g, ' ').toUpperCase();
-      msgs.push(_event(elapsed, `EW: ${(d.display_label || d.id).toUpperCase()} JAMMED \u2014 ${behaviorLabel}`));
+      if (jamBehavior === 'atti_mode') {
+        msgs.push(_event(elapsed, `EW: ${(d.display_label || d.id).toUpperCase()} \u2014 JAMMED (ATTI MODE) \u2014 POSITIONAL HOLD LOST, TRACK STILL ACTIVE`));
+      } else {
+        msgs.push(_event(elapsed, `EW: ${(d.display_label || d.id).toUpperCase()} JAMMED \u2014 ${behaviorLabel}`));
+      }
       engagementResult.jammed = true;
       engagementResult.jammed_behavior = jamBehavior;
     }
@@ -415,6 +431,7 @@ function _engageJackal(
     shenobi_cm_time_remaining: 0, shenobi_cm_initial_duration: 0,
     neutralized: false,
     display_label: jackalId,
+    jam_cooldown: 0,
   };
 
   gs.drones.push(jackalDrone);
@@ -477,9 +494,10 @@ function _engageNexus(
   const cmDuration = _randUniform(15.0, 30.0);
   const cmLabel = cmType.replace('shenobi_', '').replace(/_/g, ' ').toUpperCase();
 
+  // Do NOT set dtid_phase: 'defeated' here — drone is still active.
+  // defeated is set by shenobi.ts when neutralized=true is resolved.
   gs.drones[droneIdx] = {
     ...d,
-    dtid_phase: 'defeated',
     shenobi_cm_active: cmType,
     shenobi_cm_state: 'pending',
     shenobi_cm_time_remaining: cmDuration,

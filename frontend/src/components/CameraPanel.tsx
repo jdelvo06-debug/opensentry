@@ -815,6 +815,97 @@ function drawImprovised(ctx: CanvasRenderingContext2D, s: number, time: number) 
   ctx.restore();
 }
 
+function drawJackal(ctx: CanvasRenderingContext2D, s: number, time: number) {
+  // Interceptor missile silhouette — matte black tactical missile
+  // Reference: compact 8-10:1 body, pointed conical nose, small canards, 4 symmetric tail fins
+  const isThermal = (ctx.fillStyle as string).includes("230,230,230");
+
+  // Thermal: bright hot body with glowing exhaust; EO: matte black
+  const bodyColor   = isThermal ? "rgba(255,240,180,0.97)" : "rgba(18,18,18,0.97)";
+  const finColor    = isThermal ? "rgba(240,220,140,0.85)" : "rgba(30,30,30,0.95)";
+  const noseColor   = isThermal ? "rgba(255,255,200,1.0)"  : "rgba(12,12,12,1.0)";
+  const exhaustCol  = isThermal ? "rgba(255,180,60,0.95)"  : "rgba(140,160,255,0.75)";
+  const highlightCol = isThermal ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.07)";
+
+  // --- Rocket exhaust plume (aft/bottom) ---
+  const plumeLen = (14 + 5 * Math.sin(time * 18)) * s;
+  const plumeGrad = ctx.createLinearGradient(0, 12 * s, 0, 12 * s + plumeLen);
+  plumeGrad.addColorStop(0,   exhaustCol);
+  plumeGrad.addColorStop(0.45, isThermal ? "rgba(255,120,20,0.35)" : "rgba(80,100,255,0.25)");
+  plumeGrad.addColorStop(1,   "rgba(0,0,0,0)");
+  ctx.fillStyle = plumeGrad;
+  ctx.beginPath();
+  ctx.ellipse(0, 12 * s + plumeLen * 0.45, 2 * s, plumeLen * 0.55, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // --- Tail fins (4 symmetric — two visible planes, X config) ---
+  ctx.fillStyle = finColor;
+  // Horizontal plane fins
+  ctx.beginPath();
+  ctx.moveTo(-2.5 * s,  8 * s);
+  ctx.lineTo(-9  * s, 13 * s);
+  ctx.lineTo(-2.5 * s, 12 * s);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo( 2.5 * s,  8 * s);
+  ctx.lineTo( 9  * s, 13 * s);
+  ctx.lineTo( 2.5 * s, 12 * s);
+  ctx.closePath();
+  ctx.fill();
+  // Vertical plane fins (slightly smaller — foreshortened aspect)
+  ctx.globalAlpha = 0.6;
+  ctx.beginPath();
+  ctx.moveTo(-1.5 * s,  8 * s);
+  ctx.lineTo(-6  * s, 13 * s);
+  ctx.lineTo(-1.5 * s, 12 * s);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo( 1.5 * s,  8 * s);
+  ctx.lineTo( 6  * s, 13 * s);
+  ctx.lineTo( 1.5 * s, 12 * s);
+  ctx.closePath();
+  ctx.fill();
+  ctx.globalAlpha = 1.0;
+
+  // --- Main body — long slim cylinder ---
+  ctx.fillStyle = bodyColor;
+  ctx.beginPath();
+  ctx.roundRect(-2.5 * s, -11 * s, 5 * s, 23 * s, 1.5 * s);
+  ctx.fill();
+
+  // Subtle highlight stripe (gives the cylinder a 3D rounded look)
+  ctx.fillStyle = highlightCol;
+  ctx.beginPath();
+  ctx.roundRect(-1 * s, -10 * s, 1.5 * s, 20 * s, 0.75 * s);
+  ctx.fill();
+
+  // --- Conical nosecone ---
+  ctx.fillStyle = noseColor;
+  ctx.beginPath();
+  ctx.moveTo(-2.5 * s, -11 * s);
+  ctx.lineTo(0,        -22 * s);
+  ctx.lineTo( 2.5 * s, -11 * s);
+  ctx.closePath();
+  ctx.fill();
+
+  // --- Small canard fins near nose ---
+  ctx.fillStyle = finColor;
+  ctx.beginPath();
+  ctx.moveTo(-2.5 * s, -7 * s);
+  ctx.lineTo(-7  * s, -3 * s);
+  ctx.lineTo(-2.5 * s, -4.5 * s);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo( 2.5 * s, -7 * s);
+  ctx.lineTo( 7  * s, -3 * s);
+  ctx.lineTo( 2.5 * s, -4.5 * s);
+  ctx.closePath();
+  ctx.fill();
+}
+
 function drawUnknownBlob(ctx: CanvasRenderingContext2D, s: number, time: number) {
   // Ambiguous heat smear — looks like a real unresolved thermal contact, not a placeholder
   const pulse = 1 + Math.sin(time * 2.1) * 0.06;
@@ -988,12 +1079,17 @@ function drawSilhouette(
       drawBalloon(ctx, scale, time);
       break;
     case "improvised":
+    case "improvised_hardened":
       drawImprovised(ctx, scale, time);
       break;
     case "shahed":
     case "loitering_munition":
     case "one_way_attack":
       drawShahed(ctx, scale, time);
+      break;
+    case "jackal":
+    case "interceptor":
+      drawJackal(ctx, scale, time);
       break;
     default:
       drawUnknownBlob(ctx, scale, time);

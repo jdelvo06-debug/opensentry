@@ -10,10 +10,11 @@ import { KTS_TO_KMS } from './helpers';
 // ---------------------------------------------------------------------------
 
 export const JAM_RESIST: Record<string, number> = {
-  commercial_quad: 0.0,
-  micro: 0.10,
+  commercial_quad: 0.15,
+  micro: 0.20,
   fixed_wing: 0.40,
   improvised: 0.50,
+  improvised_hardened: 0.70,
   shahed: 1.0,
 };
 const _DEFAULT_JAM_RESIST = 0.50;
@@ -27,6 +28,7 @@ export const PNT_VULNERABILITY: Record<string, number> = {
   micro: 0.006,
   fixed_wing: 0.004,
   improvised: 0.005,
+  improvised_hardened: 0.001,
   shahed: 0.003,
 };
 const _DEFAULT_PNT_VULNERABILITY = 0.0;
@@ -52,7 +54,10 @@ interface JamEvent {
 export function pickJamBehavior(droneType: string): string | null {
   const resist = JAM_RESIST[droneType] ?? _DEFAULT_JAM_RESIST;
   if (Math.random() < resist) return null;
-  const behaviors = ['loss_of_control', 'rth', 'forced_landing', 'gps_spoof'];
+  // Commercial quads and micros predominantly enter ATTI mode (weighted 2x)
+  const behaviors = (droneType === 'commercial_quad' || droneType === 'micro')
+    ? ['rth', 'atti_mode', 'atti_mode', 'gps_spoof']
+    : ['loss_of_control', 'rth', 'forced_landing', 'gps_spoof'];
   return behaviors[Math.floor(Math.random() * behaviors.length)];
 }
 
@@ -152,7 +157,7 @@ export function updateJammedDrone(
     if (trail.length > 20) trail.splice(0, trail.length - 20);
     d = { ...d, x: newX, y: newY, altitude: newAlt, speed: d.speed * 0.95, trail };
     if (newAlt <= 0 || d.jammed_time_remaining <= 0) {
-      d = { ...d, neutralized: true, jammed_time_remaining: 0, altitude: 0 };
+      d = { ...d, neutralized: true, dtid_phase: 'defeated', jammed_time_remaining: 0, altitude: 0 };
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
@@ -168,8 +173,8 @@ export function updateJammedDrone(
     const trail = [...d.trail, [Math.round(newX * 1000) / 1000, Math.round(newY * 1000) / 1000]];
     if (trail.length > 20) trail.splice(0, trail.length - 20);
     d = { ...d, x: newX, y: newY, heading: headingDeg, trail };
-    if (Math.sqrt(newX ** 2 + newY ** 2) > 10.0) {
-      d = { ...d, neutralized: true, jammed_time_remaining: 0 };
+    if (Math.sqrt(newX ** 2 + newY ** 2) > 10.0 || d.jammed_time_remaining <= 0) {
+      d = { ...d, neutralized: true, dtid_phase: 'defeated', jammed_time_remaining: 0 };
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
@@ -180,11 +185,30 @@ export function updateJammedDrone(
     const newAlt = Math.max(0, d.altitude - 50 * tickRate);
     d = { ...d, altitude: newAlt, speed: Math.max(0, d.speed - 5 * tickRate) };
     if (newAlt <= 0) {
-      d = { ...d, neutralized: true, jammed_time_remaining: 0, altitude: 0, speed: 0 };
+      d = { ...d, neutralized: true, dtid_phase: 'defeated', jammed_time_remaining: 0, altitude: 0, speed: 0 };
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
         message: `TRACK: ${(d.display_label || d.id).toUpperCase()} \u2014 FORCED LANDING (grounded)`,
+      });
+    }
+  } else if (jb === 'atti_mode') {
+    // ATTI mode: drone maintains heading/speed with small random lateral drift
+    const speedKms = d.speed * KTS_TO_KMS;
+    const headingRad = (d.heading * Math.PI) / 180;
+    const newX = d.x + Math.sin(headingRad) * speedKms * tickRate + (Math.random() - 0.5) * 0.004;
+    const newY = d.y + Math.cos(headingRad) * speedKms * tickRate + (Math.random() - 0.5) * 0.004;
+    const trail = [...d.trail, [Math.round(newX * 1000) / 1000, Math.round(newY * 1000) / 1000]];
+    if (trail.length > 20) trail.splice(0, trail.length - 20);
+    d = { ...d, x: newX, y: newY, trail };
+    // ATTI mode does NOT neutralize — clears when timer expires
+    // jam_cooldown prevents tickPassiveJamming from immediately re-jamming
+    if (d.jammed_time_remaining <= 0) {
+      d = { ...d, jammed: false, jammed_behavior: null, jammed_time_remaining: 0, jam_cooldown: 15.0 };
+      events.push({
+        type: 'event',
+        timestamp: Math.round(elapsed * 10) / 10,
+        message: `EW: ${(d.display_label || d.id).toUpperCase()} \u2014 ATTI MODE CLEARED, RESUMING AUTONOMOUS NAVIGATION`,
       });
     }
   } else if (jb === 'gps_spoof') {
@@ -197,8 +221,8 @@ export function updateJammedDrone(
     const trail = [...d.trail, [Math.round(newX * 1000) / 1000, Math.round(newY * 1000) / 1000]];
     if (trail.length > 20) trail.splice(0, trail.length - 20);
     d = { ...d, x: newX, y: newY, heading: spoofHeading, trail };
-    if (Math.sqrt(newX ** 2 + newY ** 2) > 10.0) {
-      d = { ...d, neutralized: true, jammed_time_remaining: 0 };
+    if (Math.sqrt(newX ** 2 + newY ** 2) > 10.0 || d.jammed_time_remaining <= 0) {
+      d = { ...d, neutralized: true, dtid_phase: 'defeated', jammed_time_remaining: 0 };
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,

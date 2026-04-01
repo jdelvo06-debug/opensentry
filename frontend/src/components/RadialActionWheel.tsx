@@ -35,7 +35,7 @@ const CLASSIFICATIONS = [
   { value: "fixed_wing", label: "FIXED WING", icon: "\u2708", affiliation: "hostile", color: "#f85149" },
   { value: "micro", label: "MICRO UAS", icon: "\u25C7", affiliation: "hostile", color: "#f85149" },
   { value: "improvised", label: "IMPROVISED", icon: "\u26A0", affiliation: "hostile", color: "#f85149" },
-  { value: "shahed", label: "SHAHED", icon: "\u2622", affiliation: "hostile", color: "#f85149" },
+  { value: "shahed", label: "OW-UAS", icon: "\u2622", affiliation: "hostile", color: "#f85149" },
   { value: "passenger_aircraft", label: "AIRLINER", icon: "\u2708", affiliation: "friendly", color: "#58a6ff" },
   { value: "military_jet", label: "MIL JET", icon: "\u2708", affiliation: "friendly", color: "#58a6ff" },
   { value: "bird", label: "BIRD", icon: "\u{1F426}", affiliation: "neutral", color: "#3fb950" },
