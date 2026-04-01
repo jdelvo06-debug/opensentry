@@ -15,13 +15,13 @@ Free, browser-based C-UAS training simulator that any military member worldwide 
 ## Systems Modeled
 - **Radial action wheel** — pie menu-style engagement workflow (track management, effector selection)
 - **Device management** — sensor/effector status, range rings, coverage overlays
-- **Sensors:** AN/TPQ-51, Ku-Band FCS, EO/IR Camera
-- **Effectors:** JACKAL, RF/PNT Jammer
+- **Sensors:** L-Band Multi-Mission Radar, Ku-Band Fire Control Radar, EO/IR Camera
+- **Effectors:** JACKAL, RF/PNT Jammer, Shenobi (RF detect + protocol manipulation)
 - **Network:** Joint Data Network (Link-16, SIAP)
 
-## Key Features (Planned)
+## Key Features
 
-### JACKAL Intercept (Full Lifecycle)
+### JACKAL Intercept (Full Lifecycle) — *Implemented v1.1.0*
 - Green JACKAL track appears on tactical map at launch
 - Ku-Band FCS radar guides mid-course (waypoints to avoid friendly air tracks — ATA)
 - Terminal phase: seeker acquires target
@@ -39,21 +39,21 @@ Free, browser-based C-UAS training simulator that any military member worldwide 
 - ID Authority (IDA) concept — who has authority to identify
 - Bulls-eye reference point for range/azimuth calls
 
-### Continuous Operations
+### Continuous Operations — *Partially implemented (THERMOPYLAE scenario, v1.5.0)*
 - No auto-end — operator maintains watch until END MISSION
 - Escalating threat waves with pauses between
 - Ambient air traffic (commercial, military, birds, balloons)
-- Realistic EW effects (jamming → drone behavior change, not instant defeat)
+- Realistic EW effects (jamming → ATTI mode with degraded flight, not instant defeat) — *Implemented v1.6.0*
 - Shift handoff concept (stretch)
 
-### Scoring & AAR
+### Scoring & AAR — *Partially implemented (scoring v1.1.0, debrief v1.5.0)*
 - Per-wave and cumulative scoring
 - ROE tracking (friendly fire penalties)
-- After-action replay (timeline scrub)
+- After-action replay (timeline scrub) — *Backlog*
 - Training metrics: reaction time, correct identification rate, engagement effectiveness
 
-### Deployment
-- Eventually: all client-side JavaScript (no server needed)
-- Hosted on free static hosting for zero-cost global access
-- Offline-capable (PWA)
+### Deployment — *Implemented v1.1.0*
+- ~~All client-side JavaScript (no server needed)~~ **Done** — fully client-side TypeScript since v1.1.0
+- Hosted on GitHub Pages (zero-cost global access)
+- Offline-capable (PWA) — *Backlog*
 - Mobile/tablet responsive for field demos

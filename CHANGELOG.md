@@ -6,6 +6,24 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Jamming Realism — ATTI Mode** (#47) — RF-jammed drones now transition to attitude-hold mode with degraded flight behavior instead of instant defeat.
+- **Hardened FPV FHSS Mechanic** (#48) — Frequency-hopping spread spectrum resistance for FPV-class drones.
+
+### Fixed
+- Jamming/Shenobi lifecycle — tracks no longer vanish on jam/shenobi; fixed RF/PNT timer expiry logic and fall-through bug.
+- Ghost tracks on radar — defeated drones no longer persist on tactical map; slew camera available on defeated tracks.
+- Bird waypoint clustering behavior — corrected path generation.
+- JACKAL silhouette redrawn (matte black missile, conical nose, canards, 4-fin tail).
+- Renamed SHAHED-136 → OW-UAS in UI labels.
+- Shenobi hold altitude oscillation — fixed tick priority ordering and descent-to-ground at 2/2.
+- Shenobi no longer sets `dtid_phase=defeated` prematurely; Shenobi-active tracks remain interactive in UI.
+- 7 game engine bugs: evasive state, jamming effectiveness, JACKAL dedup, scoring edge cases, Shenobi events.
+
+---
+
 ## [1.5.0] — 2026-03-26
 
 ### Added

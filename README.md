@@ -10,7 +10,7 @@
 
 > 🗺️ **Train at your actual base.** Drop a pin anywhere on Earth — real satellite imagery loads automatically. Set your perimeter, place your sensors, and run scenarios on terrain your operators actually defend. Not a demo airfield. Your location.
 
-**Version:** v1.5.0 | **Status:** Active development
+**Version:** v1.6.0 | **Status:** Active development
 
 ---
 
@@ -173,8 +173,12 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 - [x] **#31** — C-UAS training library ✓
 - [x] **#35** — THERMOPYLAE free-play scenario ✓
 
-### Backlog (v1.6.0+)
+### Completed (v1.6.0)
 - [x] **#43** — EO/IR silhouette visual overhaul (all threat types) ✓
+- [x] **#47** — Jamming realism: ATTI mode ✓
+- [x] **#48** — Hardened FPV FHSS mechanic ✓
+
+### Backlog (v1.7.0+)
 - [ ] After-action replay (timeline scrub)
 - [ ] Terrain LOS checks
 - [ ] Multi-operator / shared mission

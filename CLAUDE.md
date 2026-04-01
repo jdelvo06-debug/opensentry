@@ -1,4 +1,4 @@
-# CLAUDE.md — OpenSentry Project Guide (Updated 2026-03-20)
+# CLAUDE.md — OpenSentry Project Guide (Updated 2026-04-01)
 
 ## What Is This?
 OpenSentry is a **free, browser-based C-UAS training simulator** designed to teach military operators the **DTID kill chain** (Detect → Track → Identify → Defeat). It's built to emulate real-world C-UAS command and control systems. No clearance required — purely training.
@@ -159,6 +159,25 @@ pkill -f vite && cd frontend && npm run dev
 
 ---
 
+## Development Workflow
+
+This project uses Claude Code subagents for a structured development pipeline:
+
+| Agent | Role |
+|-------|------|
+| `planner` | Plans the approach before coding starts |
+| `architect` | High-level design decisions |
+| `code-reviewer` | Reviews code after writing |
+| `security-reviewer` | Security audit pass |
+| `refactor-cleaner` | Cleans dead code and tech debt |
+| `build-error-resolver` | Diagnoses build failures |
+
+**Typical flow:** plan → architect → implement → code-review → security-review → cleanup
+
+These are Claude Code subagent types, not custom-built tools. They run as part of the normal Claude Code session and are invoked automatically based on the task at hand.
+
+---
+
 ## Known Issues / Open TODO
 - Intermittent stuck bogey in Lone Wolf — root cause unconfirmed
 - Shenobi `uplink_detected` — CM state 1/2 → 2/2 transition depends on detection loop correctly setting this field; verify in TypeScript port
@@ -166,7 +185,7 @@ pkill -f vite && cd frontend && npm run dev
 - Phase 2 features (terrain LOS, planning score, after-action replay) — deferred
 
 ## Next Session — Priority Work
-1. Smoke test all 4 scenarios on live GitHub Pages URL
-2. Investigate stuck bogey (Lone Wolf)
-3. Draft AFWERX/DIU one-pager for OpenSentry innovation submission
-4. README polish for public sharing
+1. Merge jamming realism branch (#47/#48) to main
+2. Smoke test ATTI mode and FHSS mechanic across all scenarios on live GitHub Pages URL
+3. Investigate stuck bogey (Lone Wolf) — still unconfirmed
+4. Draft AFWERX/DIU one-pager for OpenSentry innovation submission

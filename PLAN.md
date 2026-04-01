@@ -1,3 +1,7 @@
+> **Historical Document** — This was the original concept plan from March 15, 2026.
+> The project has since migrated to a fully client-side TypeScript architecture.
+> For current architecture and status, see [CLAUDE.md](./CLAUDE.md).
+
 # OpenSentry — Open Source C-UAS Training Simulator
 
 ## Concept
@@ -189,7 +193,7 @@ A browser-based counter-drone training simulator that puts players in a tactical
 ---
 
 *Created: March 15, 2026*
-*Status: Planning*
+*Status: Completed — retained for project history*
 
 ---
 
