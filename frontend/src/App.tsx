@@ -21,6 +21,7 @@ import PauseOverlay from "./components/PauseOverlay";
 import ROEBriefing from "./components/ROEBriefing";
 import StudyLibrary from "./components/StudyLibrary";
 import StudyModule from "./components/StudyModule";
+import BaseDefenseArchitect from "./components/BaseDefenseArchitect";
 
 import { useGameEngine as useWebSocket } from "./hooks/useGameEngine";
 import { soundEngine } from "./audio/SoundEngine";
@@ -1516,6 +1517,41 @@ export default function App() {
             CUSTOM MISSION
           </button>
 
+          {/* Base Defense Architect */}
+          <button
+            onClick={() => { soundEngine.init(); setPhase("architect"); }}
+            style={{
+              padding: "12px 40px",
+              background: "transparent",
+              border: "1px solid #30363d",
+              borderRadius: 6,
+              color: "#8b949e",
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 13,
+              fontWeight: 600,
+              letterSpacing: 2,
+              cursor: "pointer",
+              transition: "all 0.15s",
+              width: "100%",
+              maxWidth: 640,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 10,
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.borderColor = "#d29922";
+              (e.currentTarget as HTMLElement).style.color = "#d29922";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.borderColor = "#30363d";
+              (e.currentTarget as HTMLElement).style.color = "#8b949e";
+            }}
+          >
+            BASE DEFENSE ARCHITECT
+            <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1, padding: "2px 6px", borderRadius: 3, background: "#d2992220", color: "#d29922" }}>BETA</span>
+          </button>
+
           {/* Footer */}
           <div style={{ marginTop: 40, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <button
@@ -1613,6 +1649,15 @@ export default function App() {
           {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
         </div>
       </div>
+    );
+  }
+
+  // --- Phase: Base Defense Architect ---
+  if (phase === "architect") {
+    return (
+      <ErrorBoundary>
+        <BaseDefenseArchitect onBack={() => setPhase("waiting")} />
+      </ErrorBoundary>
     );
   }
 
