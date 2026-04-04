@@ -261,7 +261,7 @@ async function computeViewshed(
   let visibleCells = 0;
 
   for (let r = 0; r < NUM_RAYS; r++) {
-    let maxAngle = -Infinity;
+    let maxAngle = -(Math.PI / 2);
     let lastVisible: [number, number] | null = null;
     let firstBlocked: [number, number] | null = null;
     const bearing = (r / NUM_RAYS) * 2 * Math.PI;
@@ -272,7 +272,8 @@ async function computeViewshed(
       const idx = 1 + r * steps + s;
       const dist = (s + 1) * STEP_KM;
       const elev = elevations[idx];
-      const angle = (elev - centerElev) / (dist * 1000);
+      const distM = dist * 1000;
+      const angle = Math.atan2(elev - centerElev, distM);
 
       if (angle >= maxAngle) {
         maxAngle = angle;
