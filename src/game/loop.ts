@@ -901,9 +901,15 @@ export function advanceTutorialStep(
     }
     msgs.push({
       type: 'tutorial',
-      message: 'Threat identified! Now select an effector to engage. RF/PNT Jammer is the optimal choice for a commercial quad \u2014 it has low collateral risk.',
+      message: 'Contact classified. Now declare the affiliation — is this track HOSTILE, NEUTRAL, FRIENDLY, or UNKNOWN? Use the buttons in the Engagement Panel or the Radial Action Wheel.',
     });
-  } else if (step === 4 && actionName === 'engage') {
+  } else if (step === 4 && actionName === 'declare_affiliation') {
+    gs.tutorial_step = 5;
+    msgs.push({
+      type: 'tutorial',
+      message: 'Affiliation declared. Now select an effector to engage. RF/PNT Jammer is the optimal choice for a commercial quad \u2014 it has low collateral risk.',
+    });
+  } else if ((step === 4 || step === 5) && actionName === 'engage') {
     let effState = null;
     if (effectorId) {
       for (const es of gs.effector_states) {
@@ -920,7 +926,7 @@ export function advanceTutorialStep(
         });
       }
     }
-    gs.tutorial_step = 5;
+    gs.tutorial_step = 6;
   }
 
   return msgs;
@@ -942,8 +948,8 @@ export function checkTutorialPrompts(gs: GameState): Msg[] {
     } else if (trigger === 'identified') {
       shouldSend = gs.tutorial_step >= 4;
     } else if (trigger === 'defeated') {
-      shouldSend = gs.tutorial_step >= 5;
-      if (shouldSend) gs.tutorial_step = 6;
+      shouldSend = gs.tutorial_step >= 6;
+      if (shouldSend) gs.tutorial_step = 7;
     }
     if (shouldSend) {
       msgs.push({ type: 'tutorial', message: tp.message });

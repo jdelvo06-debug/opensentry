@@ -60,20 +60,19 @@ export default function TrackDetailPanel({ track }: Props) {
   return (
     <div
       style={{
-        padding: "12px 14px",
+        padding: "8px 10px",
         borderBottom: "1px solid #30363d",
-        overflow: "auto",
-        flex: 1,
+        overflow: "hidden",
       }}
     >
       {/* Title */}
       <div
         style={{
-          fontSize: 10,
+          fontSize: 9,
           fontWeight: 600,
           color: "#8b949e",
           letterSpacing: 1.5,
-          marginBottom: 8,
+          marginBottom: 4,
         }}
       >
         TRACK DETAIL
@@ -82,11 +81,11 @@ export default function TrackDetailPanel({ track }: Props) {
       {/* Track ID */}
       <div
         style={{
-          fontSize: 16,
+          fontSize: 11,
           fontWeight: 700,
           color: "#e6edf3",
           fontFamily: "'JetBrains Mono', monospace",
-          marginBottom: 10,
+          marginBottom: 6,
         }}
       >
         {(track.display_label || track.id).toUpperCase()}
@@ -97,7 +96,7 @@ export default function TrackDetailPanel({ track }: Props) {
         style={{
           display: "flex",
           gap: 2,
-          marginBottom: 14,
+          marginBottom: 6,
         }}
       >
         {DTID_PHASES.map((phase, idx) => {
@@ -116,13 +115,13 @@ export default function TrackDetailPanel({ track }: Props) {
               style={{
                 flex: 1,
                 textAlign: "center",
-                padding: "4px 0",
-                fontSize: 9,
+                padding: "2px 0",
+                fontSize: 8,
                 fontWeight: 600,
                 letterSpacing: 0.5,
                 color: textColor,
                 background: bg,
-                borderRadius: 3,
+                borderRadius: 2,
                 opacity: isCompleted ? 0.6 : 1,
               }}
             >
@@ -137,18 +136,18 @@ export default function TrackDetailPanel({ track }: Props) {
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 8,
-          marginBottom: 8,
+          gap: 6,
+          marginBottom: 4,
         }}
       >
         <span
           style={{
-            padding: "2px 8px",
-            borderRadius: 3,
+            padding: "1px 6px",
+            borderRadius: 2,
             background: `${affColor}22`,
             border: `1px solid ${affColor}55`,
             color: affColor,
-            fontSize: 10,
+            fontSize: 9,
             fontWeight: 600,
             letterSpacing: 0.5,
           }}
@@ -158,7 +157,7 @@ export default function TrackDetailPanel({ track }: Props) {
         {track.classification && (
           <span
             style={{
-              fontSize: 10,
+              fontSize: 9,
               color: "#e6edf3",
               fontWeight: 500,
             }}
@@ -174,19 +173,19 @@ export default function TrackDetailPanel({ track }: Props) {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 6,
-            marginBottom: 8,
-            padding: "4px 8px",
+            gap: 4,
+            marginBottom: 4,
+            padding: "2px 6px",
             background: "rgba(210, 153, 34, 0.15)",
             border: "1px solid rgba(210, 153, 34, 0.4)",
-            borderRadius: 4,
+            borderRadius: 3,
           }}
         >
-          <span style={{ fontSize: 10, fontWeight: 700, color: "#d29922", letterSpacing: 1 }}>
+          <span style={{ fontSize: 9, fontWeight: 700, color: "#d29922", letterSpacing: 1 }}>
             JAMMED
           </span>
           {track.jammed_behavior && (
-            <span style={{ fontSize: 9, color: "#d29922", opacity: 0.8 }}>
+            <span style={{ fontSize: 8, color: "#d29922", opacity: 0.8 }}>
               {track.jammed_behavior.replace(/_/g, " ").toUpperCase()}
             </span>
           )}
@@ -197,12 +196,12 @@ export default function TrackDetailPanel({ track }: Props) {
       {track.is_ambient && (
         <div
           style={{
-            marginBottom: 8,
-            padding: "2px 8px",
+            marginBottom: 4,
+            padding: "1px 6px",
             background: "rgba(139, 148, 158, 0.1)",
             border: "1px solid rgba(139, 148, 158, 0.3)",
-            borderRadius: 3,
-            fontSize: 9,
+            borderRadius: 2,
+            fontSize: 8,
             color: "#8b949e",
             letterSpacing: 1,
             fontWeight: 600,
@@ -212,54 +211,43 @@ export default function TrackDetailPanel({ track }: Props) {
         </div>
       )}
 
-      {/* Data grid */}
-      <div style={{ marginTop: 10 }}>
-        <DataRow
-          label="TYPE"
-          value={
-            isIdentified && track.classification
-              ? track.classification.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-              : "\u2014"
-          }
-        />
-        <DataRow
-          label="AFFILIATION"
-          value={isIdentified ? track.affiliation.toUpperCase() : "\u2014"}
-          valueColor={isIdentified ? affColor : undefined}
-        />
+      {/* Data grid - 2 columns */}
+      <div style={{ marginTop: 4, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px 8px" }}>
+        <DataRow label="TYPE" value={
+          isIdentified && track.classification
+            ? track.classification.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+            : "\u2014"
+        } />
         <DataRow label="RANGE" value={`${range.toFixed(2)} km`} />
+        <DataRow label="AFFILIATION" value={isIdentified ? track.affiliation.toUpperCase() : "\u2014"} valueColor={isIdentified ? affColor : undefined} />
         <DataRow label="BEARING" value={`${bearing.toFixed(0)}\u00B0`} />
         <DataRow label="ALTITUDE" value={`${track.altitude_ft.toFixed(0)} ft`} />
         <DataRow label="SPEED" value={`${track.speed_kts.toFixed(0)} kts`} />
         <DataRow label="HEADING" value={`${track.heading_deg.toFixed(0)}\u00B0`} />
-        <DataRow
-          label="CONFIDENCE"
-          value={`${Math.round(track.confidence * 100)}%`}
-          valueColor={confidenceColor}
-        />
+        <DataRow label="CONFIDENCE" value={`${Math.round(track.confidence * 100)}%`} valueColor={confidenceColor} />
       </div>
 
       {/* Sensors detecting */}
       {track.sensors_detecting && track.sensors_detecting.length > 0 && (
-        <div style={{ marginTop: 10 }}>
+        <div style={{ marginTop: 4 }}>
           <div
             style={{
-              fontSize: 9,
+              fontSize: 8,
               color: "#8b949e",
               letterSpacing: 1,
-              marginBottom: 4,
+              marginBottom: 2,
             }}
           >
-            SENSORS DETECTING
+            SENSORS
           </div>
-          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
             {track.sensors_detecting.map((s) => (
               <span
                 key={s}
                 style={{
-                  fontSize: 9,
-                  padding: "2px 6px",
-                  borderRadius: 3,
+                  fontSize: 8,
+                  padding: "1px 4px",
+                  borderRadius: 2,
                   background: "#1c2333",
                   color: "#58a6ff",
                   fontFamily: "'JetBrains Mono', monospace",
@@ -290,12 +278,12 @@ function DataRow({
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        padding: "3px 0",
+        padding: "1px 0",
       }}
     >
       <span
         style={{
-          fontSize: 10,
+          fontSize: 8,
           color: "#8b949e",
           letterSpacing: 0.5,
         }}
@@ -304,7 +292,7 @@ function DataRow({
       </span>
       <span
         style={{
-          fontSize: 12,
+          fontSize: 9,
           fontFamily: "'JetBrains Mono', monospace",
           fontWeight: 500,
           color: valueColor || "#e6edf3",

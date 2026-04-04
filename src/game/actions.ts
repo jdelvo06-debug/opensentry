@@ -97,6 +97,29 @@ export function handleIdentify(
   return msgs;
 }
 
+export function handleDeclareAffiliation(
+  gs: GameState,
+  targetId: string,
+  affiliation: string,
+  elapsed: number,
+): Record<string, unknown>[] {
+  const msgs: Record<string, unknown>[] = [];
+  for (let j = 0; j < gs.drones.length; j++) {
+    const d = gs.drones[j];
+    if (d.id === targetId && (d.dtid_phase === 'identified' || d.dtid_phase === 'tracked')) {
+      gs.drones[j] = {
+        ...d,
+        affiliation: affiliation as DroneState['affiliation'],
+        dtid_phase: 'identified',
+      };
+      gs.affiliation_given.set(targetId, affiliation);
+      const label = gs.drones[j].display_label || targetId;
+      msgs.push(_event(elapsed, `OPERATOR: ${label.toUpperCase()} affiliation declared — ${affiliation.toUpperCase()}`));
+    }
+  }
+  return msgs;
+}
+
 export function handleHoldFire(gs: GameState, targetId: string, elapsed: number): Record<string, unknown>[] {
   const msgs: Record<string, unknown>[] = [];
   for (let j = 0; j < gs.drones.length; j++) {

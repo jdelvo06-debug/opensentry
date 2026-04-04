@@ -32,6 +32,7 @@ import {
 import {
   handleConfirmTrack,
   handleIdentify,
+  handleDeclareAffiliation,
   handleEngage,
   handleHoldFire,
   handleReleaseHoldFire,
@@ -342,6 +343,11 @@ export function useGameEngine(onMessage: MessageHandler) {
             action,
           );
           dispatchAll(advanceTutorialStep(gs, "engage", targetId, data.effector as string));
+          break;
+
+        case "declare_affiliation":
+          msgs = handleDeclareAffiliation(gs, targetId, (data.affiliation as string) ?? "unknown", elapsed);
+          dispatchAll(advanceTutorialStep(gs, "declare_affiliation", targetId));
           break;
 
         case "hold_fire":

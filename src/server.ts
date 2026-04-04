@@ -23,7 +23,7 @@ import {
   advanceTutorialStep, checkTutorialPrompts,
 } from './game/loop.js';
 import {
-  handleConfirmTrack, handleIdentify, handleHoldFire,
+  handleConfirmTrack, handleIdentify, handleDeclareAffiliation, handleHoldFire,
   handleReleaseHoldFire, handleEngage, handleJammerToggle,
   handleJamAll, handleCeaseJam, handleClearAirspace,
   handlePauseMission, handleResumeMission, handleEndMission,
@@ -51,7 +51,7 @@ const FRONTEND_DIST = join(projectRoot, 'frontend', 'dist');
 const VALID_SCENARIO_IDS = new Set(['lone_wolf', 'swarm_attack', 'recon_probe', 'tutorial']);
 const VALID_BASE_IDS = new Set(['small_fob', 'medium_airbase', 'large_installation']);
 const VALID_ACTION_NAMES = new Set([
-  'confirm_track', 'identify', 'engage', 'hold_fire',
+  'confirm_track', 'identify', 'declare_affiliation', 'engage', 'hold_fire',
   'release_hold_fire', 'end_mission', 'slew_camera',
   'shenobi_hold', 'shenobi_land_now', 'shenobi_deafen',
   'jammer_toggle', 'jam_all', 'cease_jam', 'clear_airspace',
@@ -388,6 +388,8 @@ async function handleGameSession(ws: WebSocket): Promise<void> {
           } else if (actionName === 'identify') {
             sendMsgs(ws, handleIdentify(gs, targetId, msg.classification, msg.affiliation ?? 'unknown', elapsed));
             sendMsgs(ws, advanceTutorialStep(gs, 'identify', targetId));
+          } else if (actionName === 'declare_affiliation') {
+            sendMsgs(ws, handleDeclareAffiliation(gs, targetId, msg.affiliation ?? 'unknown', elapsed));
           } else if (actionName === 'slew_camera') {
             sendMsgs(ws, advanceTutorialStep(gs, 'slew_camera', targetId));
           } else if (actionName === 'hold_fire') {

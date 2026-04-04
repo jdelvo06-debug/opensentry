@@ -936,6 +936,15 @@ export default function App() {
     });
   };
 
+  const declareAffiliation = (trackId: string, affiliation: string) => {
+    send({
+      type: "action",
+      action: "declare_affiliation",
+      target_id: trackId,
+      affiliation,
+    });
+  };
+
   const engage = (trackId: string, effectorId: string, shenobiCm?: string) => {
     // BLUE-ON-BLUE check: engaging UNKNOWN track without ATC response
     const engTrack = tracks.find((t) => t.id === trackId);
@@ -1796,6 +1805,7 @@ export default function App() {
           onHoldFire={handleHoldFire}
           onReleaseHoldFire={handleReleaseHoldFire}
           onCallATC={callATC}
+          onDeclareAffiliation={declareAffiliation}
           cameraTrackId={cameraTrackId}
           sensorConfigs={sensorConfigs}
           protectedArea={protectedArea}
@@ -1890,10 +1900,10 @@ export default function App() {
         )}
       </div>
 
-      {/* Right sidebar — split: top scrollable (track+engagement), bottom fixed (camera) */}
+      {/* Right sidebar — full height: TrackDetail + Engagement (scrollable) + Camera (fixed bottom) */}
       <div
         style={{
-          gridRow: "2",
+          gridRow: "2 / -1",
           gridColumn: "3",
           background: "#161b22",
           borderLeft: "1px solid #30363d",
@@ -1902,8 +1912,11 @@ export default function App() {
           overflow: "hidden",
         }}
       >
+        {/* Scrollable area: TrackDetail + Engagement */}
         <div style={{ flex: 1, overflow: "auto", minHeight: 0 }}>
-          <TrackDetailPanel track={selectedTrack} />
+          <div style={{ maxHeight: "220px", flexShrink: 0, overflow: "hidden" }}>
+            <TrackDetailPanel track={selectedTrack} />
+          </div>
           <EngagementPanel
             track={selectedTrack}
             effectors={effectors}
@@ -1912,25 +1925,38 @@ export default function App() {
             onEngage={engage}
             onSlewCamera={handleSlewCamera}
             onCallATC={callATC}
+            onDeclareAffiliation={declareAffiliation}
 
             tutorialStep={isTutorial ? tutorialStep : undefined}
           />
         </div>
-        <CameraPanel
-          track={cameraTrack}
-          allTracks={tracks}
-          sensorConfigs={sensorConfigs}
-        />
+        {/* Fixed bottom: Camera */}
+        <div style={{ borderTop: "1px solid #30363d", background: "#161b22", flexShrink: 0 }}>
+          <CameraPanel
+            track={cameraTrack}
+            allTracks={tracks}
+            sensorConfigs={sensorConfigs}
+          />
+        </div>
       </div>
 
-      {/* Bottom: Event Log */}
-      <EventLog
-        events={events}
-        hookedTracks={tracks.filter((t) => hookedTrackIds.has(t.id))}
-        onUnhook={(id) => setHookedTrackIds((prev) => { const next = new Set(prev); next.delete(id); return next; })}
-        onCallATC={callATC}
-        onTagFriendly={tagFriendly}
-      />
+      {/* Bottom: Event Log (left side only, stops before sidebar) */}
+      <div
+        style={{
+          gridRow: "3",
+          gridColumn: "1 / 3",
+          background: "#0d1117",
+          borderTop: "1px solid #30363d",
+        }}
+      >
+        <EventLog
+          events={events}
+          hookedTracks={tracks.filter((t) => hookedTrackIds.has(t.id))}
+          onUnhook={(id) => setHookedTrackIds((prev) => { const next = new Set(prev); next.delete(id); return next; })}
+          onCallATC={callATC}
+          onTagFriendly={tagFriendly}
+        />
+      </div>
 
       {/* ATC Comms Popup */}
       {atcPanelTrackId && (atcCommsMessages[atcPanelTrackId]?.length ?? 0) > 0 && (

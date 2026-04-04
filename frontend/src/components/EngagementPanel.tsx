@@ -14,6 +14,7 @@ interface Props {
   onEngage: (trackId: string, effectorId: string, shenobiCm?: string) => void;
   onSlewCamera?: (trackId: string) => void;
   onCallATC?: (trackId: string) => void;
+  onDeclareAffiliation?: (trackId: string, affiliation: string) => void;
   atcMessages?: AtcMessage[];
   tutorialStep?: number;
 }
@@ -63,6 +64,7 @@ export default function EngagementPanel({
   onEngage,
   onSlewCamera,
   onCallATC,
+  onDeclareAffiliation,
   atcMessages = [],
   tutorialStep,
 }: Props) {
@@ -253,13 +255,13 @@ export default function EngagementPanel({
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             {CLASSIFICATIONS.map((cls, idx) => {
-              const clsColor = cls.affiliation === "hostile" ? "#f85149"
-                : cls.affiliation === "friendly" ? "#58a6ff" : "#3fb950";
+              // All classification buttons YELLOW until affiliation declared
+              const clsColor = "#d29922";
               return (
                 <button
                   className={tutorialStep === 4 ? "tutorial-pulse" : undefined}
                   key={`${cls.value}-${cls.affiliation}-${idx}`}
-                  onClick={() => onIdentify(track.id, cls.value, cls.affiliation)}
+                  onClick={() => onIdentify(track.id, cls.value, "unknown")}
                   style={{
                     width: "100%",
                     padding: "7px 12px",
@@ -292,6 +294,72 @@ export default function EngagementPanel({
 
       {track.dtid_phase === "identified" && (
         <div>
+          {/* Affiliation section — buttons if unknown, badge if declared */}
+          {onDeclareAffiliation && track.affiliation === "unknown" ? (
+            <>
+              <div style={{ fontSize: 11, color: "#8b949e", marginBottom: 8 }}>
+                Declare track affiliation
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 8 }}>
+                {[
+                  { value: "hostile", label: "HOSTILE — Enable defeat options", color: "#f85149" },
+                  { value: "neutral", label: "NEUTRAL — Non-combatant", color: "#3fb950" },
+                  { value: "friendly", label: "FRIENDLY — Allied contact", color: "#58a6ff" },
+                  { value: "unknown", label: "UNKNOWN — Keep monitoring", color: "#d29922" },
+                ].map((aff) => (
+                  <button
+                    key={aff.value}
+                    onClick={() => onDeclareAffiliation(track.id, aff.value)}
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      background: `${aff.color}18`,
+                      border: `1px solid ${aff.color}44`,
+                      borderRadius: 4,
+                      color: aff.color,
+                      fontSize: 10,
+                      fontWeight: 600,
+                      fontFamily: "'Inter', sans-serif",
+                      letterSpacing: 0.5,
+                      cursor: "pointer",
+                      textAlign: "left",
+                    }}
+                  >
+                    {aff.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : track.affiliation !== "unknown" && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              {(() => {
+                const affColor = track.affiliation === "hostile" ? "#f85149"
+                  : track.affiliation === "friendly" ? "#58a6ff"
+                  : track.affiliation === "neutral" ? "#3fb950" : "#d29922";
+                return (
+                  <button
+                    onClick={() => onDeclareAffiliation && onDeclareAffiliation(track.id, "unknown")}
+                    style={{
+                      padding: "3px 10px",
+                      background: `${affColor}22`,
+                      border: `1px solid ${affColor}55`,
+                      borderRadius: 3,
+                      color: affColor,
+                      fontSize: 10,
+                      fontWeight: 600,
+                      letterSpacing: 0.5,
+                      cursor: "pointer",
+                      fontFamily: "'Inter', sans-serif",
+                    }}
+                    title="Click to re-declare affiliation"
+                  >
+                    {track.affiliation.toUpperCase()} ▼
+                  </button>
+                );
+              })()}
+            </div>
+          )}
+
           {/* SLEW CAMERA in identified phase too — always visible */}
           {onSlewCamera && (
             <button
@@ -299,7 +367,7 @@ export default function EngagementPanel({
               style={{
                 width: "100%",
                 padding: "9px 12px",
-                marginBottom: 8,
+                marginTop: 8,
                 background: "#d2992218",
                 border: "1px solid #d2992244",
                 borderRadius: 5,
@@ -391,7 +459,7 @@ export default function EngagementPanel({
           })()}
 
           {/* Main effector list (hidden when Shenobi submenu is open) */}
-          {!shenobiSubMenu && (
+          {!shenobiSubMenu && track.affiliation !== "unknown" && (
             <>
               <div style={{ fontSize: 11, color: "#8b949e", marginBottom: 8 }}>
                 Select effector to engage

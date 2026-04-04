@@ -24,6 +24,7 @@ interface Props {
   onHoldFire?: (trackId: string) => void;
   onReleaseHoldFire?: (trackId: string) => void;
   onCallATC?: (trackId: string) => void;
+  onDeclareAffiliation?: (trackId: string, affiliation: string) => void;
   iffStatus?: string;
   atcCalled?: boolean;
   classification?: string;
@@ -67,7 +68,7 @@ const PHASE_COLORS: Record<DTIDPhase, string> = {
   defeated: "#3fb950",   // green
 };
 
-type SubMenu = "none" | "identify" | "engage" | "shenobi_cm";
+type SubMenu = "none" | "identify" | "engage" | "shenobi_cm" | "affiliation";
 
 function getActionsForPhase(dtidPhase: DTIDPhase, holdFire?: boolean, iffStatus?: string, atcCalled?: boolean, classification?: string): WheelAction[] {
   switch (dtidPhase) {
@@ -311,6 +312,7 @@ export default function RadialActionWheel({
   onHoldFire,
   onReleaseHoldFire,
   onCallATC,
+  onDeclareAffiliation,
   iffStatus,
   atcCalled,
   classification,
@@ -391,10 +393,12 @@ export default function RadialActionWheel({
 
   const handleClassify = useCallback(
     (cls: (typeof CLASSIFICATIONS)[number]) => {
-      onIdentify(trackId, cls.value, cls.affiliation);
-      animatedClose();
+      // All classifications start as UNKNOWN - operator declares affiliation manually
+      onIdentify(trackId, cls.value, "unknown");
+      // Show affiliation submenu — do NOT close the wheel yet
+      setSubMenu("affiliation");
     },
-    [trackId, onIdentify, animatedClose],
+    [trackId, onIdentify],
   );
 
   const handleEngage = useCallback(
@@ -460,18 +464,32 @@ export default function RadialActionWheel({
       color: cm.color,
       statusText: cm.desc,
     }));
+  } else if (subMenu === "affiliation") {
+    subActions = [
+      { id: "hostile", label: "HOSTILE", icon: "⚔️", color: "#f85149", statusText: "Enable defeat" },
+      { id: "neutral", label: "NEUTRAL", icon: "⚪", color: "#3fb950", statusText: "Non-combatant" },
+      { id: "friendly", label: "FRIENDLY", icon: "✅", color: "#58a6ff", statusText: "Allied contact" },
+      { id: "unknown", label: "UNKNOWN", icon: "❓", color: "#d29922", statusText: "Unidentified" },
+    ];
   }
 
-  const handleSubSelect = (id: string) => {
-    if (subMenu === "identify") {
-      const cls = CLASSIFICATIONS.find((c) => c.value === id);
-      if (cls) handleClassify(cls);
-    } else if (subMenu === "engage") {
-      handleEngage(id);
-    } else if (subMenu === "shenobi_cm") {
-      handleNexusCM(id);
-    }
-  };
+  const handleSubSelect = useCallback(
+    (id: string) => {
+      if (subMenu === "identify") {
+        const cls = CLASSIFICATIONS.find((c) => c.value === id);
+        if (cls) handleClassify(cls);
+      } else if (subMenu === "engage") {
+        handleEngage(id);
+      } else if (subMenu === "shenobi_cm") {
+        handleNexusCM(id);
+      } else if (subMenu === "affiliation") {
+        // Declare affiliation after classification
+        onDeclareAffiliation?.(trackId, id);
+        animatedClose();
+      }
+    },
+    [subMenu, onDeclareAffiliation, trackId, animatedClose],
+  );
 
   // Phase accent color
   const phaseColor = PHASE_COLORS[dtidPhase];
@@ -707,7 +725,7 @@ export default function RadialActionWheel({
                 userSelect: "none",
               }}
             >
-              {subMenu === "identify" ? "CLASSIFY" : subMenu === "shenobi_cm" ? "Shenobi CM" : "SELECT EFFECTOR"}
+              {subMenu === "identify" ? "CLASSIFY" : subMenu === "shenobi_cm" ? "Shenobi CM" : subMenu === "affiliation" ? "DECLARE AFFILIATION" : "SELECT EFFECTOR"}
             </text>
           )}
         </svg>
