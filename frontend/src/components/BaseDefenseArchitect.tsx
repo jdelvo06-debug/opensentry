@@ -8,7 +8,6 @@ import {
   useMap,
   useMapEvents,
   ScaleControl,
-  LayersControl,
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -19,19 +18,23 @@ const SHAW_AFB = { lat: 33.9722, lng: -80.4756 };
 const DEFAULT_ZOOM = 14;
 
 const COLORS = {
-  bg: "#0d1117",
-  card: "#161b22",
-  border: "#30363d",
+  bg: "#0a0e1a",
+  card: "#0f1520",
+  border: "#1a2235",
   text: "#e6edf3",
-  muted: "#8b949e",
-  accent: "#58a6ff",
-  danger: "#f85149",
+  muted: "#6b7b8d",
+  accent: "#00d4ff",
+  danger: "#ff4d4d",
   warning: "#d29922",
   success: "#3fb950",
   purple: "#a371f7",
 };
 
-const ALTITUDE_PRESETS = [2, 10, 30];
+const ALTITUDE_PRESETS: { value: number; label: string }[] = [
+  { value: 2, label: "2m Ground" },
+  { value: 10, label: "10m Mast" },
+  { value: 30, label: "30m Tower" },
+];
 
 // System definitions for the palette
 interface SystemDef {
@@ -43,6 +46,7 @@ interface SystemDef {
   fov_deg?: number;
   color: string;
   icon: string;
+  letter: string;
   description: string;
 }
 
@@ -57,6 +61,7 @@ const SYSTEM_CATALOG: SystemDef[] = [
     fov_deg: 360,
     color: "#58a6ff",
     icon: "📡",
+    letter: "R",
     description: "360° surveillance radar, 10km range",
   },
   {
@@ -68,6 +73,7 @@ const SYSTEM_CATALOG: SystemDef[] = [
     fov_deg: 360,
     color: "#a371f7",
     icon: "📻",
+    letter: "S",
     description: "Passive RF detection, 8km range",
   },
   {
@@ -79,6 +85,7 @@ const SYSTEM_CATALOG: SystemDef[] = [
     fov_deg: 15,
     color: "#3fb950",
     icon: "📷",
+    letter: "E",
     description: "Electro-optical/infrared, 8km range, 15° FOV",
   },
   {
@@ -90,6 +97,7 @@ const SYSTEM_CATALOG: SystemDef[] = [
     fov_deg: 360,
     color: "#79c0ff",
     icon: "🔊",
+    letter: "A",
     description: "Passive acoustic detection, 3km range",
   },
   // Effectors
@@ -102,6 +110,7 @@ const SYSTEM_CATALOG: SystemDef[] = [
     fov_deg: 360,
     color: "#f85149",
     icon: "🚀",
+    letter: "J",
     description: "Kinetic interceptor pallet, 10km range",
   },
   {
@@ -113,6 +122,7 @@ const SYSTEM_CATALOG: SystemDef[] = [
     fov_deg: 360,
     color: "#e3b341",
     icon: "⚡",
+    letter: "J",
     description: "RF/PNT jammer, 5km range",
   },
   {
@@ -124,6 +134,7 @@ const SYSTEM_CATALOG: SystemDef[] = [
     fov_deg: 360,
     color: "#d29922",
     icon: "🛡️",
+    letter: "L",
     description: "Light Marine Air Defense, 6km range",
   },
   // Infrastructure (no coverage)
@@ -134,6 +145,7 @@ const SYSTEM_CATALOG: SystemDef[] = [
     type: "structure",
     color: "#8b949e",
     icon: "🏢",
+    letter: "C",
     description: "Tactical operations center",
   },
   {
@@ -143,6 +155,7 @@ const SYSTEM_CATALOG: SystemDef[] = [
     type: "structure",
     color: "#8b949e",
     icon: "🚧",
+    letter: "G",
     description: "Primary entry control point",
   },
   {
@@ -152,6 +165,7 @@ const SYSTEM_CATALOG: SystemDef[] = [
     type: "structure",
     color: "#8b949e",
     icon: "⛽",
+    letter: "F",
     description: "Fuel storage facility",
   },
   {
@@ -161,6 +175,7 @@ const SYSTEM_CATALOG: SystemDef[] = [
     type: "structure",
     color: "#8b949e",
     icon: "🏠",
+    letter: "B",
     description: "Personnel housing",
   },
   {
@@ -170,11 +185,22 @@ const SYSTEM_CATALOG: SystemDef[] = [
     type: "structure",
     color: "#8b949e",
     icon: "📶",
+    letter: "T",
     description: "Communications relay tower",
   },
 ];
 
 // ─── Placed system type ──────────────────────────────────────────────────────
+
+interface ViewshedStats {
+  totalCells: number;
+  visibleCells: number;
+  blockedCells: number;
+  coveragePercent: number;
+  sensorElevation: number;
+  minElevation: number;
+  maxElevation: number;
+}
 
 interface PlacedSystem {
   uid: string;
@@ -182,14 +208,24 @@ interface PlacedSystem {
   lat: number;
   lng: number;
   altitude: number; // meters
-  viewshed: [number, number][] | null; // polygon points or null if loading/unavailable
+  viewshed: [number, number][] | null; // visible polygon points
+  blockedSectors: [number, number][][] | null; // blocked area polygons
   viewshedLoading: boolean;
   viewshedArea: number | null; // km²
+  viewshedStats: ViewshedStats | null;
 }
 
 // ─── Viewshed computation ────────────────────────────────────────────────────
 
-const viewshedCache = new Map<string, { polygon: [number, number][]; area: number }>();
+const viewshedCache = new Map<
+  string,
+  {
+    polygon: [number, number][];
+    blockedSectors: [number, number][][];
+    area: number;
+    stats: ViewshedStats;
+  }
+>();
 
 function cacheKey(lat: number, lng: number, alt: number): string {
   return `${lat.toFixed(6)},${lng.toFixed(6)},${alt}`;
@@ -254,13 +290,18 @@ async function fetchElevations(
   return results;
 }
 
-/** Compute viewshed polygon: cast rays from center, check LOS along each */
+/** Compute viewshed polygon with blocked areas and terrain stats */
 async function computeViewshed(
   lat: number,
   lng: number,
   altitudeM: number,
   rangeKm: number,
-): Promise<{ polygon: [number, number][]; area: number }> {
+): Promise<{
+  polygon: [number, number][];
+  blockedSectors: [number, number][][];
+  area: number;
+  stats: ViewshedStats;
+}> {
   const effectiveRange = Math.min(rangeKm, MAX_RANGE_KM);
   const steps = Math.ceil(effectiveRange / STEP_KM);
 
@@ -268,7 +309,8 @@ async function computeViewshed(
   const allPoints: { latitude: number; longitude: number }[] = [
     { latitude: lat, longitude: lng },
   ];
-  const rayPoints: { ray: number; step: number; lat: number; lng: number }[] = [];
+  const rayPoints: { ray: number; step: number; lat: number; lng: number }[] =
+    [];
 
   for (let r = 0; r < NUM_RAYS; r++) {
     const bearing = (r / NUM_RAYS) * 2 * Math.PI;
@@ -283,30 +325,99 @@ async function computeViewshed(
   const elevations = await fetchElevations(allPoints);
   const centerElev = elevations[0] + altitudeM;
 
-  // For each ray, walk outward and find max visible distance
+  // Track terrain stats
+  let minElev = Infinity;
+  let maxElev = -Infinity;
+  for (let i = 1; i < elevations.length; i++) {
+    if (elevations[i] < minElev) minElev = elevations[i];
+    if (elevations[i] > maxElev) maxElev = elevations[i];
+  }
+
+  // For each ray, walk outward and track visible/blocked cells
   const visibleEdge: [number, number][] = [];
+  const blockedSectors: [number, number][][] = [];
+  let totalCells = 0;
+  let visibleCells = 0;
+
   for (let r = 0; r < NUM_RAYS; r++) {
     let maxAngle = -Infinity;
     let lastVisible: [number, number] | null = null;
+    let firstBlocked: [number, number] | null = null;
+    const bearing = (r / NUM_RAYS) * 2 * Math.PI;
+    const nextBearing = ((r + 1) / NUM_RAYS) * 2 * Math.PI;
 
     for (let s = 0; s < steps; s++) {
+      totalCells++;
       const idx = 1 + r * steps + s;
       const dist = (s + 1) * STEP_KM;
       const elev = elevations[idx];
-      // Angle from observer to this point (simplified, no earth curvature for short range)
-      const angle = (elev - centerElev) / (dist * 1000); // rise/run in meters
+      const angle = (elev - centerElev) / (dist * 1000);
 
       if (angle >= maxAngle) {
         maxAngle = angle;
-        lastVisible = [rayPoints[r * steps + s].lat, rayPoints[r * steps + s].lng];
+        lastVisible = [
+          rayPoints[r * steps + s].lat,
+          rayPoints[r * steps + s].lng,
+        ];
+        visibleCells++;
+        // If we had a blocked region starting, close it
+        if (firstBlocked) {
+          firstBlocked = null;
+        }
+      } else {
+        // This cell is blocked
+        if (!firstBlocked) {
+          firstBlocked = [
+            rayPoints[r * steps + s].lat,
+            rayPoints[r * steps + s].lng,
+          ];
+        }
       }
     }
+
     if (lastVisible) {
       visibleEdge.push(lastVisible);
     } else {
-      // Fallback: just use the system range as max
-      const bearing = (r / NUM_RAYS) * 2 * Math.PI;
       visibleEdge.push(offsetLatLng(lat, lng, effectiveRange, bearing));
+    }
+
+    // Generate blocked sector: area between lastVisible edge and max range
+    if (lastVisible) {
+      const lastVisibleDist = lastVisible
+        ? Math.sqrt(
+            Math.pow((lastVisible[0] - lat) * 111.32, 2) +
+              Math.pow(
+                (lastVisible[1] - lng) *
+                  111.32 *
+                  Math.cos(degToRad(lat)),
+                2,
+              ),
+          )
+        : 0;
+      if (lastVisibleDist < effectiveRange * 0.95) {
+        // There's blocked area beyond the visible edge
+        const sector: [number, number][] = [lastVisible];
+        // Arc at visible edge to next ray
+        const nextR = (r + 1) % NUM_RAYS;
+        const nextLastIdx = 1 + nextR * steps + (steps - 1);
+        const nextRayEnd: [number, number] = [
+          rayPoints[Math.min(nextR * steps + steps - 1, rayPoints.length - 1)]
+            ?.lat ?? lat,
+          rayPoints[Math.min(nextR * steps + steps - 1, rayPoints.length - 1)]
+            ?.lng ?? lng,
+        ];
+        // Outer edge
+        sector.push(offsetLatLng(lat, lng, effectiveRange, bearing));
+        sector.push(offsetLatLng(lat, lng, effectiveRange, nextBearing));
+        // If next ray also has a visible edge, connect to it
+        if (nextLastIdx < elevations.length) {
+          sector.push(nextRayEnd);
+        }
+        sector.push(lastVisible); // close
+        if (sector.length >= 4) {
+          blockedSectors.push(sector);
+        }
+      }
     }
   }
 
@@ -315,10 +426,25 @@ async function computeViewshed(
     visibleEdge.push(visibleEdge[0]);
   }
 
-  // Approximate area using shoelace on lat/lng (convert to km)
   const area = computePolygonAreaKm2(visibleEdge);
+  const blockedCells = totalCells - visibleCells;
+  const coveragePercent =
+    totalCells > 0 ? (visibleCells / totalCells) * 100 : 0;
 
-  return { polygon: visibleEdge, area };
+  return {
+    polygon: visibleEdge,
+    blockedSectors,
+    area,
+    stats: {
+      totalCells,
+      visibleCells,
+      blockedCells,
+      coveragePercent,
+      sensorElevation: elevations[0] + altitudeM,
+      minElevation: minElev === Infinity ? 0 : minElev,
+      maxElevation: maxElev === -Infinity ? 0 : maxElev,
+    },
+  };
 }
 
 /** Approximate polygon area in km² using shoelace on equirectangular projection */
@@ -342,27 +468,33 @@ function computePolygonAreaKm2(points: [number, number][]): number {
 // ─── Leaflet icon factory ────────────────────────────────────────────────────
 
 function createSystemIcon(
-  icon: string,
-  color: string,
+  letter: string,
+  _color: string,
   selected: boolean,
 ): L.DivIcon {
-  const borderColor = selected ? "#ffffff" : color;
-  const glow = selected ? `0 0 12px ${color}` : "none";
+  const bgColor = selected ? "#1a8fff" : "#2563eb";
+  const borderColor = selected ? "#ffffff" : "#3b82f6";
+  const glow = selected ? "0 0 12px rgba(59,130,246,0.6)" : "none";
   return L.divIcon({
     html: `<div style="
-      width:36px;height:36px;display:flex;align-items:center;justify-content:center;
-      background:${COLORS.card};border:2px solid ${borderColor};border-radius:50%;
-      font-size:18px;box-shadow:${glow};cursor:grab;
-    ">${icon}</div>`,
+      width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+      background:${bgColor};border:2px solid ${borderColor};border-radius:50%;
+      font-size:14px;font-weight:700;color:#fff;box-shadow:${glow};cursor:grab;
+      font-family:'Inter','JetBrains Mono',monospace;letter-spacing:0.5px;
+    ">${letter}</div>`,
     className: "",
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
   });
 }
 
-function createRingLabel(name: string, rangeKm: number, color: string): L.DivIcon {
+function createRingLabel(
+  name: string,
+  rangeKm: number,
+  color: string,
+): L.DivIcon {
   return L.divIcon({
-    html: `<span style="font:600 9px 'JetBrains Mono',monospace;color:${color};white-space:nowrap;pointer-events:none;background:rgba(13,17,23,0.75);padding:1px 5px;border-radius:2px;">${name} — ${rangeKm}km</span>`,
+    html: `<span style="font:600 9px 'JetBrains Mono',monospace;color:${color};white-space:nowrap;pointer-events:none;background:rgba(10,14,26,0.75);padding:1px 5px;border-radius:2px;">${name} — ${rangeKm}km</span>`,
     className: "",
     iconSize: [120, 14],
     iconAnchor: [60, 7],
@@ -417,8 +549,8 @@ function DraggableSystemMarker({
 }) {
   const markerRef = useRef<L.Marker>(null);
   const icon = useMemo(
-    () => createSystemIcon(system.def.icon, system.def.color, selected),
-    [system.def.icon, system.def.color, selected],
+    () => createSystemIcon(system.def.letter, system.def.color, selected),
+    [system.def.letter, system.def.color, selected],
   );
 
   const eventHandlers = useMemo(
@@ -446,6 +578,26 @@ function DraggableSystemMarker({
       draggable
       eventHandlers={eventHandlers}
     />
+  );
+}
+
+// ─── Section header component ────────────────────────────────────────────────
+
+function SectionHeader({ title }: { title: string }) {
+  return (
+    <div
+      style={{
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: 2,
+        color: COLORS.accent,
+        marginBottom: 10,
+        paddingBottom: 6,
+        borderBottom: `1px solid ${COLORS.border}`,
+      }}
+    >
+      {title}
+    </div>
   );
 }
 
@@ -483,8 +635,10 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
         lng,
         altitude: 10,
         viewshed: null,
+        blockedSectors: null,
         viewshedLoading: false,
         viewshedArea: null,
+        viewshedStats: null,
       };
       setSystems((prev) => [...prev, newSystem]);
       setSelectedUid(uid);
@@ -511,7 +665,9 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
               ? {
                   ...s,
                   viewshed: cached.polygon,
+                  blockedSectors: cached.blockedSectors,
                   viewshedArea: cached.area,
+                  viewshedStats: cached.stats,
                   viewshedLoading: false,
                 }
               : s,
@@ -536,7 +692,9 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
                 ? {
                     ...s,
                     viewshed: result.polygon,
+                    blockedSectors: result.blockedSectors,
                     viewshedArea: result.area,
+                    viewshedStats: result.stats,
                     viewshedLoading: false,
                   }
                 : s,
@@ -558,7 +716,9 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
                 ? {
                     ...s,
                     viewshed: fallbackPoly,
+                    blockedSectors: [],
                     viewshedArea: area,
+                    viewshedStats: null,
                     viewshedLoading: false,
                   }
                 : s,
@@ -579,6 +739,27 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
       const sys = systems.find((s) => s.uid === uid);
       if (sys && sys.def.range_km) {
         fetchViewshedForSystem(uid, sys.lat, sys.lng, newAlt, sys.def.range_km);
+      }
+    },
+    [systems, fetchViewshedForSystem],
+  );
+
+  // ─── Recalculate viewshed ─────────────────────────────────────────────
+
+  const handleRecalculate = useCallback(
+    (uid: string) => {
+      const sys = systems.find((s) => s.uid === uid);
+      if (sys && sys.def.range_km) {
+        // Clear cache for this position
+        const key = cacheKey(sys.lat, sys.lng, sys.altitude);
+        viewshedCache.delete(key);
+        fetchViewshedForSystem(
+          uid,
+          sys.lat,
+          sys.lng,
+          sys.altitude,
+          sys.def.range_km,
+        );
       }
     },
     [systems, fetchViewshedForSystem],
@@ -608,16 +789,6 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
     },
     [selectedUid],
   );
-
-  // ─── Aggregate coverage ────────────────────────────────────────────────
-
-  const aggregateCoverage = useMemo(() => {
-    const areas = systems
-      .filter((s) => s.viewshedArea !== null && s.def.category !== "infrastructure")
-      .map((s) => s.viewshedArea!);
-    // Simple sum (overlaps not subtracted — would need union geometry for that)
-    return areas.reduce((sum, a) => sum + a, 0);
-  }, [systems]);
 
   const loadingSystems = systems.filter((s) => s.viewshedLoading).length;
 
@@ -657,21 +828,36 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
           flexShrink: 0,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontSize: 18 }}>🏗️</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <button
+            onClick={onBack}
+            style={{
+              padding: "4px 12px",
+              fontSize: 11,
+              fontWeight: 600,
+              background: "transparent",
+              border: `1px solid ${COLORS.border}`,
+              borderRadius: 4,
+              color: COLORS.muted,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            &lt; BACK
+          </button>
           <div>
             <div
               style={{
                 fontSize: 14,
                 fontWeight: 700,
                 letterSpacing: 2,
-                color: COLORS.warning,
+                color: COLORS.text,
               }}
             >
               BASE DEFENSE ARCHITECT
             </div>
-            <div style={{ fontSize: 10, color: COLORS.muted, letterSpacing: 1 }}>
-              TERRAIN-AWARE COVERAGE PLANNER
+            <div style={{ fontSize: 10, color: COLORS.muted, letterSpacing: 0.5 }}>
+              Viewshed Analysis — Terrain-aware sensor coverage
               {placingDef && (
                 <span style={{ color: COLORS.accent, marginLeft: 12 }}>
                   PLACING: {placingDef.name} — click map to place
@@ -680,21 +866,19 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
             </div>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span
-            style={{
-              fontSize: 9,
-              fontWeight: 700,
-              letterSpacing: 1,
-              padding: "3px 8px",
-              borderRadius: 4,
-              background: `${COLORS.warning}20`,
-              color: COLORS.warning,
-            }}
-          >
-            BETA
-          </span>
-        </div>
+        <span
+          style={{
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: 1,
+            padding: "3px 8px",
+            borderRadius: 4,
+            background: `${COLORS.warning}20`,
+            color: COLORS.warning,
+          }}
+        >
+          BETA
+        </span>
       </div>
 
       {/* Main 3-column layout */}
@@ -793,12 +977,14 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
                   }}
                   onMouseEnter={(e) => {
                     if (!isPlacing) {
-                      (e.currentTarget as HTMLElement).style.borderColor = def.color;
+                      (e.currentTarget as HTMLElement).style.borderColor =
+                        def.color;
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isPlacing) {
-                      (e.currentTarget as HTMLElement).style.borderColor = COLORS.border;
+                      (e.currentTarget as HTMLElement).style.borderColor =
+                        COLORS.border;
                     }
                   }}
                 >
@@ -859,7 +1045,8 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
             <span>
               {systems.filter((s) => s.def.category === "sensor").length}S /{" "}
               {systems.filter((s) => s.def.category === "effector").length}E /{" "}
-              {systems.filter((s) => s.def.category === "infrastructure").length}I
+              {systems.filter((s) => s.def.category === "infrastructure").length}
+              I
             </span>
           </div>
         </div>
@@ -873,30 +1060,15 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
             zoomControl={false}
           >
             <ScaleControl position="bottomleft" />
-            <LayersControl position="topright">
-              <LayersControl.BaseLayer name="Dark" checked>
-                <TileLayer
-                  url="https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                  maxZoom={20}
-                />
-              </LayersControl.BaseLayer>
-              <LayersControl.BaseLayer name="Satellite">
-                <TileLayer
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                  maxZoom={19}
-                />
-              </LayersControl.BaseLayer>
-              <LayersControl.BaseLayer name="Topo">
-                <TileLayer
-                  url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-                  maxZoom={17}
-                />
-              </LayersControl.BaseLayer>
-            </LayersControl>
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              attribution="Tiles &copy; Esri"
+              maxZoom={19}
+            />
 
             <MapClickHandler placingDef={placingDef} onPlace={handlePlace} />
 
-            {/* Viewshed polygons */}
+            {/* Viewshed polygons — green for visible */}
             {systems.map(
               (sys) =>
                 sys.viewshed && (
@@ -904,14 +1076,29 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
                     key={`vs-${sys.uid}`}
                     positions={sys.viewshed}
                     pathOptions={{
-                      color: sys.def.color,
-                      fillColor: sys.def.color,
-                      fillOpacity: selectedUid === sys.uid ? 0.2 : 0.1,
+                      color: COLORS.success,
+                      fillColor: COLORS.success,
+                      fillOpacity: selectedUid === sys.uid ? 0.25 : 0.15,
                       weight: selectedUid === sys.uid ? 2 : 1,
-                      dashArray: "4,4",
                     }}
                   />
                 ),
+            )}
+
+            {/* Blocked sectors — red */}
+            {systems.map((sys) =>
+              sys.blockedSectors?.map((sector, i) => (
+                <Polygon
+                  key={`bl-${sys.uid}-${i}`}
+                  positions={sector}
+                  pathOptions={{
+                    color: COLORS.danger,
+                    fillColor: COLORS.danger,
+                    fillOpacity: selectedUid === sys.uid ? 0.2 : 0.1,
+                    weight: 0,
+                  }}
+                />
+              )),
             )}
 
             {/* Range rings for systems without viewshed yet */}
@@ -1019,177 +1206,96 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
             flexDirection: "column",
             borderLeft: `1px solid ${COLORS.border}`,
             background: COLORS.card,
-            overflow: "hidden",
+            overflowY: "auto",
           }}
         >
           {selectedSystem ? (
-            <>
-              {/* System header */}
-              <div
-                style={{
-                  padding: "14px 14px 10px",
-                  borderBottom: `1px solid ${COLORS.border}`,
-                }}
-              >
+            <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+              {/* SENSOR section */}
+              <div style={{ padding: "14px 14px 12px" }}>
+                <SectionHeader title="SENSOR" />
                 <div
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    marginBottom: 6,
+                    fontSize: 11,
+                    color: COLORS.text,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    marginBottom: 4,
                   }}
                 >
-                  <span style={{ fontSize: 22 }}>{selectedSystem.def.icon}</span>
-                  <div>
-                    <div
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 700,
-                        color: selectedSystem.def.color,
-                        letterSpacing: 0.5,
-                      }}
-                    >
-                      {selectedSystem.def.name}
-                    </div>
-                    <div style={{ fontSize: 10, color: COLORS.muted }}>
-                      {selectedSystem.def.category.toUpperCase()} —{" "}
-                      {selectedSystem.def.type}
-                    </div>
-                  </div>
+                  {selectedSystem.lat.toFixed(6)},{" "}
+                  {selectedSystem.lng.toFixed(6)}
+                </div>
+                <div style={{ fontSize: 10, color: COLORS.muted }}>
+                  Height AGL: {selectedSystem.altitude}m
                 </div>
               </div>
 
-              {/* Position */}
-              <div style={{ padding: "10px 14px", borderBottom: `1px solid ${COLORS.border}` }}>
-                <div
-                  style={{
-                    fontSize: 9,
-                    fontWeight: 700,
-                    letterSpacing: 1.5,
-                    color: COLORS.muted,
-                    marginBottom: 6,
-                  }}
-                >
-                  POSITION
-                </div>
-                <div style={{ fontSize: 11, color: COLORS.text, fontFamily: "'JetBrains Mono', monospace" }}>
-                  {selectedSystem.lat.toFixed(5)}°N, {Math.abs(selectedSystem.lng).toFixed(5)}°{selectedSystem.lng < 0 ? "W" : "E"}
-                </div>
-              </div>
-
-              {/* Altitude */}
+              {/* Altitude slider */}
               {selectedSystem.def.category !== "infrastructure" && (
                 <div
                   style={{
-                    padding: "10px 14px",
-                    borderBottom: `1px solid ${COLORS.border}`,
+                    padding: "0 14px 14px",
                   }}
                 >
-                  <div
+                  <input
+                    type="range"
+                    min={1}
+                    max={100}
+                    value={selectedSystem.altitude}
+                    onChange={(e) =>
+                      handleAltitudeChange(
+                        selectedSystem.uid,
+                        parseInt(e.target.value),
+                      )
+                    }
                     style={{
-                      fontSize: 9,
-                      fontWeight: 700,
-                      letterSpacing: 1.5,
-                      color: COLORS.muted,
+                      width: "100%",
+                      accentColor: COLORS.accent,
                       marginBottom: 8,
                     }}
-                  >
-                    ALTITUDE (METERS AGL)
-                  </div>
-                  <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
-                    {ALTITUDE_PRESETS.map((a) => (
+                  />
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {ALTITUDE_PRESETS.map((preset) => (
                       <button
-                        key={a}
+                        key={preset.value}
                         onClick={() =>
-                          handleAltitudeChange(selectedSystem.uid, a)
+                          handleAltitudeChange(selectedSystem.uid, preset.value)
                         }
                         style={{
                           flex: 1,
-                          padding: "6px 0",
-                          fontSize: 11,
+                          padding: "6px 4px",
+                          fontSize: 10,
                           fontWeight: 600,
-                          border: `1px solid ${selectedSystem.altitude === a ? COLORS.accent : COLORS.border}`,
+                          border: `1px solid ${selectedSystem.altitude === preset.value ? COLORS.accent : COLORS.border}`,
                           borderRadius: 4,
                           background:
-                            selectedSystem.altitude === a
-                              ? `${COLORS.accent}18`
+                            selectedSystem.altitude === preset.value
+                              ? `${COLORS.accent}22`
                               : "transparent",
                           color:
-                            selectedSystem.altitude === a
+                            selectedSystem.altitude === preset.value
                               ? COLORS.accent
                               : COLORS.muted,
                           cursor: "pointer",
                           fontFamily: "inherit",
                         }}
                       >
-                        {a}m
+                        {preset.label}
                       </button>
                     ))}
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <input
-                      type="range"
-                      min={1}
-                      max={100}
-                      value={selectedSystem.altitude}
-                      onChange={(e) =>
-                        handleAltitudeChange(
-                          selectedSystem.uid,
-                          parseInt(e.target.value),
-                        )
-                      }
-                      style={{
-                        flex: 1,
-                        accentColor: COLORS.accent,
-                      }}
-                    />
-                    <input
-                      type="number"
-                      min={1}
-                      max={100}
-                      value={selectedSystem.altitude}
-                      onChange={(e) => {
-                        const v = parseInt(e.target.value);
-                        if (v >= 1 && v <= 100) {
-                          handleAltitudeChange(selectedSystem.uid, v);
-                        }
-                      }}
-                      style={{
-                        width: 50,
-                        padding: "4px 6px",
-                        fontSize: 11,
-                        fontWeight: 600,
-                        background: COLORS.bg,
-                        border: `1px solid ${COLORS.border}`,
-                        borderRadius: 4,
-                        color: COLORS.text,
-                        textAlign: "center",
-                        fontFamily: "'JetBrains Mono', monospace",
-                      }}
-                    />
                   </div>
                 </div>
               )}
 
-              {/* Coverage stats */}
+              {/* VIEWSHED section */}
               {selectedSystem.def.range_km && (
                 <div
                   style={{
-                    padding: "10px 14px",
-                    borderBottom: `1px solid ${COLORS.border}`,
+                    padding: "14px",
+                    borderTop: `1px solid ${COLORS.border}`,
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: 9,
-                      fontWeight: 700,
-                      letterSpacing: 1.5,
-                      color: COLORS.muted,
-                      marginBottom: 8,
-                    }}
-                  >
-                    COVERAGE
-                  </div>
+                  <SectionHeader title="VIEWSHED" />
                   {selectedSystem.viewshedLoading ? (
                     <div
                       style={{
@@ -1214,76 +1320,185 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
                       Computing viewshed...
                     </div>
                   ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}>
-                        <span style={{ fontSize: 10, color: COLORS.muted }}>
-                          Viewshed area
-                        </span>
-                        <span
+                    <>
+                      {/* Big coverage % */}
+                      <div style={{ textAlign: "center", marginBottom: 12 }}>
+                        <div
                           style={{
-                            fontSize: 11,
-                            fontWeight: 600,
-                            color: COLORS.text,
+                            fontSize: 36,
+                            fontWeight: 700,
+                            color: COLORS.accent,
                             fontFamily: "'JetBrains Mono', monospace",
+                            lineHeight: 1,
                           }}
                         >
-                          {selectedSystem.viewshedArea
-                            ? `${selectedSystem.viewshedArea.toFixed(1)} km²`
+                          {selectedSystem.viewshedStats
+                            ? `${selectedSystem.viewshedStats.coveragePercent.toFixed(1)}%`
                             : "—"}
-                        </span>
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}>
-                        <span style={{ fontSize: 10, color: COLORS.muted }}>
-                          Max range
-                        </span>
-                        <span
+                        </div>
+                        <div
                           style={{
-                            fontSize: 11,
-                            fontWeight: 600,
-                            color: selectedSystem.def.color,
-                            fontFamily: "'JetBrains Mono', monospace",
+                            fontSize: 10,
+                            color: COLORS.muted,
+                            marginTop: 4,
                           }}
                         >
-                          {selectedSystem.def.range_km} km
-                        </span>
+                          Coverage
+                        </div>
                       </div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}>
-                        <span style={{ fontSize: 10, color: COLORS.muted }}>
-                          FOV
-                        </span>
-                        <span
+
+                      {/* Stats grid */}
+                      {selectedSystem.viewshedStats && (
+                        <div
                           style={{
-                            fontSize: 11,
-                            fontWeight: 600,
-                            color: COLORS.text,
-                            fontFamily: "'JetBrains Mono', monospace",
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: "6px 12px",
+                            marginBottom: 12,
+                            fontSize: 10,
                           }}
                         >
-                          {selectedSystem.def.fov_deg}°
-                        </span>
-                      </div>
-                    </div>
+                          <div style={{ color: COLORS.muted }}>Total cells</div>
+                          <div
+                            style={{
+                              textAlign: "right",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              color: COLORS.text,
+                              fontWeight: 600,
+                            }}
+                          >
+                            {selectedSystem.viewshedStats.totalCells}
+                          </div>
+                          <div style={{ color: COLORS.muted }}>Visible</div>
+                          <div
+                            style={{
+                              textAlign: "right",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              color: COLORS.success,
+                              fontWeight: 600,
+                            }}
+                          >
+                            {selectedSystem.viewshedStats.visibleCells}
+                          </div>
+                          <div style={{ color: COLORS.muted }}>Blocked</div>
+                          <div
+                            style={{
+                              textAlign: "right",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              color: COLORS.danger,
+                              fontWeight: 600,
+                            }}
+                          >
+                            {selectedSystem.viewshedStats.blockedCells}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Recalculate button */}
+                      <button
+                        onClick={() => handleRecalculate(selectedSystem.uid)}
+                        style={{
+                          width: "100%",
+                          padding: "8px 0",
+                          fontSize: 10,
+                          fontWeight: 700,
+                          letterSpacing: 1,
+                          background: COLORS.bg,
+                          border: `1px solid ${COLORS.border}`,
+                          borderRadius: 5,
+                          color: COLORS.text,
+                          cursor: "pointer",
+                          fontFamily: "inherit",
+                        }}
+                      >
+                        RECALCULATE
+                      </button>
+                    </>
                   )}
                 </div>
               )}
 
-              {/* System info */}
-              <div style={{ padding: "10px 14px", flex: 1 }}>
+              {/* TERRAIN INFO section */}
+              {selectedSystem.viewshedStats && (
                 <div
                   style={{
-                    fontSize: 9,
-                    fontWeight: 700,
-                    letterSpacing: 1.5,
-                    color: COLORS.muted,
-                    marginBottom: 6,
+                    padding: "14px",
+                    borderTop: `1px solid ${COLORS.border}`,
                   }}
                 >
-                  SYSTEM INFO
+                  <SectionHeader title="TERRAIN INFO" />
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: "6px 12px",
+                      fontSize: 10,
+                    }}
+                  >
+                    <div style={{ color: COLORS.muted }}>Sensor elev</div>
+                    <div
+                      style={{
+                        textAlign: "right",
+                        fontFamily: "'JetBrains Mono', monospace",
+                        color: COLORS.text,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {Math.round(selectedSystem.viewshedStats.sensorElevation)}m
+                    </div>
+                    <div style={{ color: COLORS.muted }}>Min elev</div>
+                    <div
+                      style={{
+                        textAlign: "right",
+                        fontFamily: "'JetBrains Mono', monospace",
+                        color: COLORS.text,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {Math.round(selectedSystem.viewshedStats.minElevation)}m
+                    </div>
+                    <div style={{ color: COLORS.muted }}>Max elev</div>
+                    <div
+                      style={{
+                        textAlign: "right",
+                        fontFamily: "'JetBrains Mono', monospace",
+                        color: COLORS.text,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {Math.round(selectedSystem.viewshedStats.maxElevation)}m
+                    </div>
+                    <div style={{ color: COLORS.muted }}>Relief</div>
+                    <div
+                      style={{
+                        textAlign: "right",
+                        fontFamily: "'JetBrains Mono', monospace",
+                        color: COLORS.text,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {Math.round(
+                        selectedSystem.viewshedStats.maxElevation -
+                          selectedSystem.viewshedStats.minElevation,
+                      )}
+                      m
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 8,
+                      color: COLORS.muted,
+                      marginTop: 10,
+                      opacity: 0.6,
+                    }}
+                  >
+                    SRTM 30m via Open-Elevation
+                  </div>
                 </div>
-                <div style={{ fontSize: 11, color: COLORS.muted, lineHeight: 1.6 }}>
-                  {selectedSystem.def.description}
-                </div>
-              </div>
+              )}
+
+              {/* Spacer */}
+              <div style={{ flex: 1 }} />
 
               {/* Delete */}
               <div
@@ -1297,7 +1512,7 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
                   style={{
                     width: "100%",
                     padding: "8px 0",
-                    fontSize: 11,
+                    fontSize: 10,
                     fontWeight: 700,
                     letterSpacing: 1,
                     background: `${COLORS.danger}18`,
@@ -1306,19 +1521,45 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
                     color: COLORS.danger,
                     cursor: "pointer",
                     fontFamily: "inherit",
-                    transition: "all 0.1s",
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.background = `${COLORS.danger}30`;
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.background = `${COLORS.danger}18`;
+                    marginBottom: 8,
                   }}
                 >
                   DELETE SYSTEM
                 </button>
+
+                {/* Export button */}
+                <button
+                  disabled
+                  style={{
+                    width: "100%",
+                    padding: "10px 0",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: 1,
+                    background: COLORS.bg,
+                    border: `1px solid ${COLORS.border}`,
+                    borderRadius: 5,
+                    color: COLORS.muted,
+                    cursor: "not-allowed",
+                    fontFamily: "inherit",
+                    opacity: 0.6,
+                  }}
+                >
+                  EXPORT TO MISSION
+                </button>
+                <div
+                  style={{
+                    fontSize: 9,
+                    color: COLORS.muted,
+                    textAlign: "center",
+                    marginTop: 4,
+                    opacity: 0.5,
+                  }}
+                >
+                  Coming soon
+                </div>
               </div>
-            </>
+            </div>
           ) : (
             <div
               style={{
@@ -1331,7 +1572,22 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
                 gap: 12,
               }}
             >
-              <div style={{ fontSize: 32, opacity: 0.3 }}>🎯</div>
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: "50%",
+                  border: `2px solid ${COLORS.border}`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 20,
+                  color: COLORS.muted,
+                  opacity: 0.4,
+                }}
+              >
+                +
+              </div>
               <div
                 style={{
                   fontSize: 11,
@@ -1347,99 +1603,6 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
               </div>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Footer bar */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "8px 16px",
-          background: COLORS.card,
-          borderTop: `1px solid ${COLORS.border}`,
-          flexShrink: 0,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <div style={{ fontSize: 10, color: COLORS.muted }}>
-            <span style={{ fontWeight: 700, letterSpacing: 1 }}>
-              AGGREGATE COVERAGE:
-            </span>{" "}
-            <span
-              style={{
-                fontWeight: 700,
-                color: aggregateCoverage > 0 ? COLORS.success : COLORS.muted,
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 12,
-              }}
-            >
-              {aggregateCoverage.toFixed(1)} km²
-            </span>
-          </div>
-          {loadingSystems > 0 && (
-            <div style={{ fontSize: 10, color: COLORS.warning }}>
-              {loadingSystems} viewshed{loadingSystems > 1 ? "s" : ""} loading...
-            </div>
-          )}
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            onClick={() => {
-              setSystems([]);
-              setSelectedUid(null);
-            }}
-            style={{
-              padding: "6px 16px",
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: 1,
-              background: "transparent",
-              border: `1px solid ${COLORS.border}`,
-              borderRadius: 5,
-              color: COLORS.muted,
-              cursor: "pointer",
-              fontFamily: "inherit",
-              transition: "all 0.1s",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = COLORS.danger;
-              (e.currentTarget as HTMLElement).style.color = COLORS.danger;
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = COLORS.border;
-              (e.currentTarget as HTMLElement).style.color = COLORS.muted;
-            }}
-          >
-            CLEAR ALL
-          </button>
-          <button
-            onClick={onBack}
-            style={{
-              padding: "6px 16px",
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: 1,
-              background: "transparent",
-              border: `1px solid ${COLORS.border}`,
-              borderRadius: 5,
-              color: COLORS.muted,
-              cursor: "pointer",
-              fontFamily: "inherit",
-              transition: "all 0.1s",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = COLORS.accent;
-              (e.currentTarget as HTMLElement).style.color = COLORS.accent;
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = COLORS.border;
-              (e.currentTarget as HTMLElement).style.color = COLORS.muted;
-            }}
-          >
-            BACK TO MENU
-          </button>
         </div>
       </div>
     </div>
