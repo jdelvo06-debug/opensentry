@@ -1319,14 +1319,16 @@ export default function App() {
     return (
       <div
         style={{
-          height: "100vh",
+          minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           background: "#0d1117",
           position: "relative",
-          overflow: "hidden",
+          overflowX: "hidden",
+          overflowY: "auto",
+          padding: "40px 0",
         }}
       >
         <div
