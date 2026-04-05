@@ -33,7 +33,7 @@ frontend/                   ← React app (the game UI)
     types.ts                ← TypeScript interfaces for all ServerMessage types
     __tests__/              ← vitest unit tests for game engine
   public/data/              ← Static JSON data (served on GitHub Pages)
-    scenarios/              ← lone_wolf.json, swarm_attack.json, recon_probe.json, tutorial.json, thermopylae.json + index.json
+    scenarios/              ← lone_wolf.json, swarm_attack.json, recon_probe.json, tutorial.json, thermopylae.json, free_play.json + index.json
     bases/                  ← small_fob.json, medium_airbase.json, large_installation.json + index.json
     equipment/catalog.json  ← All equipment definitions
 
@@ -102,6 +102,7 @@ DroneState fields added for PNT: `pnt_jammed`, `pnt_drift_magnitude`, `pnt_jamme
 | Lone Wolf | L-Band + Ku-Band + EO/IR | RF Jammer + 2× JACKAL + Shenobi | Standard loadout |
 | Swarm Attack | L-Band + Ku-Band + 2× EO/IR | 2× RF Jammer + 2× JACKAL + 2× Shenobi | High volume |
 | Recon Probe | L-Band + Ku-Band + 2× EO/IR | RF Jammer + 1× JACKAL + Shenobi | ROE discipline |
+| Free Play | L-Band + Ku-Band + EO/IR | RF Jammer + 1× JACKAL + Shenobi | One of each, casual sandbox |
 
 ---
 

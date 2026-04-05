@@ -1,0 +1,53 @@
+{
+  "id": "free_play",
+  "name": "Free Play",
+  "description": "Open sandbox with a steady mix of threat types. One of each system, no timer. Practice at your own pace — end the mission when you're done.",
+  "difficulty": "Casual",
+  "duration_seconds": 0,
+  "base_radius_km": 0.1,
+  "waves_enabled": true,
+  "free_play": true,
+  "endless_after_seconds": 0,
+  "unknown_spawn_rate": 0.12,
+  "phases": [
+    {
+      "name": "SANDBOX",
+      "start_seconds": 0,
+      "end_seconds": 999999,
+      "max_active": 4,
+      "spawn_interval": 30,
+      "threat_types": [
+        "commercial_quad",
+        "commercial_quad",
+        "micro",
+        "fixed_wing",
+        "improvised",
+        "bird",
+        "weather_balloon"
+      ]
+    }
+  ],
+  "location": {
+    "lat": 36.0,
+    "lng": -79.0,
+    "zoom": 13
+  },
+  "roe_briefing": [
+    "Welcome to Free Play — an open sandbox exercise with no time limit.",
+    "SITUATION — A steady mix of air contacts will appear in your airspace. Expect anything from commercial quads to fixed-wing UAS, plus the occasional bird or balloon. Nothing scripted — just a representative mix of what you might see in a real-world C-UAS watch.",
+    "UNKNOWN contacts (yellow) — Do not engage. Call ATC for IFF clearance first.",
+    "HOSTILE / SUSPECT contacts — Cleared to engage with appropriate effector. Match the threat to the tool.",
+    "FRIENDLY contacts — Weapons safe. Any engagement is a ROE violation.",
+    "Birds and balloons — Ambient traffic. Do not engage.",
+    "You have one of each system available. Use this time to get comfortable with all of them.",
+    "End the mission manually whenever you're ready. You'll get a full debrief and score."
+  ],
+  "engagement_zones": {
+    "detection_range_km": 5.0,
+    "identification_range_km": 1.5,
+    "engagement_range_km": 2.5
+  },
+  "sensors": [],
+  "effectors": [],
+  "drones": []
+}

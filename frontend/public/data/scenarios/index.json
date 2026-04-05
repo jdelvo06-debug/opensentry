@@ -28,5 +28,11 @@
     "name": "THERMOPYLAE",
     "description": "Unscripted free-play. Three escalating threat phases then endless chaos. End when done.",
     "difficulty": "Variable"
+  },
+  {
+    "id": "free_play",
+    "name": "Free Play",
+    "description": "Open sandbox with a steady mix of threat types. One of each system, no timer. Practice at your own pace.",
+    "difficulty": "Casual"
   }
 ]
