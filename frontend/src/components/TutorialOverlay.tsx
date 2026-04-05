@@ -92,6 +92,33 @@ export const UI_TOUR_STEPS: TutorialStep[] = [
     arrowSide: "left",
   },
   {
+    id: "radial_wheel",
+    phase: "ui_tour",
+    title: "Radial Action Wheel",
+    description:
+      "Right-click any track on the tactical map to open the Radial Action Wheel — a quick-access menu for Confirm Track, Slew Camera, Identify, Engage, and more. It's the fastest way to act on a contact without scrolling through panels.",
+    targetId: "tutorial-map",
+    arrowSide: "left",
+  },
+  {
+    id: "engagement_flow",
+    phase: "ui_tour",
+    title: "The DTID Kill Chain",
+    description:
+      "Every contact follows the same flow: DETECT (sensors find it) → TRACK (you confirm it's real) → IDENTIFY (classify it and declare hostile/friendly) → DEFEAT (engage with the right effector). The engagement panel buttons guide you through this sequence. Unknown contacts must go through ATC clearance before engagement.",
+    targetId: "tutorial-engagement",
+    arrowSide: "left",
+  },
+  {
+    id: "effector_selection",
+    phase: "ui_tour",
+    title: "Choosing the Right Effector",
+    description:
+      "Match the effector to the threat. RF Jammer works on most commercial drones. Shenobi does protocol manipulation — hold, land, or deafen. JACKAL is a kinetic interceptor for jam-resistant targets like the Shahed. Using the wrong tool wastes resources and costs points.",
+    targetId: "tutorial-effectors",
+    arrowSide: "right",
+  },
+  {
     id: "eventlog",
     phase: "ui_tour",
     title: "Event Log",
