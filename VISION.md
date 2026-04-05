@@ -39,7 +39,7 @@ Free, browser-based C-UAS training simulator that any military member worldwide 
 - ID Authority (IDA) concept — who has authority to identify
 - Bulls-eye reference point for range/azimuth calls
 
-### Continuous Operations — *Partially implemented (THERMOPYLAE scenario, v1.5.0)*
+### Continuous Operations — *Implemented (THERMOPYLAE v1.5.0, Free Play v1.8.0)*
 - No auto-end — operator maintains watch until END MISSION
 - Escalating threat waves with pauses between
 - Ambient air traffic (commercial, military, birds, balloons)

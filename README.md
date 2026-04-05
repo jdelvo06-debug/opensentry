@@ -10,7 +10,7 @@
 
 > 🗺️ **Train at your actual base.** Drop a pin anywhere on Earth — real satellite imagery loads automatically. Set your perimeter, place your sensors, and run scenarios on terrain your operators actually defend. Not a demo airfield. Your location.
 
-**Version:** v1.7.1 | **Status:** Active development
+**Version:** v1.8.0 | **Status:** Active development
 
 ---
 
@@ -31,6 +31,7 @@ Scoring is based on operational doctrine: detection speed, identification accura
 | **Recon Probe** | 12 min | Multi-contact with trigger discipline — not everything gets engaged | Medium |
 | **Swarm Attack** | 15 min | High-volume multi-wave with Shahed-style autonomous threat | Hard |
 | **THERMOPYLAE** | 20 min+ | Unscripted free-play — 3 escalating phases, endless mode, all threat types | Variable |
+| **Free Play** | Unlimited | Open sandbox — mixed threats, one of each system, no timer | Casual |
 
 ---
 
@@ -112,6 +113,9 @@ UAS and drone contacts are never ATC-authorized — only manned aircraft can rec
 - **Post-scenario debrief** — performance metrics, ROE violation summary, letter grade
 - **Training library** — 5-module slide-style study curriculum, accessible from main menu
 - **THERMOPYLAE free-play scenario** — Escalating chaos mode with endless toggle and manual end
+- **Free Play sandbox** — casual mixed-threat mode with one of each system and no timer; end when done
+- **Interactive tutorial** — two-phase guided experience: UI tour overlay with spotlights, then hands-on DTID practice with gated progression, step tracker, and feedback
+- **Base Defense Architect** — altitude-aware sensor placement tool with viewshed analysis and terrain LOS visualization on real satellite imagery
 
 ---
 
@@ -191,10 +195,13 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 - [x] Type tightening: union types for CM state, jam behavior, intercept phase
 - [x] Documentation: naming consistency, version alignment, architecture updates
 
-### Backlog (v1.8.0+)
-- [ ] Base Defense Architect — terrain-aware sensor placement planning tool (#54, in PR)
+### Completed (v1.8.0)
+- [x] **#54/55** — Base Defense Architect: altitude-aware sensor placement, viewshed, terrain LOS
+- [x] **#56/57** — Free Play scenario: casual mixed-threat sandbox mode
+- [x] **#58/59** — Interactive tutorial overhaul: UI tour + guided DTID practice, step tracker, feedback
+
+### Backlog (v1.9.0+)
 - [ ] After-action replay (timeline scrub)
-- [ ] Terrain LOS checks in gameplay
 - [ ] Multi-operator / shared mission
 - [ ] React.lazy() code splitting for bundle size reduction
 - [ ] Accessibility pass (ARIA labels, keyboard navigation)

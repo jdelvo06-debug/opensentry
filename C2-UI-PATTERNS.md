@@ -123,7 +123,7 @@
 7. **Warning Area** — Buffer zone around protected area
 8. **Camera tracking cone** — Show FOV cone on map following slewed track
 9. **Bulls-eye overlay** — Range rings + azimuth from reference point (already have range rings)
-10. **Selection list** — When clicking near multiple objects, show disambiguation list
+10. **Selection list** — ALREADY ADDED (SelectionList.tsx) — disambiguation list when clicking near multiple objects
 
 ### MEDIUM PRIORITY
 11. **Velocity indicators on track icons** — Line length/presence based on speed

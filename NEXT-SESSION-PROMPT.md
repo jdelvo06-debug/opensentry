@@ -1,3 +1,6 @@
+> **COMPLETED** — All 5 features implemented across v1.1.0–v1.8.0: Base Defense Planner (#54), Equipment Loadout, EO/IR Camera Panel, Updated Identify Workflow, and Full Training Flow.
+> This file is retained as design documentation.
+
 # Claude Code Session Prompt — Phase 2 Features
 
 Copy-paste this into Claude Code when you're ready to work on SKYSHIELD.

@@ -8,20 +8,33 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+---
+
+## [1.8.0] — 2026-04-05
+
 ### Added
+- **Interactive Tutorial Overhaul** (#58/59) — Two-phase tutorial: Phase 1 is a click-through UI tour overlay spotlighting every panel (TacticalMap, SensorPanel, TrackList, EngagementPanel, etc.); Phase 2 is a hands-on guided DTID walkthrough with gated drone progression, persistent step tracker sidebar, pulse highlights on target buttons, and inline amber feedback on suboptimal decisions.
+- **Free Play Scenario** (#56/57) — Open sandbox mode with steady mixed-threat spawns, one of each system (L-Band, Ku-Band, EO/IR, RF Jammer, JACKAL, Shenobi), no mission timer. Operators end the mission when ready. Casual difficulty.
+- **Base Defense Architect** (#54/55) — Standalone altitude-aware sensor placement tool with viewshed analysis, terrain line-of-sight ray casting, and coverage visualization on real satellite imagery. Uses actual equipment catalog systems. Accessible from main menu as "BASE DEFENSE ARCHITECT BETA."
 - **Test suite** — vitest configured with 28 unit tests covering detection math, confidence calculation, drone movement, jamming behavior, segment intersection, and GameState factory.
 - **CSS hover classes** — `app.css` with `.menu-btn` and `.footer-btn` classes replaces inline DOM style manipulation on main menu.
 
 ### Fixed
+- **Tutorial stuck on step 2** — disabled auto-select behavior and routed all tutorial actions through the game engine to prevent gating logic from being bypassed.
 - **Stale closures in ATC callbacks** — `callATC` and `tagFriendly` now use refs (`tracksRef`, `elapsedRef`) instead of capturing stale `tracks`/`elapsed` values. ATC response timestamps were showing the time of the *call*, not the *response*.
 - **Negative detection probability** — `detect_radar` could produce negative probability when ratio > 1.0; now clamped with `Math.max(0, ...)`.
+- **Viewshed ray casting algorithm** — corrected elevation angle calculation at low AGL for Base Defense Architect.
+- **Stale closure in altitude/drag handlers** — BDA altitude changes and drag events now pass fresh values instead of stale extracted state.
 - **`thermopylae` missing from server whitelist** — backend `VALID_SCENARIO_IDS` now includes the Thermopylae scenario.
 - **`PlacementConfig.boundary` type missing** — added to game engine's `PlacementConfig` interface, eliminating all `as any` casts in `loop.ts`.
 - **Sequential async fetches** — `useGameEngine` now loads base template and equipment catalog in parallel via `Promise.all()`.
 - **Double type casts in loop.ts** — replaced `as unknown as Record<string, unknown>` with proper `isRfReading()` type guard for Shenobi RF detection.
-- **Health endpoint version mismatch** — server reported v2.0.0 instead of actual version; corrected to 1.7.1.
+- **Health endpoint version mismatch** — server reported v2.0.0 instead of actual version; corrected to 1.8.0.
+- **Main menu scroll blocked** — removed overflow:hidden and height:100vh from body/#root; fixed grid overlay intercepting pointer events on smaller viewports.
 
 ### Changed
+- **Tutorial now two-phase** — replaces auto-dismissing text banners with spotlight-style UI tour overlay followed by gated hands-on DTID practice.
+- **DTID tutorial step order** — reordered to: Select → ATC → Slew → Confirm → Affiliate → Engage.
 - **Tighter TypeScript types** — `shenobi_cm_state`, `shenobi_cm_active`, `jammed_behavior`, and `intercept_phase` narrowed from `string` to proper union types (`NexusCMState`, `NexusCMType`, `JammedBehavior`, `InterceptPhase`).
 - **Trail array management standardized** — all files now use immutable `.slice(-20)` instead of mixed `splice`/`slice` patterns (jamming.ts, shenobi.ts).
 - **Documentation updated** — SKYSHIELD references updated to OpenSentry in package.json descriptions, server health endpoint, and training curriculum.

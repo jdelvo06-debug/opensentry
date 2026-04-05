@@ -1,3 +1,6 @@
+> **COMPLETED** — Implemented in PR #59 (2026-04-05). Tutorial now has two-phase UI tour + guided DTID practice with gated progression, step tracker, and feedback.
+> This file is retained as design documentation.
+
 # Claude Code Session Prompt — Tutorial Overhaul
 
 Read CLAUDE.md for full project context, then overhaul the tutorial into a real step-by-step training experience.

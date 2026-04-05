@@ -1,4 +1,4 @@
-# CLAUDE.md — OpenSentry Project Guide (Updated 2026-04-04)
+# CLAUDE.md — OpenSentry Project Guide (Updated 2026-04-05)
 
 ## What Is This?
 OpenSentry is a **free, browser-based C-UAS training simulator** designed to teach military operators the **DTID kill chain** (Detect → Track → Identify → Defeat). It's built to emulate real-world C-UAS command and control systems. No clearance required — purely training.
@@ -196,7 +196,7 @@ These are Claude Code subagent types, not custom-built tools. They run as part o
 - No accessibility — missing ARIA labels, color-only indicators, no keyboard nav on RadialActionWheel
 - Backend Python tests not run in CI — GitHub Actions only builds frontend
 - Duplicate constants (CLASSIFICATIONS, color maps) across multiple components — should centralize into constants.ts
-- Phase 2 features (terrain LOS, planning score, after-action replay) — deferred
+- After-action replay (timeline scrub) — deferred
 
 ## Testing
 - **Frontend:** vitest with 28 unit tests in `frontend/src/__tests__/game-engine.test.ts`
@@ -206,6 +206,12 @@ These are Claude Code subagent types, not custom-built tools. They run as part o
   - Coverage: security, detection, drone, models, scoring
   - Run: `cd backend && python -m pytest`
 - **Not yet tested:** React components, hooks, phase transitions, integration tests
+
+## Shipped in v1.8.0 (2026-04-05)
+- Base Defense Architect (#54/55) — altitude-aware sensor placement, viewshed, terrain LOS
+- Free Play scenario (#56/57) — casual mixed-threat sandbox mode
+- Interactive tutorial overhaul (#58/59) — two-phase UI tour + hands-on DTID practice
+- All GitHub issues closed (0 open)
 
 ## Next Session — Priority Work
 1. Investigate stuck bogey (Lone Wolf) — still unconfirmed

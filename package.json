@@ -1,6 +1,6 @@
 {
   "name": "skyshield",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "description": "OpenSentry — Browser-based C-UAS training simulator",
   "type": "module",
   "scripts": {
