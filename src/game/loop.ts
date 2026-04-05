@@ -871,25 +871,36 @@ export function advanceTutorialStep(
   const msgs: Msg[] = [];
   const step = gs.tutorial_step;
 
-  if (step === 1 && actionName === 'confirm_track') {
-    gs.tutorial_step = 2;
-    msgs.push({
-      type: 'tutorial',
-      message: 'Track confirmed. Now slew the EO/IR Camera to get a visual on the target. Use the Radial Action Wheel (right-click the track) \u2192 SLEW CAMERA, or use the button in the Engagement Panel.',
-    });
-  } else if (step === 2 && actionName === 'slew_camera') {
-    gs.tutorial_step = 3;
+  // New tutorial flow:
+  // 0→1: drone detected (automatic, handled by _tutorialGateActive)
+  // 1→2: player selects track (handled client-side in App.tsx)
+  // 2→3: player calls ATC (handled client-side in App.tsx)
+  // 3→4: player slews camera
+  // 4→5: player confirms track + identifies
+  // 5→6: player declares affiliation
+  // 6→7: player engages
+
+  if (step === 3 && actionName === 'slew_camera') {
+    gs.tutorial_step = 4;
     gs.tutorial_camera_slewed = true;
     msgs.push({
       type: 'tutorial',
-      message: 'Camera is locked on. Study the silhouette \u2014 this determines your classification. When ready, proceed to IDENTIFY.',
+      message: 'Camera locked on. Now click CONFIRM TRACK to start monitoring, then IDENTIFY the drone using the classification buttons.',
     });
-  } else if (actionName === 'identify' && (step === 2 || step === 3)) {
-    if (step === 2) {
-      gs.tutorial_step = 3;
+  } else if (actionName === 'confirm_track' && (step === 3 || step === 4)) {
+    // Accept confirm_track at step 3 or 4 (player might confirm before or after slew)
+    if (step === 3) {
+      gs.tutorial_step = 4;
+    }
+    msgs.push({
+      type: 'tutorial',
+      message: 'Track confirmed. Now classify the contact — look at the camera silhouette and select the correct type.',
+    });
+  } else if (actionName === 'identify' && (step === 3 || step === 4)) {
+    if (step === 3) {
       gs.tutorial_camera_slewed = true;
     }
-    gs.tutorial_step = 4;
+    gs.tutorial_step = 5;
     const drone = gs.drones.find(d => d.id === targetId);
     if (drone) {
       const cfg = gs.drone_configs.get(targetId);
@@ -905,15 +916,15 @@ export function advanceTutorialStep(
     }
     msgs.push({
       type: 'tutorial',
-      message: 'Contact classified. Now declare the affiliation — is this track HOSTILE, NEUTRAL, FRIENDLY, or UNKNOWN? Use the buttons in the Engagement Panel or the Radial Action Wheel.',
+      message: 'Contact classified. Now declare the affiliation — is this track HOSTILE, NEUTRAL, or FRIENDLY?',
     });
-  } else if (step === 4 && actionName === 'declare_affiliation') {
-    gs.tutorial_step = 5;
+  } else if (step === 5 && actionName === 'declare_affiliation') {
+    gs.tutorial_step = 6;
     msgs.push({
       type: 'tutorial',
-      message: 'Affiliation declared. Now select an effector to engage. RF/PNT Jammer is the optimal choice for a commercial quad \u2014 it has low collateral risk.',
+      message: 'Affiliation declared. Now engage! RF/PNT Jammer is the best choice for a commercial quad. Try the Engagement Panel or right-click the track for the Radial Action Wheel.',
     });
-  } else if ((step === 4 || step === 5) && actionName === 'engage') {
+  } else if ((step === 5 || step === 6) && actionName === 'engage') {
     let effState = null;
     if (effectorId) {
       for (const es of gs.effector_states) {
@@ -930,7 +941,7 @@ export function advanceTutorialStep(
         });
       }
     }
-    gs.tutorial_step = 6;
+    gs.tutorial_step = 7;
   }
 
   return msgs;
@@ -946,14 +957,13 @@ export function checkTutorialPrompts(gs: GameState): Msg[] {
     if (trigger === 'detected') {
       shouldSend = gs.drones.some(d => d.detected) && gs.tutorial_step >= 1;
     } else if (trigger === 'tracked') {
-      shouldSend = gs.tutorial_step >= 2;
+      shouldSend = gs.tutorial_step >= 4;
     } else if (trigger === 'identify_ready') {
       continue;
     } else if (trigger === 'identified') {
-      shouldSend = gs.tutorial_step >= 4;
+      shouldSend = gs.tutorial_step >= 5;
     } else if (trigger === 'defeated') {
-      shouldSend = gs.tutorial_step >= 6;
-      if (shouldSend) gs.tutorial_step = 7;
+      shouldSend = gs.tutorial_step >= 7;
     }
     if (shouldSend) {
       msgs.push({ type: 'tutorial', message: tp.message });

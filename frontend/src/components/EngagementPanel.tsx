@@ -109,7 +109,7 @@ export default function EngagementPanel({
             Confirm track for continuous monitoring
           </div>
           <button
-            className={tutorialStep === 2 ? "tutorial-pulse" : undefined}
+            className={(tutorialStep === 4) ? "tutorial-pulse" : undefined}
             onClick={() => onConfirmTrack(track.id)}
             style={{
               width: "100%",
@@ -259,7 +259,7 @@ export default function EngagementPanel({
               const clsColor = "#d29922";
               return (
                 <button
-                  className={tutorialStep === 4 ? "tutorial-pulse" : undefined}
+                  className={(tutorialStep === 4) ? "tutorial-pulse" : undefined}
                   key={`${cls.value}-${cls.affiliation}-${idx}`}
                   onClick={() => onIdentify(track.id, cls.value, "unknown")}
                   style={{
@@ -477,7 +477,7 @@ export default function EngagementPanel({
 
                   return (
                     <button
-                      className={tutorialStep === 5 && isReady ? "tutorial-pulse" : undefined}
+                      className={tutorialStep === 6 && isReady ? "tutorial-pulse" : undefined}
                       key={eff.id}
                       onClick={() => {
                         if (!isReady) return;

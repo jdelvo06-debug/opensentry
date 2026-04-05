@@ -99,8 +99,8 @@ export const UI_TOUR_STEPS: TutorialStep[] = [
 ];
 
 // Phase 2: DTID Practice — driven by game engine tutorialStep (0-7)
-// These are NOT advanced with Next/Back — they update automatically
-// as the player performs actions and the game engine advances tutorialStep.
+// These update automatically as the player performs each action.
+// The overlay tells the player EXACTLY what to click next.
 export const DTID_PRACTICE_STEPS: Record<number, TutorialStep> = {
   0: {
     id: "dtid_waiting",
@@ -111,18 +111,18 @@ export const DTID_PRACTICE_STEPS: Record<number, TutorialStep> = {
     arrowSide: "right",
   },
   1: {
-    id: "dtid_detected",
-    title: "Step 1: Detect — Contact!",
+    id: "dtid_select",
+    title: "Step 1: Click the Track",
     description:
-      "A contact just appeared! Click it in the Track List to select it. You'll see its details populate on the right side.",
+      "A contact just appeared! Click it in the Track List to select it. You can also click the dot on the Tactical Map. Once selected, its details will show on the right side.",
     targetId: "tutorial-tracklist",
     arrowSide: "right",
   },
   2: {
-    id: "dtid_confirm",
-    title: "Step 2: Track — Confirm It",
+    id: "dtid_atc",
+    title: "Step 2: Call ATC",
     description:
-      "Good — you've selected the contact. Now click the pulsing CONFIRM TRACK button in the Engagement Panel. This tells the system you're actively monitoring it. You can also right-click the track on the map and select Confirm from the radial wheel.",
+      "Good — you've selected the contact. Before engaging an unknown track, call ATC for an IFF check. Click the CALL ATC button in the Engagement Panel. ATC will respond in a few seconds telling you if this contact is in their system.",
     targetId: "tutorial-engagement",
     arrowSide: "left",
   },
@@ -130,15 +130,15 @@ export const DTID_PRACTICE_STEPS: Record<number, TutorialStep> = {
     id: "dtid_slew",
     title: "Step 3: Slew Camera",
     description:
-      "Track confirmed. Now click SLEW CAMERA to point your EO/IR camera at the target. Watch the Camera Panel in the bottom-right — you'll see a visual of the drone.",
+      "ATC is working on it. While you wait, slew your EO/IR camera onto the target. Click the SLEW CAMERA button. Watch the Camera Panel in the bottom-right — you'll see a silhouette of the drone.",
     targetId: "tutorial-engagement",
     arrowSide: "left",
   },
   4: {
-    id: "dtid_identify",
-    title: "Step 4: Identify — Classify the Threat",
+    id: "dtid_confirm_identify",
+    title: "Step 4: Confirm Track & Identify",
     description:
-      "Camera is locked on. Look at the silhouette in the Camera Panel — what type of drone is it? Select the correct classification from the list. This is a commercial quadcopter.",
+      "Camera is locked on. Click CONFIRM TRACK to start monitoring, then classify the drone using the buttons below. Look at the silhouette — this is a commercial quadcopter. You can also right-click the track on the map for the Radial Action Wheel.",
     targetId: "tutorial-engagement",
     arrowSide: "left",
   },
@@ -146,15 +146,15 @@ export const DTID_PRACTICE_STEPS: Record<number, TutorialStep> = {
     id: "dtid_affiliate",
     title: "Step 5: Declare Affiliation",
     description:
-      "You've classified it. Now declare whether it's HOSTILE, FRIENDLY, or NEUTRAL. For unknown contacts you'd normally call ATC first, but this one is clearly hostile — declare it HOSTILE.",
+      "Contact classified. Now declare it HOSTILE — click the HOSTILE button. ATC confirmed this track is not in their system, so it's an unauthorized UAS in your airspace.",
     targetId: "tutorial-engagement",
     arrowSide: "left",
   },
   6: {
     id: "dtid_engage",
-    title: "Step 6: Defeat — Engage!",
+    title: "Step 6: Engage!",
     description:
-      "Target is confirmed hostile. Choose your effector and click ENGAGE. The RF Jammer is the best choice for a commercial quad — it's proportional and effective. JACKAL works but is overkill. Try right-clicking the track on the map for the radial wheel too!",
+      "Target confirmed hostile. Select an effector and click ENGAGE. The RF Jammer is the best choice for a commercial quad — proportional and effective. JACKAL works but is overkill. Try the Engagement Panel or right-click the track for the Radial Action Wheel.",
     targetId: "tutorial-engagement",
     arrowSide: "left",
   },
@@ -162,7 +162,7 @@ export const DTID_PRACTICE_STEPS: Record<number, TutorialStep> = {
     id: "dtid_complete",
     title: "Target Neutralized!",
     description:
-      "Outstanding work. You just completed the full DTID kill chain: Detect → Track → Identify → Defeat. The debrief screen will show your score shortly. Remember: match the effector to the threat, follow ROE, and don't rush your identification.",
+      "Outstanding work. You completed the full DTID kill chain: Detect → Track → Identify → Defeat. The debrief screen will show your score. Remember: call ATC for unknowns, match the effector to the threat, and follow ROE.",
   },
 };
 

@@ -4,11 +4,11 @@ interface Props {
 
 const STEPS = [
   { num: 1, label: "DETECT", subtitle: "Wait for contact on tactical map" },
-  { num: 2, label: "TRACK", subtitle: "Confirm the track (CONFIRM TRACK)" },
-  { num: 3, label: "SLEW", subtitle: "Slew camera to target" },
-  { num: 4, label: "IDENTIFY", subtitle: "Classify the threat type" },
+  { num: 2, label: "SELECT", subtitle: "Click the track to inspect it" },
+  { num: 3, label: "CALL ATC", subtitle: "Request IFF check for unknown contact" },
+  { num: 4, label: "SLEW & ID", subtitle: "Slew camera, confirm track, classify" },
   { num: 5, label: "AFFILIATE", subtitle: "Declare HOSTILE / NEUTRAL / FRIENDLY" },
-  { num: 6, label: "DEFEAT", subtitle: "Select and engage with effector" },
+  { num: 6, label: "DEFEAT", subtitle: "Select effector and engage" },
   { num: 7, label: "DEBRIEF", subtitle: "Review your score" },
 ];
 

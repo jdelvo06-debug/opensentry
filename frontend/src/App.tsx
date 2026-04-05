@@ -641,6 +641,8 @@ export default function App() {
   elapsedRef.current = elapsed;
   const isTutorialRef = useRef(isTutorial);
   isTutorialRef.current = isTutorial;
+  const tutorialStepRef = useRef(tutorialStep);
+  tutorialStepRef.current = tutorialStep;
   const isFreePlayRef = useRef(isFreePlay);
   isFreePlayRef.current = isFreePlay;
   const droneReachedBaseRef = useRef(droneReachedBase);
@@ -1014,6 +1016,8 @@ export default function App() {
   };
 
   const callATC = useCallback((trackId: string) => {
+    // Tutorial step 2→3: ATC call advances tutorial
+    if (isTutorialRef.current && tutorialStepRef.current === 2) setTutorialStep(3);
     atcCallsMadeRef.current++;
     setTracks((prev) =>
       prev.map((t) =>
@@ -1742,6 +1746,7 @@ export default function App() {
           onSelectTrack={(id) => {
             setSelectedTrackId(id);
             if (id) setHookedTrackIds((prev) => { const next = new Set(prev); next.add(id); return next; });
+            if (id && isTutorial && tutorialStep === 1) setTutorialStep(2);
           }}
         />
         </div>
@@ -1763,6 +1768,7 @@ export default function App() {
           onSelectTrack={(id) => {
             setSelectedTrackId(id);
             if (id) setHookedTrackIds((prev) => { const next = new Set(prev); next.add(id); return next; });
+            if (id && isTutorial && tutorialStep === 1) setTutorialStep(2);
           }}
           engagementZones={engagementZones}
           elapsed={elapsed}
