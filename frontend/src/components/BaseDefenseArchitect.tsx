@@ -605,7 +605,10 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
 
       // Only fetch viewshed for LOS-dependent systems
       if (placingDef.requires_los && placingDef.range_km) {
-        fetchViewshedForSystem(uid, lat, lng, 10, placingDef.range_km);
+        const range = placingDef.range_km;
+        queueMicrotask(() => {
+          fetchViewshedForSystem(uid, lat, lng, 10, range);
+        });
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -662,6 +665,7 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
         })
         .catch((err) => {
           console.warn("Viewshed fetch failed:", err);
+          viewshedCache.delete(key);
           const fallbackPoly: [number, number][] = [];
           for (let i = 0; i <= NUM_RAYS; i++) {
             const bearing = (i / NUM_RAYS) * 2 * Math.PI;
@@ -694,6 +698,8 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
       const sys = systems.find((s) => s.uid === uid);
       if (!sys) return;
       const { lat, lng } = sys;
+      const oldKey = cacheKey(lat, lng, sys.altitude, sys.def.range_km);
+      viewshedCache.delete(oldKey);
       setSystems((prev) =>
         prev.map((s) =>
           s.uid === uid
