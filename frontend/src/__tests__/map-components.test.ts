@@ -4,7 +4,7 @@ import {
   verticesCentroid,
   polygonCentroid,
   degToRad,
-} from "../components/map/mapConstants";
+} from "../components/map/mapGeometry";
 
 describe("shoelaceArea", () => {
   it("calculates area of a 1x1 km square", () => {

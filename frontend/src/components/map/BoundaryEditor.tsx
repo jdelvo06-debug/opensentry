@@ -77,7 +77,7 @@ export default function BoundaryEditor({
           eventHandlers={{
             dragend: (e) => handleVertexDrag(i, e),
             contextmenu: (e) => {
-              L.DomEvent.preventDefault(e);
+              if (e.originalEvent) L.DomEvent.preventDefault(e.originalEvent);
               handleVertexDelete(i);
             },
           }}
