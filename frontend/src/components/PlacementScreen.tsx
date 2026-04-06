@@ -4,7 +4,6 @@ import {
   TileLayer,
   Circle,
   Polygon,
-  Polyline,
   Marker,
   useMap,
   useMapEvents,
@@ -23,9 +22,16 @@ import type {
 import {
   gameXYToLatLng,
   latLngToGameXY,
-  gamePolygonToLatLng,
   getBaseCenter,
 } from "../utils/coordinates";
+import BoundaryEditor from "./map/BoundaryEditor";
+import TerrainOverlay from "./map/TerrainOverlay";
+import AssetMarkers from "./map/AssetMarkers";
+import CorridorLines from "./map/CorridorLines";
+import {
+  shoelaceArea,
+  degToRad,
+} from "./map/mapConstants";
 
 import "leaflet/dist/leaflet.css";
 
@@ -98,34 +104,6 @@ function createRingLabel(name: string, rangeKm: number, color: string): L.DivIco
   });
 }
 
-const TERRAIN_STYLES: Record<string, { fill: string; stroke: string }> = {
-  building: { fill: "#30363d", stroke: "#484f58" },
-  tower: { fill: "#484f58", stroke: "#8b949e" },
-  berm: { fill: "#2d1f00", stroke: "#6e4b00" },
-  treeline: { fill: "#0d2818", stroke: "#1a5c30" },
-  runway: { fill: "#1c2333", stroke: "#30363d" },
-};
-
-const PRIORITY_COLORS: Record<number, string> = {
-  1: "#f85149",
-  2: "#d29922",
-  3: "#3fb950",
-};
-
-function degToRad(deg: number): number {
-  return (deg * Math.PI) / 180;
-}
-
-function polygonCentroid(points: number[][]): [number, number] {
-  let cx = 0;
-  let cy = 0;
-  for (const p of points) {
-    cx += p[0];
-    cy += p[1];
-  }
-  return [cx / points.length, cy / points.length];
-}
-
 // Create sensor icon (circle with type letter)
 function createSensorIcon(
   type: string,
@@ -186,64 +164,6 @@ function createCombinedIcon(
   });
 }
 
-// Create protected asset icon (star)
-function createAssetIcon(
-  priority: number,
-  name: string,
-): L.DivIcon {
-  const color = PRIORITY_COLORS[priority] || COLORS.muted;
-  const html = `<div style="text-align:center;white-space:nowrap;">
-    <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="8,1 9.8,5.8 15,6 11,9.5 12.5,15 8,11.5 3.5,15 5,9.5 1,6 6.2,5.8" fill="${color}" stroke="${color}" stroke-width="0.5"/>
-    </svg>
-    <div style="font:500 9px 'Inter',sans-serif;color:${color};margin-top:1px;">${name}</div>
-    <div style="position:absolute;top:-4px;right:-8px;width:12px;height:12px;border-radius:50%;background:${color};font:600 7px 'JetBrains Mono',monospace;color:#0d1117;display:flex;align-items:center;justify-content:center;">${priority}</div>
-  </div>`;
-  return L.divIcon({
-    html,
-    className: "",
-    iconSize: [60, 32],
-    iconAnchor: [30, 8],
-  });
-}
-
-// Create terrain label
-function createTerrainLabel(name: string): L.DivIcon {
-  const html = `<span style="font:400 9px 'Inter',sans-serif;color:${COLORS.muted};white-space:nowrap;pointer-events:none;">${name}</span>`;
-  return L.divIcon({
-    html,
-    className: "",
-    iconSize: [80, 14],
-    iconAnchor: [40, 7],
-  });
-}
-
-// Create perimeter corner drag handle
-function createCornerHandle(): L.DivIcon {
-  const svg = `<svg width="14" height="14" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="7" cy="7" r="6" fill="#d29922" stroke="#ffb800" stroke-width="1.5" opacity="0.9"/>
-  </svg>`;
-  return L.divIcon({
-    html: svg,
-    className: "",
-    iconSize: [14, 14],
-    iconAnchor: [7, 7],
-  });
-}
-
-// Create midpoint handle for polygon vertex insertion
-function createMidpointHandle(): L.DivIcon {
-  const svg = `<svg width="10" height="10" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="5" cy="5" r="4" fill="#d29922" stroke="#ffb800" stroke-width="1" opacity="0.6"/>
-  </svg>`;
-  return L.divIcon({
-    html: svg,
-    className: "",
-    iconSize: [10, 10],
-    iconAnchor: [5, 5],
-  });
-}
-
 // Create polygon centroid label showing vertex count and area
 function createPolygonLabel(text: string): L.DivIcon {
   const html = `<span style="font:600 10px 'JetBrains Mono',monospace;color:#d29922;white-space:nowrap;pointer-events:none;background:rgba(13,17,23,0.85);padding:2px 6px;border-radius:3px;border:1px solid #d2992244;">${text}</span>`;
@@ -253,29 +173,6 @@ function createPolygonLabel(text: string): L.DivIcon {
     iconSize: [120, 16],
     iconAnchor: [60, 8],
   });
-}
-
-// Shoelace formula for polygon area in km²
-function shoelaceArea(vertices: { x: number; y: number }[]): number {
-  let area = 0;
-  const n = vertices.length;
-  for (let i = 0; i < n; i++) {
-    const j = (i + 1) % n;
-    area += vertices[i].x * vertices[j].y;
-    area -= vertices[j].x * vertices[i].y;
-  }
-  return Math.abs(area) / 2;
-}
-
-// Centroid of polygon vertices in game XY
-function verticesCentroid(vertices: { x: number; y: number }[]): { x: number; y: number } {
-  let cx = 0;
-  let cy = 0;
-  for (const v of vertices) {
-    cx += v.x;
-    cy += v.y;
-  }
-  return { x: cx / vertices.length, y: cy / vertices.length };
 }
 
 // Create item name label
@@ -519,31 +416,8 @@ export default function PlacementScreen({
     return 13;
   }, [baseTemplate.placement_bounds_km]);
 
-  // Polygon perimeter as lat/lng positions
-  const perimPositions = useMemo(
-    () => perimVertices.map(v => gameXYToLatLng(v.x, v.y, baseLat, baseLng)),
-    [perimVertices, baseLat, baseLng],
-  );
-
-  // Polygon area and centroid
+  // Polygon area and centroid (used in sidebar)
   const perimArea = useMemo(() => shoelaceArea(perimVertices), [perimVertices]);
-  const perimCentroid = useMemo(() => verticesCentroid(perimVertices), [perimVertices]);
-  const perimLabelPos = useMemo(
-    () => gameXYToLatLng(perimCentroid.x, perimCentroid.y, baseLat, baseLng),
-    [perimCentroid, baseLat, baseLng],
-  );
-
-  // Midpoints between consecutive vertices
-  const perimMidpoints = useMemo(() => {
-    return perimVertices.map((v, i) => {
-      const next = perimVertices[(i + 1) % perimVertices.length];
-      return {
-        x: (v.x + next.x) / 2,
-        y: (v.y + next.y) / 2,
-        afterIndex: i,
-      };
-    });
-  }, [perimVertices]);
 
   const resetPerimeter = useCallback(() => {
     setPerimVertices([
@@ -788,37 +662,6 @@ export default function PlacementScreen({
             catalog: getCatalog(placedItems[selectedPlaced]),
           }
         : null;
-
-  // Approach corridor lines
-  const corridorLines = useMemo(() => {
-    const boundsKm = baseTemplate.placement_bounds_km * 1.2;
-    return baseTemplate.approach_corridors.map((corridor) => {
-      const bearingRad = degToRad(90 - corridor.bearing_deg);
-      const endX = Math.cos(bearingRad) * boundsKm;
-      const endY = Math.sin(bearingRad) * boundsKm;
-      const end = gameXYToLatLng(endX, endY, baseLat, baseLng);
-      const labelDist = boundsKm * 0.85;
-      const labelX = Math.cos(bearingRad) * labelDist;
-      const labelY = Math.sin(bearingRad) * labelDist;
-      const labelPos = gameXYToLatLng(labelX, labelY, baseLat, baseLng);
-      return { corridor, end, labelPos };
-    });
-  }, [baseTemplate, baseLat, baseLng]);
-
-  // Terrain polygons as lat/lng
-  const terrainPolygons = useMemo(
-    () =>
-      baseTemplate.terrain.map((t) => ({
-        terrain: t,
-        positions: gamePolygonToLatLng(t.polygon, baseLat, baseLng),
-        centroid: gameXYToLatLng(
-          ...polygonCentroid(t.polygon),
-          baseLat,
-          baseLng,
-        ),
-      })),
-    [baseTemplate.terrain, baseLat, baseLng],
-  );
 
   return (
     <div
@@ -1445,139 +1288,41 @@ export default function PlacementScreen({
             </LayersControl>
 
             {/* Freeform polygon perimeter */}
-            <Polygon
-              positions={perimPositions}
-              pathOptions={{
-                color: "#d29922",
-                fillColor: "#d29922",
-                fillOpacity: 0.06,
-                weight: 2,
-                dashArray: "8,4",
-              }}
-            />
-            {/* Vertex drag handles */}
-            {perimVertices.map((v, i) => {
-              const pos = gameXYToLatLng(v.x, v.y, baseLat, baseLng);
-              return (
-                <Marker
-                  key={`perim-v-${i}`}
-                  position={pos}
-                  icon={createCornerHandle()}
-                  draggable
-                  eventHandlers={{
-                    dragend: (e: L.LeafletEvent) => {
-                      const latlng = (e.target as L.Marker).getLatLng();
-                      const { x, y } = latLngToGameXY(latlng.lat, latlng.lng, baseLat, baseLng);
-                      setPerimVertices(prev => prev.map((pv, j) =>
-                        j === i ? { x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100 } : pv
-                      ));
-                    },
-                    contextmenu: (e: L.LeafletMouseEvent) => {
-                      L.DomEvent.preventDefault(e.originalEvent);
-                      L.DomEvent.stopPropagation(e.originalEvent);
-                      if (perimVertices.length > 3) {
-                        setPerimVertices(prev => prev.filter((_, j) => j !== i));
-                      }
-                    },
-                  }}
-                />
-              );
-            })}
-            {/* Midpoint handles — click to insert vertex */}
-            {perimMidpoints.map((mp, i) => {
-              const pos = gameXYToLatLng(mp.x, mp.y, baseLat, baseLng);
-              return (
-                <Marker
-                  key={`perim-mid-${i}`}
-                  position={pos}
-                  icon={createMidpointHandle()}
-                  eventHandlers={{
-                    click: (e: L.LeafletMouseEvent) => {
-                      L.DomEvent.stopPropagation(e.originalEvent);
-                      const insertIdx = mp.afterIndex + 1;
-                      setPerimVertices(prev => [
-                        ...prev.slice(0, insertIdx),
-                        { x: Math.round(mp.x * 100) / 100, y: Math.round(mp.y * 100) / 100 },
-                        ...prev.slice(insertIdx),
-                      ]);
-                    },
-                  }}
-                />
-              );
-            })}
-            {/* Polygon centroid label */}
-            <Marker
-              position={perimLabelPos}
-              icon={createPolygonLabel(`${perimVertices.length} pts — ${perimArea.toFixed(1)} km²`)}
-              interactive={false}
+            <BoundaryEditor
+              vertices={perimVertices}
+              baseLat={baseLat}
+              baseLng={baseLng}
+              onChange={setPerimVertices}
             />
 
             {/* Terrain features */}
-            {terrainPolygons.map(({ terrain, positions, centroid }) => {
-              const style =
-                TERRAIN_STYLES[terrain.type] || TERRAIN_STYLES.building;
-              return (
-                <span key={terrain.id}>
-                  <Polygon
-                    positions={positions}
-                    pathOptions={{
-                      color: style.stroke,
-                      fillColor: style.fill,
-                      fillOpacity: 0.8,
-                      weight: 1,
-                    }}
-                  />
-                  <Marker
-                    position={centroid}
-                    icon={createTerrainLabel(terrain.name)}
-                    interactive={false}
-                  />
-                </span>
-              );
-            })}
+            <TerrainOverlay
+              terrain={baseTemplate.terrain}
+              baseLat={baseLat}
+              baseLng={baseLng}
+            />
 
             {/* Protected assets (draggable) */}
-            {baseTemplate.protected_assets.map((asset) => {
-              const ap = assetPositions[asset.id] || { x: asset.x, y: asset.y };
-              const pos = gameXYToLatLng(ap.x, ap.y, baseLat, baseLng);
-              return (
-                <Marker
-                  key={asset.id}
-                  position={pos}
-                  icon={createAssetIcon(asset.priority, asset.name)}
-                  draggable
-                  eventHandlers={{
-                    dragend: (e: L.LeafletEvent) => {
-                      const latlng = (e.target as L.Marker).getLatLng();
-                      const { x, y } = latLngToGameXY(latlng.lat, latlng.lng, baseLat, baseLng);
-                      setAssetPositions(prev => ({
-                        ...prev,
-                        [asset.id]: { x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100 },
-                      }));
-                    },
-                  }}
-                />
-              );
-            })}
+            <AssetMarkers
+              assets={baseTemplate.protected_assets}
+              positions={assetPositions}
+              baseLat={baseLat}
+              baseLng={baseLng}
+              onMove={(id, x, y) =>
+                setAssetPositions((prev) => ({
+                  ...prev,
+                  [id]: { x, y },
+                }))
+              }
+            />
 
             {/* Approach corridors */}
-            {corridorLines.map(({ corridor, end, labelPos }) => (
-              <span key={corridor.name}>
-                <Polyline
-                  positions={[baseCenter, end]}
-                  pathOptions={{
-                    color: "#484f5866",
-                    weight: 1,
-                    dashArray: "6,6",
-                  }}
-                />
-                <Marker
-                  position={labelPos}
-                  icon={createTerrainLabel(corridor.name)}
-                  interactive={false}
-                />
-              </span>
-            ))}
+            <CorridorLines
+              corridors={baseTemplate.approach_corridors}
+              baseLat={baseLat}
+              baseLng={baseLng}
+              boundsKm={baseTemplate.placement_bounds_km}
+            />
 
             {/* Coverage arcs for placed sensors */}
             {placedItems.map((item, pi) => {
