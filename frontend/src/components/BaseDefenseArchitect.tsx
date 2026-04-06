@@ -72,6 +72,11 @@ interface SystemDef {
   requires_los: boolean;
 }
 
+/** In the Architect, show terrain-aware viewshed for everything except JACKAL (kinetic — flies over terrain) */
+function shouldComputeViewshed(def: SystemDef): boolean {
+  return def.id !== "jackal_pallet";
+}
+
 function buildSystemDefs(catalog: EquipmentCatalog): SystemDef[] {
   const defs: SystemDef[] = [];
 
@@ -658,8 +663,8 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
       setSelectedUid(uid);
       setPlacingDef(null);
 
-      // Only fetch viewshed for LOS-dependent systems
-      if (placingDef.requires_los && placingDef.range_km) {
+      // Fetch viewshed for all systems except JACKAL (kinetic — flies over terrain)
+      if (shouldComputeViewshed(placingDef) && placingDef.range_km) {
         const range = placingDef.range_km;
         queueMicrotask(() => {
           fetchViewshedForSystem(uid, lat, lng, 10, range);
@@ -765,12 +770,12 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
                 blockedSectors: null,
                 viewshedArea: null,
                 viewshedStats: null,
-                viewshedLoading: sys.def.requires_los,
+                viewshedLoading: shouldComputeViewshed(sys.def),
               }
             : s,
         ),
       );
-      if (sys.def.requires_los && sys.def.range_km) {
+      if (shouldComputeViewshed(sys.def) && sys.def.range_km) {
         fetchViewshedForSystem(uid, lat, lng, newAlt, sys.def.range_km);
       }
     },
@@ -782,7 +787,7 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
   const handleRecalculate = useCallback(
     (uid: string) => {
       const sys = systems.find((s) => s.uid === uid);
-      if (sys && sys.def.requires_los && sys.def.range_km) {
+      if (sys && shouldComputeViewshed(sys.def) && sys.def.range_km) {
         const key = cacheKey(sys.lat, sys.lng, sys.altitude, sys.def.range_km);
         viewshedCache.delete(key);
         fetchViewshedForSystem(
@@ -822,7 +827,7 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
       setSystems((prev) =>
         prev.map((s) => (s.uid === uid ? { ...s, lat, lng } : s)),
       );
-      if (sys.def.requires_los && sys.def.range_km) {
+      if (shouldComputeViewshed(sys.def) && sys.def.range_km) {
         fetchViewshedForSystem(uid, lat, lng, altitude, sys.def.range_km);
       }
     },
@@ -1363,9 +1368,9 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
               )),
             )}
 
-            {/* Range rings for non-LOS systems (no viewshed) */}
+            {/* Range rings for systems without viewshed (JACKAL only) */}
             {systems.map((sys) => {
-              if (sys.def.requires_los) return null;
+              if (shouldComputeViewshed(sys.def)) return null;
               if (sys.def.category === "combined") {
                 // Shenobi: dual rings
                 return (
@@ -1488,10 +1493,10 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
               );
             })}
 
-            {/* Fallback range ring for LOS systems while viewshed not yet loaded */}
+            {/* Fallback range ring while viewshed not yet loaded */}
             {systems.map(
               (sys) =>
-                sys.def.requires_los &&
+                shouldComputeViewshed(sys.def) &&
                 !sys.viewshed &&
                 !sys.viewshedLoading &&
                 !isNarrowFov(sys.def) && (
@@ -1796,8 +1801,8 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
                 </div>
               )}
 
-              {/* VIEWSHED section — LOS systems only */}
-              {selectedSystem.def.requires_los && (
+              {/* VIEWSHED section — all systems except JACKAL */}
+              {shouldComputeViewshed(selectedSystem.def) && (
                 <div
                   style={{
                     padding: "14px",
