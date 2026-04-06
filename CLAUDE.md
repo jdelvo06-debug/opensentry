@@ -199,8 +199,9 @@ These are Claude Code subagent types, not custom-built tools. They run as part o
 - After-action replay (timeline scrub) — deferred
 
 ## Testing
-- **Frontend:** vitest with 28 unit tests in `frontend/src/__tests__/game-engine.test.ts`
-  - Coverage: detection math (radar/RF/EO-IR/acoustic), FOV, terrain LOS, confidence calculation, segment intersection, drone creation/movement/trail limits, jam behavior rolls, PNT drift, GameState factory
+- **Frontend:** vitest with 38 unit tests
+  - `frontend/src/__tests__/game-engine.test.ts` — 28 tests: detection math, FOV, terrain LOS, confidence, segment intersection, drone creation/movement, jam behavior, PNT drift, GameState factory
+  - `frontend/src/__tests__/map-components.test.ts` — 10 tests: shoelaceArea, verticesCentroid, polygonCentroid, degToRad geometry helpers
   - Run: `cd frontend && npm test`
 - **Backend:** pytest with 5 test modules in `backend/tests/`
   - Coverage: security, detection, drone, models, scoring
@@ -213,8 +214,32 @@ These are Claude Code subagent types, not custom-built tools. They run as part o
 - Interactive tutorial overhaul (#58/59) — two-phase UI tour + hands-on DTID practice
 - All GitHub issues closed (0 open)
 
+## In Progress — Base Defense Architect v2 (branch: claude/loving-visvesvaraya)
+**PR pending review.** Completed work:
+- Viewshed 10m caching bug fixed (cache invalidation + retry with backoff)
+- Base template selection (Small FOB / Medium Airbase / Large Installation dropdown)
+- Custom location search (Nominatim geocoding with autocomplete)
+- Editable boundary polygon (drag vertices, insert midpoints, right-click delete)
+- Terrain features, protected assets, approach corridors rendered on map
+- Viewshed computed for ALL systems except JACKAL (jammers + Shenobi included)
+- Shared map components extracted: `components/map/` (BoundaryEditor, TerrainOverlay, AssetMarkers, CorridorLines, LocationSearch, mapConstants, mapGeometry)
+- PlacementScreen refactored to consume shared components (-292 lines)
+
+**Known issues in this branch:**
+- Viewshed sampling inconsistency: co-located systems show slightly different terrain shadows due to independent elevation API samples
+- Elevation API rate limiting can cause fallback circles when placing many systems quickly (retry logic helps but not bulletproof)
+
+**Spec:** `docs/superpowers/specs/2026-04-05-base-defense-architect-improvements-design.md`
+**Plan:** `docs/superpowers/plans/2026-04-05-base-defense-architect-improvements.md`
+
 ## Next Session — Priority Work
-1. Investigate stuck bogey (Lone Wolf) — still unconfirmed
-2. Add CI test step to GitHub Actions workflow (both vitest and pytest)
-3. Code-split bundle with React.lazy() for heavy components
-4. Draft AFWERX/DIU one-pager for OpenSentry innovation submission
+1. **Base Defense Architect v2 — continue from branch `claude/loving-visvesvaraya`**
+   - Finish testing current build (base templates, location search, boundary editing)
+   - Equipment count limits from base template (max_sensors, max_effectors)
+   - Loadout summary panel + duplicate equipment placement
+   - Wire EXPORT TO MISSION button → generate PlacementConfig → launch scenario
+   - Viewshed sampling consistency fix (cache elevation data per location)
+2. Investigate stuck bogey (Lone Wolf) — still unconfirmed
+3. Add CI test step to GitHub Actions workflow (both vitest and pytest)
+4. Code-split bundle with React.lazy() for heavy components
+5. Draft AFWERX/DIU one-pager for OpenSentry innovation submission
