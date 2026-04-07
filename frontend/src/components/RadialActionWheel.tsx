@@ -118,16 +118,16 @@ const WHEEL_RADIUS = 100;
 const INNER_RADIUS = 36;
 const CENTER = WHEEL_RADIUS;
 
-function polarToXY(angleDeg: number, r: number): [number, number] {
+function polarToXY(angleDeg: number, r: number, center: number): [number, number] {
   const rad = ((angleDeg - 90) * Math.PI) / 180;
-  return [CENTER + r * Math.cos(rad), CENTER + r * Math.sin(rad)];
+  return [center + r * Math.cos(rad), center + r * Math.sin(rad)];
 }
 
-function arcPath(startAngle: number, endAngle: number, outerR: number, innerR: number): string {
-  const [sx1, sy1] = polarToXY(startAngle, outerR);
-  const [ex1, ey1] = polarToXY(endAngle, outerR);
-  const [sx2, sy2] = polarToXY(endAngle, innerR);
-  const [ex2, ey2] = polarToXY(startAngle, innerR);
+function arcPath(startAngle: number, endAngle: number, outerR: number, innerR: number, center: number): string {
+  const [sx1, sy1] = polarToXY(startAngle, outerR, center);
+  const [ex1, ey1] = polarToXY(endAngle, outerR, center);
+  const [sx2, sy2] = polarToXY(endAngle, innerR, center);
+  const [ex2, ey2] = polarToXY(startAngle, innerR, center);
   const large = endAngle - startAngle > 180 ? 1 : 0;
   return [
     `M ${sx1} ${sy1}`,
@@ -138,9 +138,9 @@ function arcPath(startAngle: number, endAngle: number, outerR: number, innerR: n
   ].join(" ");
 }
 
-function linePath(angleDeg: number, innerR: number, outerR: number): string {
-  const [x1, y1] = polarToXY(angleDeg, innerR);
-  const [x2, y2] = polarToXY(angleDeg, outerR);
+function linePath(angleDeg: number, innerR: number, outerR: number, center: number): string {
+  const [x1, y1] = polarToXY(angleDeg, innerR, center);
+  const [x2, y2] = polarToXY(angleDeg, outerR, center);
   return `M ${x1} ${y1} L ${x2} ${y2}`;
 }
 
@@ -151,6 +151,10 @@ function WheelSegments({
   pressedId,
   onHover,
   onPress,
+  wheelRadius,
+  innerRadius,
+  center,
+  labelFontSize,
 }: {
   actions: WheelAction[];
   onSelect: (id: string) => void;
@@ -158,6 +162,10 @@ function WheelSegments({
   pressedId: string | null;
   onHover: (id: string | null) => void;
   onPress: (id: string | null) => void;
+  wheelRadius: number;
+  innerRadius: number;
+  center: number;
+  labelFontSize: number;
 }) {
   const n = actions.length;
   const sliceAngle = 360 / n;
@@ -171,21 +179,21 @@ function WheelSegments({
         const midAngle = startAngle + sliceAngle / 2;
         const isHovered = hoveredId === action.id;
         const isPressed = pressedId === action.id;
-        const iconR = (WHEEL_RADIUS + INNER_RADIUS) / 2 - 6;
-        const labelR = (WHEEL_RADIUS + INNER_RADIUS) / 2 + 8;
-        const [ix, iy] = polarToXY(midAngle, iconR);
-        const [lx, ly] = polarToXY(midAngle, labelR);
+        const iconR = (wheelRadius + innerRadius) / 2 - 6;
+        const labelR = (wheelRadius + innerRadius) / 2 + 8;
+        const [ix, iy] = polarToXY(midAngle, iconR, center);
+        const [lx, ly] = polarToXY(midAngle, labelR, center);
 
         const sliceFill = action.disabled
-          ? "rgba(22, 27, 34, 0.7)"
+          ? "rgba(22, 27, 34, 0.85)"
           : isHovered
-            ? `${action.color}30`
-            : "rgba(22, 27, 34, 0.92)";
+            ? `${action.color}cc`
+            : `${action.color}99`;
 
         const sliceStroke = isHovered && !action.disabled ? action.color : "#30363d";
         const sliceStrokeWidth = isHovered && !action.disabled ? 1.5 : 0.5;
         const scaleTransform = isPressed && !action.disabled
-          ? `translate(${CENTER}, ${CENTER}) scale(0.95) translate(${-CENTER}, ${-CENTER})`
+          ? `translate(${center}, ${center}) scale(0.95) translate(${-center}, ${-center})`
           : undefined;
 
         return (
@@ -204,7 +212,7 @@ function WheelSegments({
           >
             {/* Slice background */}
             <path
-              d={arcPath(startAngle, endAngle, WHEEL_RADIUS - 2, INNER_RADIUS)}
+              d={arcPath(startAngle, endAngle, wheelRadius - 2, innerRadius, center)}
               fill={sliceFill}
               stroke={sliceStroke}
               strokeWidth={sliceStrokeWidth}
@@ -249,7 +257,7 @@ function WheelSegments({
               textAnchor="middle"
               dominantBaseline="central"
               style={{
-                fontSize: 7,
+                fontSize: labelFontSize,
                 fontWeight: 600,
                 fontFamily: "'JetBrains Mono', monospace",
                 fill: action.disabled ? "#484f5860" : isHovered ? "#e6edf3" : "#8b949e",
@@ -287,7 +295,7 @@ function WheelSegments({
         return (
           <path
             key={`sep-${i}`}
-            d={linePath(angle, INNER_RADIUS, WHEEL_RADIUS - 2)}
+            d={linePath(angle, innerRadius, wheelRadius - 2, center)}
             stroke="#1b1f27"
             strokeWidth={1}
             style={{ pointerEvents: "none" }}
@@ -428,11 +436,6 @@ export default function RadialActionWheel({
 
   const actions = getActionsForPhase(dtidPhase, holdFire, iffStatus, atcCalled, classification);
 
-  // Clamp position so wheel stays on screen
-  const size = WHEEL_RADIUS * 2;
-  const x = Math.max(WHEEL_RADIUS, Math.min(window.innerWidth - WHEEL_RADIUS, screenX));
-  const y = Math.max(WHEEL_RADIUS, Math.min(window.innerHeight - WHEEL_RADIUS, screenY));
-
   // Build submenu items
   let subActions: WheelAction[] = [];
   if (subMenu === "identify") {
@@ -472,6 +475,21 @@ export default function RadialActionWheel({
       { id: "unknown", label: "UNKNOWN", icon: "❓", color: "#d29922", statusText: "Unidentified" },
     ];
   }
+
+  // Dynamic wheel radius based on displayed item count
+  const displayedActions = subMenu !== "none" ? subActions : actions;
+  const itemCount = displayedActions.length;
+  const effectiveRadius = itemCount <= 4 ? WHEEL_RADIUS
+    : itemCount <= 6 ? 115
+    : itemCount <= 9 ? 130
+    : 145;
+  const effectiveCenter = effectiveRadius;
+  const labelFont = itemCount >= 5 ? 8 : 7;
+
+  // Clamp position so wheel stays on screen
+  const size = effectiveRadius * 2;
+  const x = Math.max(effectiveRadius, Math.min(window.innerWidth - effectiveRadius, screenX));
+  const y = Math.max(effectiveRadius, Math.min(window.innerHeight - effectiveRadius, screenY));
 
   const handleSubSelect = useCallback(
     (id: string) => {
@@ -527,8 +545,8 @@ export default function RadialActionWheel({
         onClick={(e) => e.stopPropagation()}
         style={{
           position: "absolute",
-          left: x - WHEEL_RADIUS,
-          top: y - WHEEL_RADIUS,
+          left: x - effectiveRadius,
+          top: y - effectiveRadius,
           width: size,
           height: size,
           opacity,
@@ -570,9 +588,9 @@ export default function RadialActionWheel({
 
           {/* Background ring */}
           <circle
-            cx={CENTER}
-            cy={CENTER}
-            r={WHEEL_RADIUS - 1}
+            cx={effectiveCenter}
+            cy={effectiveCenter}
+            r={effectiveRadius - 1}
             fill="none"
             stroke="#30363d"
             strokeWidth={1}
@@ -581,8 +599,8 @@ export default function RadialActionWheel({
 
           {/* Phase accent glow ring (behind inner circle) */}
           <circle
-            cx={CENTER}
-            cy={CENTER}
+            cx={effectiveCenter}
+            cy={effectiveCenter}
             r={INNER_RADIUS + 1}
             fill="none"
             stroke={phaseColor}
@@ -593,8 +611,8 @@ export default function RadialActionWheel({
 
           {/* Phase accent ring */}
           <circle
-            cx={CENTER}
-            cy={CENTER}
+            cx={effectiveCenter}
+            cy={effectiveCenter}
             r={INNER_RADIUS}
             fill="rgba(13, 17, 23, 0.95)"
             stroke={phaseColor}
@@ -610,6 +628,10 @@ export default function RadialActionWheel({
               pressedId={pressedId}
               onHover={setHoveredId}
               onPress={setPressedId}
+              wheelRadius={effectiveRadius}
+              innerRadius={INNER_RADIUS}
+              center={effectiveCenter}
+              labelFontSize={labelFont}
             />
           ) : (
             <>
@@ -620,6 +642,10 @@ export default function RadialActionWheel({
                 pressedId={pressedId}
                 onHover={setHoveredId}
                 onPress={setPressedId}
+                wheelRadius={effectiveRadius}
+                innerRadius={INNER_RADIUS}
+                center={effectiveCenter}
+                labelFontSize={labelFont}
               />
               {/* Back button in center */}
               <g
@@ -629,10 +655,10 @@ export default function RadialActionWheel({
                   setSubMenu("none");
                 }}
               >
-                <circle cx={CENTER} cy={CENTER} r={INNER_RADIUS - 2} fill="rgba(13, 17, 23, 0.95)" />
+                <circle cx={effectiveCenter} cy={effectiveCenter} r={INNER_RADIUS - 2} fill="rgba(13, 17, 23, 0.95)" />
                 <text
-                  x={CENTER}
-                  y={CENTER - 4}
+                  x={effectiveCenter}
+                  y={effectiveCenter - 4}
                   textAnchor="middle"
                   dominantBaseline="central"
                   style={{
@@ -645,8 +671,8 @@ export default function RadialActionWheel({
                   {"\u2190"}
                 </text>
                 <text
-                  x={CENTER}
-                  y={CENTER + 10}
+                  x={effectiveCenter}
+                  y={effectiveCenter + 10}
                   textAnchor="middle"
                   dominantBaseline="central"
                   style={{
@@ -670,8 +696,8 @@ export default function RadialActionWheel({
             <>
               {/* Track ID callsign */}
               <text
-                x={CENTER}
-                y={CENTER - 6}
+                x={effectiveCenter}
+                y={effectiveCenter - 6}
                 textAnchor="middle"
                 dominantBaseline="central"
                 style={{
@@ -689,8 +715,8 @@ export default function RadialActionWheel({
 
               {/* Phase label */}
               <text
-                x={CENTER}
-                y={CENTER + 8}
+                x={effectiveCenter}
+                y={effectiveCenter + 8}
                 textAnchor="middle"
                 dominantBaseline="central"
                 style={{
@@ -711,8 +737,8 @@ export default function RadialActionWheel({
           {/* Submenu title in center */}
           {subMenu !== "none" && (
             <text
-              x={CENTER}
-              y={CENTER + 20}
+              x={effectiveCenter}
+              y={effectiveCenter + 20}
               textAnchor="middle"
               dominantBaseline="central"
               style={{
