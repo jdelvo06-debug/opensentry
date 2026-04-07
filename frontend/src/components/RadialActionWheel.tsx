@@ -41,6 +41,7 @@ const CLASSIFICATIONS = [
   { value: "military_jet", label: "MIL JET", icon: "\u2708", affiliation: "friendly", color: "#58a6ff" },
   { value: "bird", label: "BIRD", icon: "\u{1F426}", affiliation: "neutral", color: "#3fb950" },
   { value: "weather_balloon", label: "BALLOON", icon: "\u25CB", affiliation: "neutral", color: "#3fb950" },
+  { value: "unknown", label: "UNKNOWN", icon: "\u2753", affiliation: "unknown", color: "#d29922" },
 ];
 
 const EFFECTOR_COLORS: Record<string, string> = {
@@ -105,7 +106,7 @@ function getActionsForPhase(dtidPhase: DTIDPhase, holdFire?: boolean, iffStatus?
         holdFire
           ? { id: "release_hold_fire", label: "RLS HOLD", icon: "\u25B6", color: "#3fb950" }
           : { id: "hold_fire", label: "HOLD FIRE", icon: "\u270B", color: "#d29922" },
-        { id: "re_identify", label: "RE-ID", icon: "\u21BA", color: "#484f58", disabled: true },
+        { id: "re_identify", label: "RE-ID", icon: "\u21BA", color: "#d29922" },
       ];
     case "defeated":
       return [
@@ -258,9 +259,10 @@ function WheelSegments({
               dominantBaseline="central"
               style={{
                 fontSize: labelFontSize,
-                fontWeight: 600,
+                fontWeight: 700,
                 fontFamily: "'JetBrains Mono', monospace",
-                fill: action.disabled ? "#484f5860" : isHovered ? "#e6edf3" : "#8b949e",
+                fill: "#ffffff",
+                textShadow: "0 0 3px rgba(0,0,0,0.95), 0 0 1px rgba(0,0,0,0.9)",
                 letterSpacing: 0.5,
                 pointerEvents: "none",
                 userSelect: "none",
@@ -368,7 +370,7 @@ export default function RadialActionWheel({
       switch (actionId) {
         case "confirm_track":
           onConfirmTrack(trackId);
-          animatedClose();
+          setSubMenu("identify");
           break;
         case "slew_camera":
           onSlewCamera(trackId);
@@ -387,6 +389,9 @@ export default function RadialActionWheel({
         case "release_hold_fire":
           onReleaseHoldFire?.(trackId);
           animatedClose();
+          break;
+        case "re_identify":
+          setSubMenu("identify");
           break;
         case "call_atc":
           onCallATC?.(trackId);

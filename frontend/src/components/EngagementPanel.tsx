@@ -29,6 +29,7 @@ const CLASSIFICATIONS = [
   { value: "military_jet", label: "MILITARY JET (FRIENDLY)", affiliation: "friendly" },
   { value: "bird", label: "BIRD (FALSE ALARM)", affiliation: "neutral" },
   { value: "weather_balloon", label: "WEATHER BALLOON (FALSE ALARM)", affiliation: "neutral" },
+  { value: "unknown", label: "UNKNOWN / UNCLASSIFIED", affiliation: "unknown" },
 ];
 
 const EFFECTOR_COLORS: Record<string, string> = {
@@ -360,6 +361,34 @@ export default function EngagementPanel({
             </div>
           )}
 
+          {/* RE-IDENTIFY — re-open classification list */}
+          <button
+            onClick={() => onIdentify(track.id, "unknown", "unknown")}
+            style={{
+              width: "100%",
+              padding: "8px 12px",
+              marginTop: 8,
+              background: "#d2992218",
+              border: "1px solid #d2992244",
+              borderRadius: 5,
+              color: "#d29922",
+              fontSize: 11,
+              fontWeight: 600,
+              fontFamily: "'Inter', sans-serif",
+              letterSpacing: 1,
+              cursor: "pointer",
+              transition: "all 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "#d2992230";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "#d2992218";
+            }}
+          >
+            ↻ RE-IDENTIFY
+          </button>
+
           {/* SLEW CAMERA in identified phase too — always visible */}
           {onSlewCamera && (
             <button
@@ -367,7 +396,7 @@ export default function EngagementPanel({
               style={{
                 width: "100%",
                 padding: "9px 12px",
-                marginTop: 8,
+                marginTop: 6,
                 background: "#d2992218",
                 border: "1px solid #d2992244",
                 borderRadius: 5,

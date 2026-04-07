@@ -70,14 +70,15 @@ export function handleIdentify(
   const msgs: Record<string, unknown>[] = [];
   for (let j = 0; j < gs.drones.length; j++) {
     const d = gs.drones[j];
-    if (d.id === targetId && d.dtid_phase === 'tracked') {
+    if (d.id === targetId && (d.dtid_phase === 'tracked' || d.dtid_phase === 'identified')) {
       _recordFirstClick(gs, targetId, elapsed);
+      const isReset = classification === 'unknown';
       gs.drones[j] = {
         ...d,
-        dtid_phase: 'identified',
-        classification: (classification as DroneState['classification']) ?? null,
-        classified: true,
-        affiliation: affiliationStr as DroneState['affiliation'],
+        dtid_phase: isReset ? 'tracked' : 'identified',
+        classification: isReset ? null : ((classification as DroneState['classification']) ?? null),
+        classified: !isReset,
+        affiliation: isReset ? 'unknown' as DroneState['affiliation'] : affiliationStr as DroneState['affiliation'],
       };
       gs.identify_times.set(targetId, elapsed);
       gs.classification_given.set(targetId, classification ?? '');

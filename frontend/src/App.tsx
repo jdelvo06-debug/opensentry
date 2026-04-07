@@ -315,8 +315,7 @@ export default function App() {
                 atc_response_pending: prevTrack.atc_response_pending,
                 atc_response_received: prevTrack.atc_response_received,
                 atc_response_text: prevTrack.atc_response_text,
-                // Preserve affiliation override if tagged friendly
-                affiliation: prevTrack.affiliation === "friendly" && prevTrack.atc_response_received ? "friendly" : t.affiliation,
+                affiliation: t.affiliation,
               };
             }
             // Assign iff_status to new tracks: 15% chance of UNKNOWN, or if affiliation is already unknown/UNKNOWN
