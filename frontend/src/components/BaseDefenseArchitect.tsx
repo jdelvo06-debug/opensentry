@@ -854,6 +854,25 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
 
   const loadingSystems = systems.filter((s) => s.viewshedLoading).length;
 
+  // ─── Toggle system visibility ────────────────────────────────────────────
+
+  const handleToggleVisibility = useCallback((uid: string) => {
+    setSystems((prev) =>
+      prev.map((s) => (s.uid === uid ? { ...s, visible: !s.visible } : s)),
+    );
+  }, []);
+
+  // ─── Category counts for loadout summary ──────────────────────────────────
+
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const sys of systems) {
+      const key = sys.def.type;
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return counts;
+  }, [systems]);
+
   // ─── Filtered palette ──────────────────────────────────────────────────
 
   const filteredDefs = useMemo(
@@ -1673,10 +1692,10 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
           `}</style>
         </div>
 
-        {/* Right panel — Detail */}
+        {/* Right panel — Loadout Summary + Equipment List + Selected System */}
         <div
           style={{
-            width: 280,
+            width: 320,
             flexShrink: 0,
             display: "flex",
             flexDirection: "column",
@@ -1685,8 +1704,157 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
             overflowY: "auto",
           }}
         >
-          {selectedSystem ? (
-            <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+          {/* Loadout Summary */}
+          <div style={{ padding: "14px", borderBottom: `1px solid ${COLORS.border}` }}>
+            <SectionHeader title="LOADOUT SUMMARY" />
+            <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 9, fontWeight: 700, color: COLORS.muted, marginBottom: 4 }}>SENSORS</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: COLORS.success }}>
+                  {placedSensorCount}
+                  {maxSensors && (
+                    <span style={{ fontSize: 10, color: sensorLimitExceeded ? COLORS.danger : COLORS.muted, marginLeft: 4 }}>
+                      /{maxSensors}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 9, fontWeight: 700, color: COLORS.muted, marginBottom: 4 }}>EFFECTORS</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: COLORS.danger }}>
+                  {placedEffectorCount}
+                  {maxEffectors && (
+                    <span style={{ fontSize: 10, color: effectorLimitExceeded ? COLORS.danger : COLORS.muted, marginLeft: 4 }}>
+                      /{maxEffectors}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            {/* Category breakdown */}
+            {Object.entries(categoryCounts).length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {Object.entries(categoryCounts).map(([type, count]) => (
+                  <div
+                    key={type}
+                    style={{
+                      padding: "4px 8px",
+                      background: `${COLORS.border}40`,
+                      borderRadius: 4,
+                      fontSize: 10,
+                      fontWeight: 600,
+                      color: COLORS.text,
+                    }}
+                  >
+                    {type.toUpperCase()}: {count}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Equipment List */}
+          <div style={{ padding: "14px", borderBottom: `1px solid ${COLORS.border}` }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <SectionHeader title="PLACED SYSTEMS" />
+              <div style={{ display: "flex", gap: 4 }}>
+                <button
+                  onClick={() => setSystems((prev) => prev.map((s) => ({ ...s, visible: true })))}
+                  style={{
+                    padding: "3px 6px",
+                    fontSize: 9,
+                    fontWeight: 600,
+                    background: "transparent",
+                    border: `1px solid ${COLORS.border}`,
+                    borderRadius: 3,
+                    color: COLORS.muted,
+                    cursor: "pointer",
+                  }}
+                >
+                  SHOW ALL
+                </button>
+                <button
+                  onClick={() => setSystems((prev) => prev.map((s) => ({ ...s, visible: false })))}
+                  style={{
+                    padding: "3px 6px",
+                    fontSize: 9,
+                    fontWeight: 600,
+                    background: "transparent",
+                    border: `1px solid ${COLORS.border}`,
+                    borderRadius: 3,
+                    color: COLORS.muted,
+                    cursor: "pointer",
+                  }}
+                >
+                  HIDE ALL
+                </button>
+              </div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: 200, overflowY: "auto" }}>
+              {systems.length === 0 ? (
+                <div style={{ fontSize: 10, color: COLORS.muted, textAlign: "center", padding: 12 }}>
+                  No systems placed
+                </div>
+              ) : (
+                systems.map((sys) => (
+                  <div
+                    key={sys.uid}
+                    onClick={() => setSelectedUid(sys.uid)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "6px 8px",
+                      background: selectedUid === sys.uid ? `${COLORS.accent}18` : "transparent",
+                      border: `1px solid ${selectedUid === sys.uid ? COLORS.accent : COLORS.border}`,
+                      borderRadius: 4,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={sys.visible}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        handleToggleVisibility(sys.uid);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ accentColor: COLORS.accent, width: 14, height: 14 }}
+                    />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 10, fontWeight: 600, color: COLORS.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {sys.def.name}
+                      </div>
+                      <div style={{ fontSize: 9, color: COLORS.muted }}>
+                        {sys.def.type} • {sys.altitude}m
+                      </div>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(sys.uid);
+                      }}
+                      style={{
+                        padding: "2px 6px",
+                        fontSize: 12,
+                        background: "transparent",
+                        border: `1px solid ${COLORS.danger}40`,
+                        borderRadius: 3,
+                        color: COLORS.danger,
+                        cursor: "pointer",
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Selected System Detail */}
+          {selectedSystem && (
+            <div style={{ padding: "14px" }}>
               {/* SENSOR section */}
               <div style={{ padding: "14px 14px 12px" }}>
                 <SectionHeader title={selectedSystem.def.category.toUpperCase()} />
@@ -2101,77 +2269,53 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
                 </button>
 
                 <button
-                  disabled
+                  onClick={() => {
+                    const config: {
+                      base_id: string;
+                      sensors: { catalog_id: string; x: number; y: number; facing_deg: number }[];
+                      effectors: { catalog_id: string; x: number; y: number; facing_deg: number }[];
+                      combined: { catalog_id: string; x: number; y: number; facing_deg: number }[];
+                    } = {
+                      base_id: selectedBaseId ?? "",
+                      sensors: [],
+                      effectors: [],
+                      combined: [],
+                    };
+                    systems.forEach((sys) => {
+                      const item = {
+                        catalog_id: sys.def.id,
+                        x: sys.lng,
+                        y: sys.lat,
+                        facing_deg: sys.facing_deg,
+                      };
+                      if (sys.def.category === "sensor") config.sensors.push(item);
+                      else if (sys.def.category === "effector") config.effectors.push(item);
+                      else if (sys.def.category === "combined") config.combined.push(item);
+                    });
+                    const blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `bda-${selectedBaseId ?? "freeform"}-${Date.now()}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
                   style={{
                     width: "100%",
                     padding: "10px 0",
                     fontSize: 11,
                     fontWeight: 700,
                     letterSpacing: 1,
-                    background: COLORS.bg,
-                    border: `1px solid ${COLORS.border}`,
+                    background: COLORS.accent,
+                    border: `1px solid ${COLORS.accent}`,
                     borderRadius: 5,
-                    color: COLORS.muted,
-                    cursor: "not-allowed",
+                    color: COLORS.bg,
+                    cursor: "pointer",
                     fontFamily: "inherit",
-                    opacity: 0.6,
                   }}
                 >
                   EXPORT TO MISSION
                 </button>
-                <div
-                  style={{
-                    fontSize: 9,
-                    color: COLORS.muted,
-                    textAlign: "center",
-                    marginTop: 4,
-                    opacity: 0.5,
-                  }}
-                >
-                  Coming soon
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div
-              style={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 24,
-                gap: 12,
-              }}
-            >
-              <div
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: "50%",
-                  border: `2px solid ${COLORS.border}`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 20,
-                  color: COLORS.muted,
-                  opacity: 0.4,
-                }}
-              >
-                +
-              </div>
-              <div
-                style={{
-                  fontSize: 11,
-                  color: COLORS.muted,
-                  textAlign: "center",
-                  lineHeight: 1.6,
-                }}
-              >
-                Select a system on the palette, then click the map to place it.
-                <br />
-                <br />
-                Click a placed system to view details and adjust altitude.
               </div>
             </div>
           )}
