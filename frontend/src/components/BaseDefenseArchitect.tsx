@@ -13,6 +13,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type {
   EquipmentCatalog,
+  BaseInfo,
 } from "../types";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -142,6 +143,7 @@ interface PlacedSystem {
   viewshedLoading: boolean;
   viewshedArea: number | null;
   viewshedStats: ViewshedStats | null;
+  visible: boolean; // Per-system coverage visibility toggle
 }
 
 // ─── Viewshed computation ────────────────────────────────────────────────────
@@ -543,6 +545,9 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogError, setCatalogError] = useState<string | null>(null);
 
+  const [bases, setBases] = useState<BaseInfo[]>([]);
+  const [selectedBaseId, setSelectedBaseId] = useState<string | null>(null);
+
   const [systems, setSystems] = useState<PlacedSystem[]>([]);
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [placingDef, setPlacingDef] = useState<SystemDef | null>(null);
@@ -570,6 +575,50 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
       });
   }, []);
 
+  // ─── Load base index ────────────────────────────────────────────────────
+
+  useEffect(() => {
+    fetch(`${import.meta.env.BASE_URL}data/bases/index.json`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data: BaseInfo[]) => {
+        setBases(data);
+      })
+      .catch((err) => {
+        console.warn("Failed to load base index:", err);
+      });
+  }, []);
+
+  // ─── Derived: selected base template limits ─────────────────────────────
+
+  const selectedBase = useMemo(
+    () => bases.find((b) => b.id === selectedBaseId) ?? null,
+    [bases, selectedBaseId],
+  );
+
+  const maxSensors = selectedBase?.max_sensors ?? null;
+  const maxEffectors = selectedBase?.max_effectors ?? null;
+
+  // ─── Derived: current placed counts ────────────────────────────────────
+
+  const placedSensorCount = useMemo(
+    () => systems.filter((s) => s.def.category === "sensor" || s.def.category === "combined").length,
+    [systems],
+  );
+
+  const placedEffectorCount = useMemo(
+    () => systems.filter((s) => s.def.category === "effector" || s.def.category === "combined").length,
+    [systems],
+  );
+
+  const sensorLimitReached = maxSensors !== null && placedSensorCount >= maxSensors;
+  const effectorLimitReached = maxEffectors !== null && placedEffectorCount >= maxEffectors;
+
+  const sensorLimitExceeded = maxSensors !== null && placedSensorCount > maxSensors;
+  const effectorLimitExceeded = maxEffectors !== null && placedEffectorCount > maxEffectors;
+
   const systemDefs = useMemo(
     () => (catalog ? buildSystemDefs(catalog) : []),
     [catalog],
@@ -585,6 +634,18 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
   const handlePlace = useCallback(
     (lat: number, lng: number) => {
       if (!placingDef) return;
+
+      // Enforce limits when a base template is selected
+      const isSensorType = placingDef.category === "sensor" || placingDef.category === "combined";
+      const isEffectorType = placingDef.category === "effector" || placingDef.category === "combined";
+      if (isSensorType && sensorLimitReached) {
+        setPlacingDef(null);
+        return;
+      }
+      if (isEffectorType && effectorLimitReached) {
+        setPlacingDef(null);
+        return;
+      }
       const uid = `sys_${++uidCounter.current}`;
       const newSystem: PlacedSystem = {
         uid,
@@ -598,6 +659,7 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
         viewshedLoading: false,
         viewshedArea: null,
         viewshedStats: null,
+        visible: true, // Default: show coverage for newly placed system
       };
       setSystems((prev) => [...prev, newSystem]);
       setSelectedUid(uid);
@@ -609,7 +671,7 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [placingDef],
+    [placingDef, sensorLimitReached, effectorLimitReached],
   );
 
   // ─── Fetch viewshed ────────────────────────────────────────────────────
@@ -905,6 +967,11 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
             </div>
             <div style={{ fontSize: 10, color: COLORS.muted, letterSpacing: 0.5 }}>
               Viewshed Analysis — Terrain-aware sensor coverage
+              {selectedBase && (
+                <span style={{ color: COLORS.accent, marginLeft: 12 }}>
+                  {selectedBase.name}: {selectedBase.max_sensors}S / {selectedBase.max_effectors}E max
+                </span>
+              )}
               {placingDef && (
                 <span style={{ color: COLORS.accent, marginLeft: 12 }}>
                   PLACING: {placingDef.name} — click map to place
@@ -948,6 +1015,43 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
               borderBottom: `1px solid ${COLORS.border}`,
             }}
           >
+            {/* Base template selector */}
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: 1.5,
+                color: COLORS.muted,
+                marginBottom: 6,
+              }}
+            >
+              BASE TEMPLATE
+            </div>
+            <select
+              value={selectedBaseId ?? ""}
+              onChange={(e) => setSelectedBaseId(e.target.value || null)}
+              style={{
+                width: "100%",
+                padding: "5px 8px",
+                fontSize: 11,
+                fontWeight: 600,
+                background: COLORS.bg,
+                border: `1px solid ${COLORS.border}`,
+                borderRadius: 4,
+                color: selectedBaseId ? COLORS.text : COLORS.muted,
+                fontFamily: "inherit",
+                cursor: "pointer",
+                marginBottom: 10,
+              }}
+            >
+              <option value="">No template (freeform)</option>
+              {bases.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name} — {b.max_sensors}S / {b.max_effectors}E
+                </option>
+              ))}
+            </select>
+
             <div
               style={{
                 fontSize: 10,
@@ -1004,32 +1108,46 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
             {filteredDefs.map((def) => {
               const isPlacing = placingDef?.id === def.id;
               const typeColor = TYPE_COLORS[def.type] || COLORS.muted;
+              // Determine if this item is blocked by a limit
+              const isSensorType = def.category === "sensor" || def.category === "combined";
+              const isEffectorType = def.category === "effector" || def.category === "combined";
+              const blockedBySensor = isSensorType && sensorLimitReached && !isPlacing;
+              const blockedByEffector = isEffectorType && effectorLimitReached && !isPlacing;
+              const isBlocked = blockedBySensor || blockedByEffector;
               return (
                 <button
                   key={def.id}
-                  onClick={() => setPlacingDef(isPlacing ? null : def)}
+                  onClick={() => {
+                    if (isBlocked) return;
+                    setPlacingDef(isPlacing ? null : def);
+                  }}
+                  disabled={isBlocked}
+                  title={isBlocked ? `Limit reached for ${def.category}s` : undefined}
                   style={{
                     display: "flex",
                     flexDirection: "column",
                     gap: 6,
                     padding: "10px 10px",
-                    background: isPlacing ? `${def.color}18` : COLORS.bg,
-                    border: `1px solid ${isPlacing ? def.color : COLORS.border}`,
+                    background: isBlocked
+                      ? `${COLORS.danger}08`
+                      : isPlacing ? `${def.color}18` : COLORS.bg,
+                    border: `1px solid ${isBlocked ? COLORS.danger + "40" : isPlacing ? def.color : COLORS.border}`,
                     borderRadius: 6,
-                    cursor: "pointer",
+                    cursor: isBlocked ? "not-allowed" : "pointer",
                     textAlign: "left",
                     fontFamily: "inherit",
                     transition: "all 0.1s",
                     width: "100%",
+                    opacity: isBlocked ? 0.5 : 1,
                   }}
                   onMouseEnter={(e) => {
-                    if (!isPlacing) {
+                    if (!isPlacing && !isBlocked) {
                       (e.currentTarget as HTMLElement).style.borderColor =
                         def.color;
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!isPlacing) {
+                    if (!isPlacing && !isBlocked) {
                       (e.currentTarget as HTMLElement).style.borderColor =
                         COLORS.border;
                     }
@@ -1115,25 +1233,139 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
             })}
           </div>
 
-          {/* Placed systems count */}
+          {/* Limits / count footer */}
           <div
             style={{
-              padding: "8px 12px",
+              padding: "10px 12px",
               borderTop: `1px solid ${COLORS.border}`,
-              fontSize: 10,
-              color: COLORS.muted,
               display: "flex",
-              justifyContent: "space-between",
+              flexDirection: "column",
+              gap: 6,
             }}
           >
-            <span>
-              {systems.length} system{systems.length !== 1 ? "s" : ""} placed
-            </span>
-            <span>
-              {systems.filter((s) => s.def.category === "sensor").length}S /{" "}
-              {systems.filter((s) => s.def.category === "effector").length}E /{" "}
-              {systems.filter((s) => s.def.category === "combined").length}C
-            </span>
+            {/* Sensor count bar */}
+            <div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 9,
+                  fontWeight: 700,
+                  letterSpacing: 0.5,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  marginBottom: 3,
+                }}
+              >
+                <span style={{ color: sensorLimitExceeded ? COLORS.danger : COLORS.muted }}>
+                  SENSORS
+                  {sensorLimitExceeded && (
+                    <span style={{ marginLeft: 4, color: COLORS.danger }}>⚠ OVER LIMIT</span>
+                  )}
+                </span>
+                <span style={{
+                  color: sensorLimitExceeded
+                    ? COLORS.danger
+                    : sensorLimitReached
+                    ? COLORS.warning
+                    : COLORS.text,
+                }}>
+                  {placedSensorCount}
+                  {maxSensors !== null ? ` / ${maxSensors}` : ""}
+                </span>
+              </div>
+              {maxSensors !== null && (
+                <div
+                  style={{
+                    height: 4,
+                    background: COLORS.border,
+                    borderRadius: 2,
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${Math.min((placedSensorCount / maxSensors) * 100, 100)}%`,
+                      background: sensorLimitExceeded
+                        ? COLORS.danger
+                        : sensorLimitReached
+                        ? COLORS.warning
+                        : COLORS.accent,
+                      borderRadius: 2,
+                      transition: "width 0.2s",
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Effector count bar */}
+            <div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 9,
+                  fontWeight: 700,
+                  letterSpacing: 0.5,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  marginBottom: 3,
+                }}
+              >
+                <span style={{ color: effectorLimitExceeded ? COLORS.danger : COLORS.muted }}>
+                  EFFECTORS
+                  {effectorLimitExceeded && (
+                    <span style={{ marginLeft: 4, color: COLORS.danger }}>⚠ OVER LIMIT</span>
+                  )}
+                </span>
+                <span style={{
+                  color: effectorLimitExceeded
+                    ? COLORS.danger
+                    : effectorLimitReached
+                    ? COLORS.warning
+                    : COLORS.text,
+                }}>
+                  {placedEffectorCount}
+                  {maxEffectors !== null ? ` / ${maxEffectors}` : ""}
+                </span>
+              </div>
+              {maxEffectors !== null && (
+                <div
+                  style={{
+                    height: 4,
+                    background: COLORS.border,
+                    borderRadius: 2,
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${Math.min((placedEffectorCount / maxEffectors) * 100, 100)}%`,
+                      background: effectorLimitExceeded
+                        ? COLORS.danger
+                        : effectorLimitReached
+                        ? COLORS.warning
+                        : COLORS.success,
+                      borderRadius: 2,
+                      transition: "width 0.2s",
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Total count line */}
+            {maxSensors === null && maxEffectors === null && (
+              <div style={{ fontSize: 10, color: COLORS.muted, display: "flex", justifyContent: "space-between" }}>
+                <span>{systems.length} system{systems.length !== 1 ? "s" : ""} placed</span>
+                <span>
+                  {systems.filter((s) => s.def.category === "sensor").length}S /{" "}
+                  {systems.filter((s) => s.def.category === "effector").length}E /{" "}
+                  {systems.filter((s) => s.def.category === "combined").length}C
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1155,37 +1387,41 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
             <MapClickHandler placingDef={placingDef} onPlace={handlePlace} />
 
             {/* Viewshed polygons — green for visible (LOS systems only) */}
-            {systems.map(
-              (sys) =>
-                sys.viewshed && (
-                  <Polygon
-                    key={`vs-${sys.uid}`}
-                    positions={sys.viewshed}
-                    pathOptions={{
-                      color: COLORS.success,
-                      fillColor: COLORS.success,
-                      fillOpacity: selectedUid === sys.uid ? 0.25 : 0.15,
-                      weight: selectedUid === sys.uid ? 2 : 1,
-                    }}
-                  />
-                ),
-            )}
+            {systems
+              .filter((sys) => sys.visible)
+              .map(
+                (sys) =>
+                  sys.viewshed && (
+                    <Polygon
+                      key={`vs-${sys.uid}`}
+                      positions={sys.viewshed}
+                      pathOptions={{
+                        color: COLORS.success,
+                        fillColor: COLORS.success,
+                        fillOpacity: selectedUid === sys.uid ? 0.25 : 0.15,
+                        weight: selectedUid === sys.uid ? 2 : 1,
+                      }}
+                    />
+                  ),
+              )}
 
             {/* Blocked sectors — red (LOS systems only) */}
-            {systems.map((sys) =>
-              sys.blockedSectors?.map((sector, i) => (
-                <Polygon
-                  key={`bl-${sys.uid}-${i}`}
-                  positions={sector}
-                  pathOptions={{
-                    color: COLORS.danger,
-                    fillColor: COLORS.danger,
-                    fillOpacity: selectedUid === sys.uid ? 0.2 : 0.1,
-                    weight: 0,
-                  }}
-                />
-              )),
-            )}
+            {systems
+              .filter((sys) => sys.visible)
+              .map((sys) =>
+                sys.blockedSectors?.map((sector, i) => (
+                  <Polygon
+                    key={`bl-${sys.uid}-${i}`}
+                    positions={sector}
+                    pathOptions={{
+                      color: COLORS.danger,
+                      fillColor: COLORS.danger,
+                      fillOpacity: selectedUid === sys.uid ? 0.2 : 0.1,
+                      weight: 0,
+                    }}
+                  />
+                )),
+              )}
 
             {/* Range rings for non-LOS systems (no viewshed) */}
             {systems.map((sys) => {
@@ -1379,6 +1615,42 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
                 }}
               />
               Computing viewshed ({loadingSystems} remaining)...
+            </div>
+          )}
+
+          {/* Over-limit warning banner */}
+          {(sensorLimitExceeded || effectorLimitExceeded) && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: 16,
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 1000,
+                background: `${COLORS.card}f0`,
+                border: `1px solid ${COLORS.danger}`,
+                borderRadius: 6,
+                padding: "8px 16px",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                fontSize: 11,
+                fontWeight: 600,
+                color: COLORS.danger,
+                whiteSpace: "nowrap",
+              }}
+            >
+              ⚠ LOADOUT EXCEEDS BASE LIMITS — Remove systems to comply
+              {sensorLimitExceeded && (
+                <span style={{ opacity: 0.8, marginLeft: 4, fontSize: 10 }}>
+                  ({placedSensorCount}/{maxSensors} sensors)
+                </span>
+              )}
+              {effectorLimitExceeded && (
+                <span style={{ opacity: 0.8, marginLeft: 4, fontSize: 10 }}>
+                  ({placedEffectorCount}/{maxEffectors} effectors)
+                </span>
+              )}
             </div>
           )}
 
