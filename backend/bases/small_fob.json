@@ -1,0 +1,78 @@
+{
+  "id": "small_fob",
+  "name": "Small FOB",
+  "description": "Compact forward operating base with tight perimeter. Limited entry points and short sight lines.",
+  "size": "small",
+  "center_lat": 32.5,
+  "center_lng": 45.5,
+  "default_zoom": 15,
+  "boundary": [
+    [-0.3, -0.3], [-0.3, 0.3], [0.3, 0.3], [0.3, -0.3]
+  ],
+  "protected_assets": [
+    {
+      "id": "command_post",
+      "name": "Command Post",
+      "x": 0.0,
+      "y": 0.0,
+      "priority": 1
+    },
+    {
+      "id": "ammo_depot",
+      "name": "Ammunition Storage",
+      "x": 0.15,
+      "y": -0.1,
+      "priority": 2
+    }
+  ],
+  "terrain": [
+    {
+      "id": "main_bldg",
+      "type": "building",
+      "name": "Main Building",
+      "polygon": [[-0.08, -0.06], [-0.08, 0.06], [0.08, 0.06], [0.08, -0.06]],
+      "blocks_los": true,
+      "height_m": 6.0
+    },
+    {
+      "id": "guard_tower_n",
+      "type": "tower",
+      "name": "Guard Tower N",
+      "polygon": [[-0.02, 0.22], [-0.02, 0.26], [0.02, 0.26], [0.02, 0.22]],
+      "blocks_los": false,
+      "height_m": 10.0
+    },
+    {
+      "id": "guard_tower_s",
+      "type": "tower",
+      "name": "Guard Tower S",
+      "polygon": [[-0.02, -0.26], [-0.02, -0.22], [0.02, -0.22], [0.02, -0.26]],
+      "blocks_los": false,
+      "height_m": 10.0
+    },
+    {
+      "id": "berm_east",
+      "type": "berm",
+      "name": "East Berm",
+      "polygon": [[0.25, -0.25], [0.25, 0.25], [0.28, 0.25], [0.28, -0.25]],
+      "blocks_los": true,
+      "height_m": 3.0
+    },
+    {
+      "id": "motor_pool",
+      "type": "building",
+      "name": "Motor Pool",
+      "polygon": [[-0.2, -0.15], [-0.2, -0.05], [-0.1, -0.05], [-0.1, -0.15]],
+      "blocks_los": true,
+      "height_m": 4.0
+    }
+  ],
+  "approach_corridors": [
+    {"name": "North Gate", "bearing_deg": 0, "width_deg": 30},
+    {"name": "East Road", "bearing_deg": 90, "width_deg": 20},
+    {"name": "South Gate", "bearing_deg": 180, "width_deg": 30}
+  ],
+  "max_sensors": 3,
+  "max_effectors": 2,
+  "placement_bounds_km": 0.35
+}

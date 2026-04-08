@@ -1,0 +1,65 @@
+# OpenSentry — Docker Compose
+#
+# Usage:
+#   Development (hot-reload):  docker compose up
+#   Production build:          docker compose --profile prod up --build
+#
+# The default profile starts backend + frontend in dev mode with hot-reload.
+# The "prod" profile builds optimised images and serves via nginx.
+
+services:
+
+  # -----------------------------------------------------------------------
+  # Backend — FastAPI + WebSocket game server
+  # -----------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    env_file:
+      - .env
+    environment:
+      - OPENSENTRY_ALLOWED_ORIGINS=${OPENSENTRY_ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://localhost}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # -----------------------------------------------------------------------
+  # Frontend (DEV) — Vite dev server with hot-reload
+  # This is the default when you just run `docker compose up`
+  # -----------------------------------------------------------------------
+  frontend-dev:
+    profiles: ["", "dev"]
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: builder
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npx vite --host 0.0.0.0
+    depends_on:
+      - backend
+
+  # -----------------------------------------------------------------------
+  # Frontend (PROD) — nginx serving built static files + proxying API/WS
+  # Activate with:  docker compose --profile prod up --build
+  # -----------------------------------------------------------------------
+  frontend:
+    profiles: ["prod"]
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped

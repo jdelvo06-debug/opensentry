@@ -1,0 +1,102 @@
+{
+  "id": "medium_airbase",
+  "name": "Medium Airbase",
+  "description": "Regional airbase with runway, hangars, and flight line. ATC tower is the primary protected asset.",
+  "size": "medium",
+  "center_lat": 33.0,
+  "center_lng": 44.5,
+  "default_zoom": 14,
+  "boundary": [
+    [-0.8, -0.5], [-0.8, 0.5], [0.8, 0.5], [0.8, -0.5]
+  ],
+  "protected_assets": [
+    {
+      "id": "atc_tower",
+      "name": "ATC Tower",
+      "x": 0.0,
+      "y": 0.2,
+      "priority": 1
+    },
+    {
+      "id": "flight_line",
+      "name": "Flight Line",
+      "x": 0.3,
+      "y": 0.0,
+      "priority": 2
+    },
+    {
+      "id": "fuel_depot",
+      "name": "Fuel Depot",
+      "x": -0.5,
+      "y": -0.2,
+      "priority": 3
+    }
+  ],
+  "terrain": [
+    {
+      "id": "hangar_1",
+      "type": "building",
+      "name": "Hangar 1",
+      "polygon": [[0.15, -0.1], [0.15, 0.1], [0.35, 0.1], [0.35, -0.1]],
+      "blocks_los": true,
+      "height_m": 12.0
+    },
+    {
+      "id": "hangar_2",
+      "type": "building",
+      "name": "Hangar 2",
+      "polygon": [[0.4, -0.1], [0.4, 0.1], [0.6, 0.1], [0.6, -0.1]],
+      "blocks_los": true,
+      "height_m": 12.0
+    },
+    {
+      "id": "atc_bldg",
+      "type": "tower",
+      "name": "ATC Tower",
+      "polygon": [[-0.03, 0.17], [-0.03, 0.23], [0.03, 0.23], [0.03, 0.17]],
+      "blocks_los": false,
+      "height_m": 20.0
+    },
+    {
+      "id": "runway",
+      "type": "runway",
+      "name": "Runway 09/27",
+      "polygon": [[-0.7, -0.03], [-0.7, 0.03], [0.7, 0.03], [0.7, -0.03]],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "fuel_tanks",
+      "type": "building",
+      "name": "Fuel Storage",
+      "polygon": [[-0.55, -0.25], [-0.55, -0.15], [-0.45, -0.15], [-0.45, -0.25]],
+      "blocks_los": true,
+      "height_m": 8.0
+    },
+    {
+      "id": "ops_bldg",
+      "type": "building",
+      "name": "Operations Building",
+      "polygon": [[-0.15, 0.25], [-0.15, 0.35], [0.15, 0.35], [0.15, 0.25]],
+      "blocks_los": true,
+      "height_m": 5.0
+    },
+    {
+      "id": "tree_line_south",
+      "type": "treeline",
+      "name": "Southern Treeline",
+      "polygon": [[-0.6, -0.4], [-0.6, -0.35], [0.0, -0.35], [0.0, -0.4]],
+      "blocks_los": true,
+      "height_m": 8.0
+    }
+  ],
+  "approach_corridors": [
+    {"name": "Runway East", "bearing_deg": 90, "width_deg": 20},
+    {"name": "Runway West", "bearing_deg": 270, "width_deg": 20},
+    {"name": "North Approach", "bearing_deg": 0, "width_deg": 40},
+    {"name": "South Approach", "bearing_deg": 180, "width_deg": 40}
+  ],
+  "max_sensors": 4,
+  "max_effectors": 3,
+  "placement_bounds_km": 0.85
+}

@@ -1,0 +1,124 @@
+{
+  "id": "tutorial",
+  "name": "Tutorial",
+  "description": "A guided walkthrough of the DTID kill chain. A single slow-moving quadcopter approaches while step-by-step instructions guide you through detection, tracking, identification, and defeat.",
+  "difficulty": "Tutorial",
+  "duration_seconds": 300,
+  "base_radius_km": 0.1,
+  "tutorial": true,
+  "no_ambient": true,
+  "waves_enabled": false,
+  "tutorial_prompts": [
+    {
+      "trigger": "start",
+      "message": "Welcome to OpenSentry. A drone is approaching your base. Watch the tactical map for a new contact to appear."
+    },
+    {
+      "trigger": "detected",
+      "message": "Contact detected! The yellow square on the map is an UNKNOWN track. Click on it to select it, then click CONFIRM TRACK in the engagement panel."
+    },
+    {
+      "trigger": "tracked",
+      "message": "Track confirmed. Sensors are now correlating data. Watch the confidence indicator rise. When you have enough data, click IDENTIFY to classify the threat."
+    },
+    {
+      "trigger": "identify_ready",
+      "message": "Confidence is building. Select the correct classification (Commercial Quad) and affiliation (Hostile), then confirm identification."
+    },
+    {
+      "trigger": "identified",
+      "message": "Threat identified! Now select an effector to engage. RF/PNT Jammer is the optimal choice for a commercial quad \u2014 it has low collateral risk and is rechargeable."
+    },
+    {
+      "trigger": "defeated",
+      "message": "Target neutralized. Well done! You have completed the DTID kill chain: Detect, Track, Identify, Defeat. Review your debrief score."
+    }
+  ],
+  "engagement_zones": {
+    "detection_range_km": 5.0,
+    "identification_range_km": 1.5,
+    "engagement_range_km": 2.5
+  },
+  "sensors": [
+    {
+      "id": "radar",
+      "name": "L-Band Multi-Mission Radar",
+      "type": "radar",
+      "range_km": 10.0,
+      "status": "active"
+    },
+    {
+      "id": "kufcs",
+      "name": "Ku-Band Fire Control Radar",
+      "type": "radar",
+      "range_km": 16.0,
+      "status": "active"
+    },
+    {
+      "id": "eoir",
+      "name": "EO/IR Camera",
+      "type": "eoir",
+      "range_km": 8.0,
+      "status": "active",
+      "fov_deg": 15
+    }
+  ],
+  "effectors": [
+    {
+      "id": "jammer",
+      "name": "RF/PNT Jammer",
+      "type": "electronic",
+      "range_km": 5.0,
+      "status": "ready",
+      "recharge_seconds": 10
+    },
+    {
+      "id": "jackal",
+      "name": "JACKAL Pallet",
+      "type": "kinetic",
+      "range_km": 5.0,
+      "status": "ready",
+      "recharge_seconds": 0,
+      "single_use": true,
+      "ammo_count": 4,
+      "ammo_remaining": 4
+    }
+  ],
+  "correct_classification": "commercial_quad",
+  "correct_affiliation": "hostile",
+  "optimal_effectors": [
+    "electronic"
+  ],
+  "acceptable_effectors": [
+    "electronic",
+    "kinetic",
+    "shenobi_pm"
+  ],
+  "roe_violations": [],
+  "drones": [
+    {
+      "id": "tgt-1",
+      "drone_type": "commercial_quad",
+      "start_x": 3.0,
+      "start_y": 2.0,
+      "altitude": 100,
+      "speed": 15,
+      "heading": 225,
+      "behavior": "direct_approach",
+      "rf_emitting": true,
+      "spawn_delay": 5,
+      "correct_classification": "commercial_quad",
+      "correct_affiliation": "hostile",
+      "optimal_effectors": [
+        "electronic"
+      ],
+      "acceptable_effectors": [
+        "electronic",
+        "kinetic",
+        "shenobi_pm"
+      ],
+      "roe_violations": [],
+      "should_engage": true
+    }
+  ]
+}

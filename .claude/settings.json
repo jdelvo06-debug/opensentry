@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(*)",
+      "Write(frontend/**)",
+      "Write(backend/**)",
+      "Write(*.md)",
+      "Write(.gitignore)",
+      "Write(Makefile)",
+      "Write(docker-compose.yml)",
+      "Bash(cd frontend && npm *)",
+      "Bash(cd backend && pip *)",
+      "Bash(cd backend && python *)",
+      "Bash(cd frontend && npx vite *)",
+      "Bash(cd backend && uvicorn *)",
+      "Bash(make *)",
+      "Bash(git *)"
+    ],
+    "deny": []
+  }
+}

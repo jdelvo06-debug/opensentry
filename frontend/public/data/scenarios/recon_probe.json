@@ -1,0 +1,205 @@
+{
+  "id": "recon_probe",
+  "name": "Recon Probe",
+  "description": "Three contacts arrive one at a time. The first is a bird \u2014 do NOT engage. The second is a fixed-wing on a reconnaissance pass across your airspace. The third is a commercial quad on direct approach. Test your identification discipline and ROE compliance.",
+  "difficulty": "Medium",
+  "duration_seconds": 720,
+  "base_radius_km": 0.1,
+  "roe_briefing": [
+    "Weapons tight \u2014 do not engage unless target is positively identified as hostile",
+    "Expect non-hostile air traffic in the area \u2014 positive ID is critical",
+    "Do not engage birds or civilian aircraft under any circumstances",
+    "Electronic countermeasures authorized only against confirmed hostile UAS",
+    "Document all tracks for post-mission intelligence analysis"
+  ],
+  "engagement_zones": {
+    "detection_range_km": 5.0,
+    "identification_range_km": 1.5,
+    "engagement_range_km": 2.5
+  },
+  "sensors": [
+    {
+      "id": "radar",
+      "name": "L-Band Multi-Mission Radar",
+      "type": "radar",
+      "range_km": 10.0,
+      "status": "active"
+    },
+    {
+      "id": "kufcs",
+      "name": "Ku-Band Fire Control Radar",
+      "type": "radar",
+      "range_km": 16.0,
+      "status": "active"
+    },
+    {
+      "id": "eoir",
+      "name": "EO/IR Camera",
+      "type": "eoir",
+      "range_km": 8.0,
+      "status": "active",
+      "fov_deg": 15
+    }
+  ],
+  "effectors": [
+    {
+      "id": "jammer",
+      "name": "RF/PNT Jammer",
+      "type": "electronic",
+      "range_km": 5.0,
+      "status": "ready",
+      "recharge_seconds": 10
+    },
+    {
+      "id": "jackal",
+      "name": "JACKAL Pallet",
+      "type": "kinetic",
+      "range_km": 5.0,
+      "status": "ready",
+      "recharge_seconds": 0,
+      "single_use": true,
+      "ammo_count": 4,
+      "ammo_remaining": 4
+    }
+  ],
+  "correct_classification": "commercial_quad",
+  "correct_affiliation": "hostile",
+  "optimal_effectors": [
+    "electronic"
+  ],
+  "acceptable_effectors": [
+    "electronic",
+    "kinetic",
+    "shenobi_pm"
+  ],
+  "roe_violations": [],
+  "drones": [
+    {
+      "id": "contact-1",
+      "drone_type": "bird",
+      "start_x": 3.0,
+      "start_y": 3.5,
+      "altitude": 250,
+      "speed": 18,
+      "heading": 210,
+      "behavior": "orbit",
+      "rf_emitting": false,
+      "spawn_delay": 0,
+      "orbit_center": [
+        2.0,
+        2.0
+      ],
+      "orbit_radius": 1.5,
+      "correct_classification": "bird",
+      "correct_affiliation": "neutral",
+      "optimal_effectors": [],
+      "acceptable_effectors": [],
+      "roe_violations": [
+        "electronic",
+        "kinetic"
+      ],
+      "should_engage": false,
+      "spawn_variance": {
+        "x_range": [
+          -1.0,
+          1.0
+        ],
+        "y_range": [
+          -1.0,
+          1.0
+        ],
+        "heading_variance": 15,
+        "speed_variance": 3
+      }
+    },
+    {
+      "id": "contact-2",
+      "drone_type": "fixed_wing",
+      "start_x": -4.5,
+      "start_y": 2.0,
+      "altitude": 400,
+      "speed": 55,
+      "heading": 90,
+      "behavior": "waypoint_path",
+      "rf_emitting": false,
+      "spawn_delay": 40,
+      "waypoints": [
+        [
+          -2.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.5
+        ],
+        [
+          2.0,
+          -0.5
+        ],
+        [
+          4.5,
+          -2.0
+        ]
+      ],
+      "correct_classification": "fixed_wing",
+      "correct_affiliation": "hostile",
+      "optimal_effectors": [
+        "kinetic"
+      ],
+      "acceptable_effectors": [
+        "kinetic",
+        "electronic"
+      ],
+      "roe_violations": [],
+      "should_engage": true,
+      "spawn_variance": {
+        "x_range": [
+          -1.5,
+          1.5
+        ],
+        "y_range": [
+          -1.5,
+          1.5
+        ],
+        "heading_variance": 20,
+        "speed_variance": 8
+      }
+    },
+    {
+      "id": "contact-3",
+      "drone_type": "commercial_quad",
+      "start_x": 2.5,
+      "start_y": -3.5,
+      "altitude": 100,
+      "speed": 30,
+      "heading": 330,
+      "behavior": "direct_approach",
+      "rf_emitting": true,
+      "spawn_delay": 90,
+      "correct_classification": "commercial_quad",
+      "correct_affiliation": "hostile",
+      "optimal_effectors": [
+        "electronic"
+      ],
+      "acceptable_effectors": [
+        "electronic",
+        "kinetic",
+        "shenobi_pm"
+      ],
+      "roe_violations": [],
+      "should_engage": true,
+      "spawn_variance": {
+        "x_range": [
+          -1.5,
+          1.5
+        ],
+        "y_range": [
+          -1.5,
+          1.5
+        ],
+        "heading_variance": 20,
+        "speed_variance": 5
+      }
+    }
+  ]
+}

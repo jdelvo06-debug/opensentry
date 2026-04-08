@@ -1,0 +1,141 @@
+{
+  "id": "large_installation",
+  "name": "Large Installation",
+  "description": "Major military installation with multiple protected assets and a wide perimeter. Complex terrain requires careful sensor placement.",
+  "size": "large",
+  "center_lat": 34.0,
+  "center_lng": 43.0,
+  "default_zoom": 13,
+  "boundary": [
+    [-1.2, -0.8], [-1.2, 0.8], [1.2, 0.8], [1.2, -0.8]
+  ],
+  "protected_assets": [
+    {
+      "id": "headquarters",
+      "name": "Headquarters",
+      "x": 0.0,
+      "y": 0.0,
+      "priority": 1
+    },
+    {
+      "id": "comm_center",
+      "name": "Communications Center",
+      "x": -0.4,
+      "y": 0.3,
+      "priority": 1
+    },
+    {
+      "id": "power_plant",
+      "name": "Power Plant",
+      "x": 0.6,
+      "y": -0.3,
+      "priority": 2
+    },
+    {
+      "id": "barracks",
+      "name": "Barracks Complex",
+      "x": -0.6,
+      "y": -0.3,
+      "priority": 3
+    },
+    {
+      "id": "armory",
+      "name": "Armory",
+      "x": 0.3,
+      "y": 0.4,
+      "priority": 2
+    }
+  ],
+  "terrain": [
+    {
+      "id": "hq_building",
+      "type": "building",
+      "name": "HQ Main Building",
+      "polygon": [[-0.1, -0.08], [-0.1, 0.08], [0.1, 0.08], [0.1, -0.08]],
+      "blocks_los": true,
+      "height_m": 8.0
+    },
+    {
+      "id": "comm_tower",
+      "type": "tower",
+      "name": "Comms Tower",
+      "polygon": [[-0.42, 0.28], [-0.42, 0.32], [-0.38, 0.32], [-0.38, 0.28]],
+      "blocks_los": false,
+      "height_m": 25.0
+    },
+    {
+      "id": "power_bldg",
+      "type": "building",
+      "name": "Power Generation",
+      "polygon": [[0.5, -0.38], [0.5, -0.22], [0.7, -0.22], [0.7, -0.38]],
+      "blocks_los": true,
+      "height_m": 10.0
+    },
+    {
+      "id": "barracks_1",
+      "type": "building",
+      "name": "Barracks A",
+      "polygon": [[-0.7, -0.38], [-0.7, -0.28], [-0.55, -0.28], [-0.55, -0.38]],
+      "blocks_los": true,
+      "height_m": 6.0
+    },
+    {
+      "id": "barracks_2",
+      "type": "building",
+      "name": "Barracks B",
+      "polygon": [[-0.7, -0.25], [-0.7, -0.15], [-0.55, -0.15], [-0.55, -0.25]],
+      "blocks_los": true,
+      "height_m": 6.0
+    },
+    {
+      "id": "armory_bldg",
+      "type": "building",
+      "name": "Armory Building",
+      "polygon": [[0.22, 0.35], [0.22, 0.45], [0.38, 0.45], [0.38, 0.35]],
+      "blocks_los": true,
+      "height_m": 5.0
+    },
+    {
+      "id": "warehouse",
+      "type": "building",
+      "name": "Supply Warehouse",
+      "polygon": [[0.3, -0.1], [0.3, 0.1], [0.5, 0.1], [0.5, -0.1]],
+      "blocks_los": true,
+      "height_m": 8.0
+    },
+    {
+      "id": "tree_line_ne",
+      "type": "treeline",
+      "name": "NE Treeline",
+      "polygon": [[0.8, 0.4], [0.8, 0.6], [1.0, 0.6], [1.0, 0.4]],
+      "blocks_los": true,
+      "height_m": 10.0
+    },
+    {
+      "id": "tree_line_sw",
+      "type": "treeline",
+      "name": "SW Treeline",
+      "polygon": [[-1.0, -0.6], [-1.0, -0.4], [-0.8, -0.4], [-0.8, -0.6]],
+      "blocks_los": true,
+      "height_m": 10.0
+    },
+    {
+      "id": "berm_north",
+      "type": "berm",
+      "name": "Northern Berm",
+      "polygon": [[-0.8, 0.65], [-0.8, 0.7], [0.8, 0.7], [0.8, 0.65]],
+      "blocks_los": true,
+      "height_m": 3.0
+    }
+  ],
+  "approach_corridors": [
+    {"name": "North Road", "bearing_deg": 0, "width_deg": 25},
+    {"name": "Northeast Gap", "bearing_deg": 45, "width_deg": 20},
+    {"name": "East Approach", "bearing_deg": 90, "width_deg": 30},
+    {"name": "South Main Gate", "bearing_deg": 180, "width_deg": 35},
+    {"name": "West Highway", "bearing_deg": 270, "width_deg": 25}
+  ],
+  "max_sensors": 5,
+  "max_effectors": 4,
+  "placement_bounds_km": 1.3
+}

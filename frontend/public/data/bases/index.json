@@ -1,0 +1,26 @@
+[
+  {
+    "id": "large_installation",
+    "name": "Large Installation",
+    "description": "Major military installation with multiple protected assets and a wide perimeter. Complex terrain requires careful sensor placement.",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
+  },
+  {
+    "id": "medium_airbase",
+    "name": "Medium Airbase",
+    "description": "Regional airbase with runway, hangars, and flight line. ATC tower is the primary protected asset.",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "small_fob",
+    "name": "Small FOB",
+    "description": "Compact forward operating base with tight perimeter. Limited entry points and short sight lines.",
+    "size": "small",
+    "max_sensors": 3,
+    "max_effectors": 2
+  }
+]

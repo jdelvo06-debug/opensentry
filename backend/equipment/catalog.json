@@ -1,0 +1,140 @@
+{
+  "sensors": [
+    {
+      "catalog_id": "tpq51",
+      "name": "L-Band Multi-Mission Radar",
+      "type": "radar",
+      "range_km": 10.0,
+      "fov_deg": 360,
+      "description": "Lightweight counter-fire/counter-UAS radar. 360\u00b0 rotating antenna provides persistent surveillance. Primary detection sensor for Group 1-3 UAS.",
+      "pros": [
+        "Long range",
+        "360\u00b0 coverage",
+        "All-weather",
+        "Altitude data"
+      ],
+      "cons": [
+        "Large signature",
+        "Requires power generator",
+        "Ground clutter in urban terrain"
+      ],
+      "requires_los": false
+    },
+    {
+      "catalog_id": "kufcs",
+      "name": "Ku-Band Fire Control Radar",
+      "type": "radar",
+      "range_km": 16.0,
+      "fov_deg": 360,
+      "description": "Ku-band Radio Frequency Sensor. Precision fire-control radar that guides JACKAL interceptors to target. 360\u00b0 surveillance with high-accuracy track data for engagement.",
+      "pros": [
+        "Fire-control quality tracks",
+        "Guides JACKAL intercepts",
+        "High accuracy",
+        "360\u00b0 coverage"
+      ],
+      "cons": [
+        "Requires line of sight",
+        "Single target track at a time"
+      ],
+      "requires_los": true
+    },
+    {
+      "catalog_id": "eoir_camera",
+      "name": "EO/IR Camera",
+      "type": "eoir",
+      "range_km": 8.0,
+      "fov_deg": 15,
+      "description": "Pan/tilt/zoom electro-optical and infrared camera. 360\u00b0 continuous rotation gimbal with thermal and daylight imaging. Used for visual identification of UAS targets.",
+      "pros": [
+        "Visual ID capability",
+        "Day/night thermal",
+        "360\u00b0 pan",
+        "Zoom 1x-40x"
+      ],
+      "cons": [
+        "Weather dependent",
+        "Operator intensive",
+        "Requires LOS"
+      ],
+      "requires_los": true
+    }
+  ],
+  "effectors": [
+    {
+      "catalog_id": "rf_jammer",
+      "name": "RF/PNT Jammer",
+      "type": "electronic",
+      "range_km": 5.0,
+      "fov_deg": 360,
+      "recharge_seconds": 10,
+      "single_use": false,
+      "description": "Radio frequency and Position/Navigation/Timing jammer. Disrupts UAS command links and GPS navigation. Effective against commercial drones.",
+      "pros": [
+        "Rechargeable",
+        "Low collateral",
+        "Effective vs commercial UAS"
+      ],
+      "cons": [
+        "Limited range",
+        "Ineffective vs autonomous UAS",
+        "Can affect friendly GPS"
+      ],
+      "requires_los": false,
+      "collateral_risk": "medium"
+    },
+    {
+      "catalog_id": "jackal_pallet",
+      "name": "JACKAL Pallet",
+      "type": "kinetic",
+      "range_km": 10.0,
+      "fov_deg": 360,
+      "recharge_seconds": 0,
+      "single_use": true,
+      "description": "Tube-launched interceptor guided by Ku-Band Fire Control Radar. Proximity-fused warhead. 4 interceptors per pallet. Requires Ku-Band FC Radar for mid-course guidance.",
+      "pros": [
+        "High Pk against all UAS types",
+        "Fire-and-forget after launch",
+        "Works vs autonomous UAS"
+      ],
+      "cons": [
+        "Single-use (4 per pallet)",
+        "Requires Ku-Band Fire Control Radar",
+        "Self-destructs if intercept fails"
+      ],
+      "requires_los": false,
+      "collateral_risk": "low",
+      "ammo_count": 4
+    }
+  ],
+  "combined": [
+    {
+      "catalog_id": "shenobi",
+      "name": "Shenobi",
+      "description": "Integrated RF detect-and-defeat system. Passive omnidirectional antennas scan 2.4GHz, 5.8GHz, 430MHz, and 900MHz bands for drone control links. Library-based \u2014 only detects drones with known RF signatures. Protocol Manipulation defeat sends targeted commands on the drone's own protocol: HOLD (freeze), LAND NOW (forced descent), DEAFEN (sever link). CM state progresses from 1/2 (downlink) to 2/2 (uplink acquired, full control).",
+      "sensor_type": "rf",
+      "sensor_range_km": 8.0,
+      "effector_type": "shenobi_pm",
+      "effector_range_km": 6.0,
+      "fov_deg": 360,
+      "recharge_seconds": 5,
+      "single_use": false,
+      "requires_los": false,
+      "collateral_risk": "none",
+      "pros": [
+        "Detect + defeat in one system",
+        "Passive detection (no emissions)",
+        "Multi-band RF coverage (4 bands)",
+        "Protocol-specific (surgical, no collateral)",
+        "Multiple countermeasure modes (HOLD/LAND NOW/DEAFEN)"
+      ],
+      "cons": [
+        "Library-dependent (unknown protocols invisible)",
+        "RF-emitting targets only",
+        "No altitude data",
+        "Defeat range (6km) shorter than detect range (8km)",
+        "Ineffective vs autonomous/non-RF targets"
+      ]
+    }
+  ]
+}

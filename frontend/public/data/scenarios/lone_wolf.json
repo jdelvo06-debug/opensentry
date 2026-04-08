@@ -1,0 +1,101 @@
+{
+  "id": "lone_wolf",
+  "name": "Lone Wolf",
+  "description": "A single commercial quadcopter (DJI-class) on direct approach toward the protected asset. Low altitude, single target. Work through the DTID kill chain: detect, track, identify, and defeat the threat.",
+  "difficulty": "Easy",
+  "duration_seconds": 480,
+  "base_radius_km": 0.1,
+  "roe_briefing": [
+    "Positive identification required before any engagement",
+    "Do not engage tracks classified as FRIENDLY or CIVILIAN",
+    "Electronic countermeasures authorized against confirmed hostile UAS",
+    "Kinetic engagement authorized only when electronic defeat is ineffective or unavailable",
+    "All engagements must occur within the weapon engagement zone (WEZ)"
+  ],
+  "engagement_zones": {
+    "detection_range_km": 5.0,
+    "identification_range_km": 1.5,
+    "engagement_range_km": 2.5
+  },
+  "sensors": [
+    {
+      "id": "radar",
+      "name": "L-Band Multi-Mission Radar",
+      "type": "radar",
+      "range_km": 10.0,
+      "status": "active"
+    },
+    {
+      "id": "kufcs",
+      "name": "Ku-Band Fire Control Radar",
+      "type": "radar",
+      "range_km": 16.0,
+      "status": "active"
+    },
+    {
+      "id": "eoir",
+      "name": "EO/IR Camera",
+      "type": "eoir",
+      "range_km": 8.0,
+      "status": "active",
+      "fov_deg": 15
+    }
+  ],
+  "effectors": [
+    {
+      "id": "jammer",
+      "name": "RF/PNT Jammer",
+      "type": "electronic",
+      "range_km": 5.0,
+      "status": "ready",
+      "recharge_seconds": 10
+    },
+    {
+      "id": "jackal",
+      "name": "JACKAL Pallet",
+      "type": "kinetic",
+      "range_km": 5.0,
+      "status": "ready",
+      "recharge_seconds": 0,
+      "single_use": true,
+      "ammo_count": 4,
+      "ammo_remaining": 4
+    }
+  ],
+  "correct_classification": "commercial_quad",
+  "correct_affiliation": "hostile",
+  "optimal_effectors": [
+    "electronic"
+  ],
+  "acceptable_effectors": [
+    "electronic",
+    "kinetic",
+    "shenobi_pm"
+  ],
+  "roe_violations": [],
+  "drones": [
+    {
+      "id": "bogey-1",
+      "drone_type": "commercial_quad",
+      "start_x": 3.5,
+      "start_y": 2.0,
+      "altitude": 150,
+      "speed": 35,
+      "heading": 225,
+      "behavior": "direct_approach",
+      "rf_emitting": true,
+      "spawn_variance": {
+        "x_range": [
+          -1.5,
+          1.5
+        ],
+        "y_range": [
+          -1.5,
+          1.5
+        ],
+        "heading_variance": 25,
+        "speed_variance": 8
+      }
+    }
+  ]
+}

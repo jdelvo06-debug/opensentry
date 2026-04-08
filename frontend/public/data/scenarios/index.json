@@ -1,0 +1,38 @@
+[
+  {
+    "id": "lone_wolf",
+    "name": "Lone Wolf",
+    "description": "A single commercial quadcopter (DJI-class) on direct approach toward the protected asset. Low altitude, single target. Work through the DTID kill chain: detect, track, identify, and defeat the threat.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "recon_probe",
+    "name": "Recon Probe",
+    "description": "Three contacts arrive one at a time. The first is a bird \u2014 do NOT engage. The second is a fixed-wing on a reconnaissance pass across your airspace. The third is a commercial quad on direct approach. Test your identification discipline and ROE compliance.",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "swarm_attack",
+    "name": "Swarm Attack",
+    "description": "Six contacts inbound from multiple directions. A mix of commercial quads, a fixed-wing, a micro drone, one Shahed-type autonomous drone (jam-immune), and one bird (false alarm). Staggered arrival \u2014 expect the second wave at T+30s and late contacts at T+60s. Prioritize threats, manage effectors, and don't waste resources on the bird.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "tutorial",
+    "name": "Tutorial",
+    "description": "A guided walkthrough of the DTID kill chain. A single slow-moving quadcopter approaches while step-by-step instructions guide you through detection, tracking, identification, and defeat.",
+    "difficulty": "Tutorial"
+  },
+  {
+    "id": "thermopylae",
+    "name": "THERMOPYLAE",
+    "description": "Unscripted free-play. Three escalating threat phases then endless chaos. End when done.",
+    "difficulty": "Variable"
+  },
+  {
+    "id": "free_play",
+    "name": "Free Play",
+    "description": "Open sandbox with a steady mix of threat types. One of each system, no timer. Practice at your own pace.",
+    "difficulty": "Casual"
+  }
+]
