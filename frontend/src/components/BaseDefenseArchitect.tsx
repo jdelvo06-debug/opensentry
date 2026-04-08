@@ -523,6 +523,16 @@ function DraggableSystemMarker({
   );
 }
 
+// ─── Map fly-to component ──────────────────────────────────────────────────
+
+function MapFlyTo({ lat, lng, zoom }: { lat: number; lng: number; zoom?: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo([lat, lng], zoom ?? map.getZoom(), { duration: 1.5 });
+  }, [lat, lng, zoom, map]);
+  return null;
+}
+
 // ─── Section header component ────────────────────────────────────────────────
 
 function SectionHeader({ title }: { title: string }) {
@@ -563,8 +573,55 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
   const [paletteFilter, setPaletteFilter] = useState<
     "sensor" | "effector" | "combined"
   >("sensor");
+  const [baseSearch, setBaseSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<{ name: string; lat: number; lng: number }[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
 
   const uidCounter = useRef(0);
+
+  // ─── Geolocation search ─────────────────────────────────────────────────
+
+  const handleGeocodeSearch = useCallback(
+    (query: string) => {
+      setSearchQuery(query);
+      if (query.trim().length < 2) {
+        setSearchResults([]);
+        return;
+      }
+      setSearchLoading(true);
+      fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
+        { headers: { "Accept-Language": "en" } },
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          setSearchResults(
+            data.map((r: { display_name: string; lat: string; lon: string }) => ({
+              name: r.display_name.split(",").slice(0, 2).join(","),
+              lat: parseFloat(r.lat),
+              lng: parseFloat(r.lon),
+            })),
+          );
+          setSearchLoading(false);
+        })
+        .catch(() => {
+          setSearchResults([]);
+          setSearchLoading(false);
+        });
+    },
+    [],
+  );
+
+  const handleSelectGeocodeResult = useCallback(
+    (result: { name: string; lat: number; lng: number }) => {
+      setFlyTo({ lat: result.lat, lng: result.lng, zoom: 14 });
+      setSearchQuery(result.name);
+      setSearchResults([]);
+    },
+    [],
+  );
 
   // ─── Load catalog ───────────────────────────────────────────────────────
 
@@ -1402,12 +1459,84 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
 
         {/* Center — Map */}
         <div style={{ flex: 1, position: "relative" }}>
+          {/* Geolocation search overlay */}
+          <div
+            style={{
+              position: "absolute",
+              top: 10,
+              left: 10,
+              zIndex: 1000,
+              width: 280,
+            }}
+          >
+            <input
+              type="text"
+              placeholder="Search location (e.g., Shaw AFB, Lugoff SC)..."
+              value={searchQuery}
+              onChange={(e) => handleGeocodeSearch(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "8px 10px",
+                fontSize: 11,
+                fontWeight: 500,
+                background: COLORS.card,
+                border: `1px solid ${COLORS.border}`,
+                borderRadius: 4,
+                color: COLORS.text,
+                fontFamily: "inherit",
+              }}
+            />
+            {searchLoading && (
+              <div
+                style={{
+                  marginTop: 4,
+                  padding: "6px 8px",
+                  fontSize: 10,
+                  color: COLORS.muted,
+                  background: COLORS.card,
+                  border: `1px solid ${COLORS.border}`,
+                  borderRadius: 4,
+                }}
+              >
+                Searching...
+              </div>
+            )}
+            {searchResults.length > 0 && (
+              <div
+                style={{
+                  marginTop: 4,
+                  background: COLORS.card,
+                  border: `1px solid ${COLORS.border}`,
+                  borderRadius: 4,
+                  overflow: "hidden",
+                }}
+              >
+                {searchResults.map((result, i) => (
+                  <div
+                    key={i}
+                    onClick={() => handleSelectGeocodeResult(result)}
+                    style={{
+                      padding: "6px 8px",
+                      fontSize: 10,
+                      color: COLORS.text,
+                      cursor: "pointer",
+                      borderBottom: i < searchResults.length - 1 ? `1px solid ${COLORS.border}` : "none",
+                    }}
+                  >
+                    {result.name}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <MapContainer
             center={[SHAW_AFB.lat, SHAW_AFB.lng]}
             zoom={DEFAULT_ZOOM}
             style={{ width: "100%", height: "100%" }}
             zoomControl={false}
           >
+            {flyTo && <MapFlyTo lat={flyTo.lat} lng={flyTo.lng} zoom={flyTo.zoom} />}
             <ScaleControl position="bottomleft" />
             <TileLayer
               url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
