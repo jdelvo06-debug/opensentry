@@ -485,9 +485,9 @@ export default function RadialActionWheel({
   const displayedActions = subMenu !== "none" ? subActions : actions;
   const itemCount = displayedActions.length;
   const effectiveRadius = itemCount <= 4 ? WHEEL_RADIUS
-    : itemCount <= 6 ? 115
-    : itemCount <= 9 ? 130
-    : 145;
+    : itemCount <= 6 ? 92
+    : itemCount <= 9 ? 104
+    : 116;
   const effectiveCenter = effectiveRadius;
   const labelFont = itemCount >= 5 ? 8 : 7;
 
