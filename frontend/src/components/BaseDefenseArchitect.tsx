@@ -203,12 +203,21 @@ async function fetchElevations(
   const results: number[] = [];
   for (let i = 0; i < points.length; i += BATCH) {
     const batch = points.slice(i, i + BATCH);
-    const resp = await fetch("https://api.open-elevation.com/api/v1/lookup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ locations: batch }),
-    });
-    if (!resp.ok) throw new Error(`Elevation API error: ${resp.status}`);
+    let retries = 0;
+    let resp: Response | null = null;
+    while (retries < 3) {
+      resp = await fetch("https://api.open-elevation.com/api/v1/lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locations: batch }),
+      });
+      if (resp.ok) break;
+      retries++;
+      if (retries < 3) {
+        await new Promise((r) => setTimeout(r, 500 * retries)); // Exponential backoff
+      }
+    }
+    if (!resp || !resp.ok) throw new Error(`Elevation API error: ${resp?.status || 'no response'}`);
     const data = await resp.json();
     for (const r of data.results) {
       results.push(r.elevation);
@@ -667,7 +676,10 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
 
       // Only fetch viewshed for LOS-dependent systems
       if (placingDef.requires_los && placingDef.range_km) {
+        // Default altitude: 10m for ground systems, but user can adjust
         fetchViewshedForSystem(uid, lat, lng, 10, placingDef.range_km);
+      } else {
+        console.log(`[BDA] Skipping viewshed for ${placingDef.name}: requires_los=${placingDef.requires_los}, range_km=${placingDef.range_km}`);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -723,7 +735,7 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
           );
         })
         .catch((err) => {
-          console.warn("Viewshed fetch failed:", err);
+          console.warn(`[BDA] Viewshed fetch failed for ${uid} at ${lat.toFixed(4)},${lng.toFixed(4)} alt=${alt}m:`, err.message || err);
           const fallbackPoly: [number, number][] = [];
           for (let i = 0; i <= NUM_RAYS; i++) {
             const bearing = (i / NUM_RAYS) * 2 * Math.PI;
