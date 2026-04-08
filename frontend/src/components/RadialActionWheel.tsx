@@ -115,8 +115,8 @@ function getActionsForPhase(dtidPhase: DTIDPhase, holdFire?: boolean, iffStatus?
   }
 }
 
-const WHEEL_RADIUS = 100;
-const INNER_RADIUS = 36;
+const WHEEL_RADIUS = 80;
+const INNER_RADIUS = 28;
 const CENTER = WHEEL_RADIUS;
 
 function polarToXY(angleDeg: number, r: number, center: number): [number, number] {

@@ -581,9 +581,17 @@ function JackalInterceptOverlay({
       const sp = map.latLngToContainerPoint(L.latLng(startLL[0], startLL[1]));
       const tp = map.latLngToContainerPoint(L.latLng(targetLL[0], targetLL[1]));
 
-      // Current position
-      const cx = sp.x + (tp.x - sp.x) * t;
-      const cy = sp.y + (tp.y - sp.y) * t;
+      // Current position with arc trajectory (quadratic curve for horizontal flight appearance)
+      const arcHeight = Math.min(Math.hypot(tp.x - sp.x, tp.y - sp.y) * 0.15, 60); // 15% of distance, max 60px
+      const arcOffset = Math.sin(t * Math.PI) * arcHeight; // Peaks at t=0.5
+      // Perpendicular offset vector
+      const dx = tp.x - sp.x;
+      const dy = tp.y - sp.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const perpX = -dy / len; // Perpendicular to flight path
+      const perpY = dx / len;
+      const cx = sp.x + dx * t + perpX * arcOffset;
+      const cy = sp.y + dy * t + perpY * arcOffset;
 
       if (t < 1) {
         // Draw trail (red dashed line from start to current)

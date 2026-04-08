@@ -22,8 +22,8 @@ interface Props {
   onClose: () => void;
 }
 
-const WHEEL_RADIUS = 90;
-const INNER_RADIUS = 32;
+const WHEEL_RADIUS = 70;
+const INNER_RADIUS = 24;
 const CENTER = WHEEL_RADIUS;
 
 function polarToXY(angleDeg: number, r: number): [number, number] {
