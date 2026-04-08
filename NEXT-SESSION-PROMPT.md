@@ -40,6 +40,12 @@ Copy-paste this into Claude Code when you're ready to continue.
 - Replace current equipment sidebar with the familiar catalog picker
 - Keep the terrain-aware viewshed as the "killer feature" differentiator
 
+**CRITICAL: Per-System Coverage Toggle**
+- When placing a system, show **that system's coverage only** at its specific altitude
+- Toggle individual systems on/off to compare coverage patterns
+- Allow "show all" but default to isolating the active system
+- This lets operators analyze gaps: "What does TPQ-50 at 50m cover? What about Shenobi at 30m? Where's the overlap?"
+
 **Priority 2: Export to Mission**
 - Wire "EXPORT TO MISSION" button to generate PlacementConfig
 - Build PlacementConfig from: selected equipment, placed positions (lat/lng → game XY), boundary vertices
@@ -100,6 +106,8 @@ New Base Defense Architect:
 Start by studying CustomMissionScreen.tsx to understand the equipment selection pattern, then port/adapt that UI into BaseDefenseArchitect.tsx. Keep the viewshed visualization that's already built.
 
 Focus on making the UX feel consistent between Custom Mission and Base Defense Architect.
+
+**Important:** Implement per-system coverage toggle from the start. When a user places a sensor/effector, show only that system's coverage at its altitude. Add checkboxes/toggles to show/hide individual systems. This is the core analysis feature.
 ```
 
 ---
