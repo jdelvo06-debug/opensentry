@@ -43,11 +43,60 @@ const TYPE_COLORS: Record<string, string> = {
   shenobi_pm: "#bc8cff",
 };
 
-const ALTITUDE_PRESETS: { value: number; label: string }[] = [
-  { value: 2, label: "2m Ground" },
-  { value: 10, label: "10m Mast" },
-  { value: 30, label: "30m Tower" },
+// ─── Altitude band presets ───────────────────────────────────────────────────
+
+interface AltitudeBand {
+  label: string;
+  color: string;
+  icon: string;
+  presets: { value: number; label: string }[];
+}
+
+const ALTITUDE_BANDS: AltitudeBand[] = [
+  {
+    label: "LOW",
+    color: "#3fb950",
+    icon: "🟢",
+    presets: [
+      { value: 10, label: "10m" },
+      { value: 25, label: "25m" },
+      { value: 50, label: "50m" },
+    ],
+  },
+  {
+    label: "MED",
+    color: "#d29922",
+    icon: "🟡",
+    presets: [
+      { value: 100, label: "100m" },
+      { value: 200, label: "200m" },
+      { value: 300, label: "300m" },
+    ],
+  },
+  {
+    label: "HIGH",
+    color: "#f85149",
+    icon: "🔴",
+    presets: [
+      { value: 500, label: "500m" },
+      { value: 1000, label: "1km" },
+      { value: 2000, label: "2km" },
+    ],
+  },
 ];
+
+function getAltitudeBand(altM: number): AltitudeBand {
+  if (altM <= 50) return ALTITUDE_BANDS[0];
+  if (altM <= 300) return ALTITUDE_BANDS[1];
+  return ALTITUDE_BANDS[2];
+}
+
+function getAltitudeBandLabel(altM: number): string {
+  const band = getAltitudeBand(altM);
+  if (band.label === "LOW") return "Ground vehicles / low drones";
+  if (band.label === "MED") return "Tactical drones / helicopters";
+  return "Fixed-wing / high-altitude";
+}
 
 // ─── Unified system definition (built from catalog.json) ─────────────────────
 
@@ -2013,12 +2062,41 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
                 </div>
               </div>
 
-              {/* Altitude slider */}
+              {/* Altitude slider + band presets */}
               <div style={{ padding: "0 14px 14px" }}>
+                {/* Altitude Legend */}
+                {(() => {
+                  const band = getAltitudeBand(selectedSystem.altitude);
+                  return (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        marginBottom: 8,
+                        padding: "5px 8px",
+                        background: `${band.color}18`,
+                        border: `1px solid ${band.color}44`,
+                        borderRadius: 5,
+                      }}
+                    >
+                      <span style={{ fontSize: 13 }}>{band.icon}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: band.color, letterSpacing: 0.5 }}>
+                          {band.label} BAND — {selectedSystem.altitude}m AGL
+                        </div>
+                        <div style={{ fontSize: 9, color: COLORS.muted, marginTop: 1 }}>
+                          {getAltitudeBandLabel(selectedSystem.altitude)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 <input
                   type="range"
                   min={1}
-                  max={100}
+                  max={2000}
                   value={selectedSystem.altitude}
                   onChange={(e) =>
                     handleAltitudeChange(
@@ -2029,37 +2107,76 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
                   style={{
                     width: "100%",
                     accentColor: COLORS.accent,
-                    marginBottom: 8,
+                    marginBottom: 10,
                   }}
                 />
-                <div style={{ display: "flex", gap: 6 }}>
-                  {ALTITUDE_PRESETS.map((preset) => (
-                    <button
-                      key={preset.value}
-                      onClick={() =>
-                        handleAltitudeChange(selectedSystem.uid, preset.value)
-                      }
-                      style={{
-                        flex: 1,
-                        padding: "6px 4px",
-                        fontSize: 10,
-                        fontWeight: 600,
-                        border: `1px solid ${selectedSystem.altitude === preset.value ? COLORS.accent : COLORS.border}`,
-                        borderRadius: 4,
-                        background:
-                          selectedSystem.altitude === preset.value
-                            ? `${COLORS.accent}22`
-                            : "transparent",
-                        color:
-                          selectedSystem.altitude === preset.value
-                            ? COLORS.accent
-                            : COLORS.muted,
-                        cursor: "pointer",
-                        fontFamily: "inherit",
-                      }}
-                    >
-                      {preset.label}
-                    </button>
+
+                {/* Band preset rows */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {ALTITUDE_BANDS.map((band) => (
+                    <div key={band.label}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 5,
+                          marginBottom: 4,
+                        }}
+                      >
+                        <span style={{ fontSize: 10 }}>{band.icon}</span>
+                        <span
+                          style={{
+                            fontSize: 9,
+                            fontWeight: 700,
+                            color: band.color,
+                            letterSpacing: 1,
+                            fontFamily: "'JetBrains Mono', monospace",
+                          }}
+                        >
+                          {band.label}
+                        </span>
+                        <div
+                          style={{
+                            flex: 1,
+                            height: 1,
+                            background: `${band.color}33`,
+                            marginLeft: 2,
+                          }}
+                        />
+                      </div>
+                      <div style={{ display: "flex", gap: 4 }}>
+                        {band.presets.map((preset) => {
+                          const isActive = selectedSystem.altitude === preset.value;
+                          return (
+                            <button
+                              key={preset.value}
+                              onClick={() =>
+                                handleAltitudeChange(selectedSystem.uid, preset.value)
+                              }
+                              style={{
+                                flex: 1,
+                                padding: "5px 4px",
+                                fontSize: 10,
+                                fontWeight: 600,
+                                border: `1px solid ${
+                                  isActive ? band.color : COLORS.border
+                                }`,
+                                borderRadius: 4,
+                                background: isActive
+                                  ? `${band.color}22`
+                                  : "transparent",
+                                color: isActive ? band.color : COLORS.muted,
+                                cursor: "pointer",
+                                fontFamily: "inherit",
+                                transition: "all 0.1s",
+                              }}
+                            >
+                              {preset.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
