@@ -254,19 +254,28 @@ async function fetchElevations(
     const batch = points.slice(i, i + BATCH);
     let retries = 0;
     let resp: Response | null = null;
+    let lastError: string | null = null;
     while (retries < 3) {
-      resp = await fetch("https://api.open-elevation.com/api/v1/lookup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ locations: batch }),
-      });
-      if (resp.ok) break;
+      try {
+        resp = await fetch("https://api.open-elevation.com/api/v1/lookup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ locations: batch }),
+        });
+        if (resp.ok) break;
+        lastError = `HTTP ${resp.status}`;
+      } catch (err) {
+        lastError = err instanceof Error ? err.message : String(err);
+      }
       retries++;
       if (retries < 3) {
         await new Promise((r) => setTimeout(r, 500 * retries)); // Exponential backoff
       }
     }
-    if (!resp || !resp.ok) throw new Error(`Elevation API error: ${resp?.status || 'no response'}`);
+    if (!resp || !resp.ok) {
+      console.error(`[BDA] Elevation API failed after ${retries} retries: ${lastError}`);
+      throw new Error(`Elevation API error: ${lastError || 'no response'}`);
+    }
     const data = await resp.json();
     for (const r of data.results) {
       results.push(r.elevation);
