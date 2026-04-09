@@ -642,7 +642,7 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
       setSearchLoading(true);
       fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
-        { headers: { "Accept-Language": "en" } },
+        { headers: { "Accept-Language": "en", "User-Agent": "OpenSentry-BDA/1.0" } },
       )
         .then((res) => res.json())
         .then((data) => {
@@ -1561,19 +1561,25 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
                 }}
               >
                 {searchResults.map((result, i) => (
-                  <div
+                  <button
                     key={i}
                     onClick={() => handleSelectGeocodeResult(result)}
                     style={{
+                      display: "block",
+                      width: "100%",
+                      textAlign: "left",
                       padding: "6px 8px",
                       fontSize: 10,
                       color: COLORS.text,
-                      cursor: "pointer",
+                      background: "transparent",
+                      border: "none",
                       borderBottom: i < searchResults.length - 1 ? `1px solid ${COLORS.border}` : "none",
+                      cursor: "pointer",
+                      fontFamily: "inherit",
                     }}
                   >
                     {result.name}
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
