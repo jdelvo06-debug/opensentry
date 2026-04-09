@@ -117,7 +117,7 @@ UAS and drone contacts are never ATC-authorized — only manned aircraft can rec
 - **THERMOPYLAE free-play scenario** — Escalating chaos mode with endless toggle and manual end
 - **Free Play sandbox** — casual mixed-threat mode with one of each system and no timer; end when done
 - **Interactive tutorial** — two-phase guided experience: UI tour overlay with spotlights, then hands-on DTID practice with gated progression, step tracker, and feedback
-- **Base Defense Architect** — altitude-aware sensor placement tool with viewshed analysis and terrain LOS visualization on real satellite imagery
+- **Base Defense Architect v2** — 4-step unified flow (Base → Equip → Place → Export) with terrain-aware viewshed, per-system coverage toggle, draggable boundary, altitude controls down to 2m AGL, Dark/Satellite/Topo map layers, and geo search. Design your defense, see coverage gaps, then launch directly into a mission.
 
 ---
 
@@ -202,7 +202,16 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 - [x] **#56/57** — Free Play scenario: casual mixed-threat sandbox mode
 - [x] **#58/59** — Interactive tutorial overhaul: UI tour + guided DTID practice, step tracker, feedback
 
-### Backlog (v1.9.0+)
+### Completed (v1.9.0)
+- [x] **PR #3** — BDA v2 stepper refactor: 2830-line monolith → 120-line shell + 13 focused components
+- [x] Unified 4-step flow: Base Selection → Equipment Selection → Placement & Viewshed → Export
+- [x] Per-system coverage toggle, enriched equipment cards, draggable boundary, map tile layers
+- [x] LOS corrections: Shenobi and RF Jammer now require line-of-sight
+- [x] Geo search on placement map, export preserves custom location coordinates
+
+### Backlog
+- [ ] Fix JACKAL trajectory + action wheel size (Issue #1)
+- [ ] Save/load BDA designs (share with unit, iterate on layouts)
 - [ ] After-action replay (timeline scrub)
 - [ ] Multi-operator / shared mission
 - [ ] React.lazy() code splitting for bundle size reduction

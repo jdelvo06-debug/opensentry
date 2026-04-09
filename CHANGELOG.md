@@ -10,6 +10,27 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.9.0] — 2026-04-09
+
+### Added
+- **BDA v2 Stepper Refactor** (PR #3) — Refactored 2830-line monolith into 120-line stepper shell + 13 focused components in `components/bda/`.
+- **Unified 4-step flow** — Base Selection → Equipment Selection → Placement & Viewshed → Export to Mission. Mirrors Custom Mission's UX pattern.
+- **Enriched equipment cards** — LOS badge, range, FOV stats, +/- quantity controls with base limit enforcement.
+- **Per-system coverage toggle** — Show/hide individual system viewsheds, range rings, FOV cones for gap analysis.
+- **Map tile layer toggle** — Dark (CartoDB), Satellite (Esri), and Topo (OpenTopoMap) base layers.
+- **Draggable base perimeter** — Vertex drag handles, midpoint insertion, right-click vertex deletion, area label.
+- **Geo search on placement map** — Nominatim geocoding search bar overlaid on the map.
+- **2m AGL preset** — Altitude slider minimum lowered to 2m with quick-preset button in LOW band.
+- **Export location preservation** — Custom location coordinates flow through to the game engine so missions render at the correct real-world location.
+
+### Fixed
+- **Stale closure in setSystems wrapper** — Functional updates were operating on stale state, causing placed systems to vanish when viewshed loaded. Replaced wrapper with direct React setState dispatch.
+- **Shenobi requires LOS** — Changed `requires_los` from false to true. RF detection is blocked by terrain.
+- **RF Jammer requires LOS** — Changed `requires_los` from false to true. RF jamming energy is blocked by terrain.
+- **Export to Iraq bug** — Custom location base templates now propagate through the export chain so the game renders at the correct coordinates.
+
+---
+
 ## [1.8.0] — 2026-04-05
 
 ### Added

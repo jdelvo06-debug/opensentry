@@ -4,112 +4,57 @@ Copy-paste this into Claude Code when you're ready to continue.
 
 ---
 
-## Current: Base Defense Architect v2 — Unified with Custom Mission Flow
+## Status: BDA v2 Shipped (2026-04-09)
 
-### The Vision
+The Base Defense Architect v2 stepper refactor is complete and merged to main (PR #3).
 
-**Base Defense Architect should mirror the Custom Mission setup exactly:**
+### What's Working
 
-1. **Equipment Selection** — Pick your sensors and effectors from the catalog (same as Custom Mission)
-2. **Base Perimeter** — Drag to define the defended area on the map (same as Custom Mission)
-3. **The Key Difference:** See **actual radar coverage** based on altitude and terrain (viewshed visualization)
-4. **Export** — Save your design directly into a playable Custom Mission
-
-### Why This Approach
-
-- **Single UX pattern** — Users learn one interface, use it for both quick missions and detailed planning
-- **Immediate feedback** — See coverage gaps BEFORE you play, fix them in the architect
-- **Terrain matters** — Buildings, hills, and trees block LOS; place systems to cover actual approach corridors
-- **Reusable designs** — Save good setups, share with unit, load for training scenarios
-
-### What's Already Built (from original PR #60)
-
-- ✅ Viewshed 10m caching bug fixed + elevation API retry with backoff
-- ✅ Base template selection (Small FOB, Medium Airbase, Large Installation)
-- ✅ Custom location search via Nominatim geocoding
-- ✅ Editable boundary polygon with vertex handles
-- ✅ Terrain features, protected assets, approach corridors on map
-- ✅ Viewshed for all systems except JACKAL (jammers + Shenobi included)
-- ✅ Shared map components extracted (BoundaryEditor, TerrainOverlay, AssetMarkers, etc.)
-- ✅ PlacementScreen refactored to use shared components
+- ✅ 4-step flow: Base → Equip → Place → Export
+- ✅ Equipment selection with enriched cards (LOS, range, FOV, +/- qty)
+- ✅ Terrain-aware viewshed for all LOS systems (radar, EO/IR, Shenobi, jammer)
+- ✅ Per-system coverage toggle (show/hide individual viewsheds)
+- ✅ Draggable base perimeter with vertex handles
+- ✅ Map tile toggle (Dark/Satellite/Topo)
+- ✅ Geo search on placement map
+- ✅ Export to mission preserves custom location coordinates
+- ✅ AGL height down to 2m with preset buttons
+- ✅ Approach corridor coverage analysis on export screen
 
 ### What's Next
 
-**Priority 1: Unify with Custom Mission Setup**
-- Port Custom Mission's equipment selection UI into BaseDefenseArchitect
-- Replace current equipment sidebar with the familiar catalog picker
-- Keep the terrain-aware viewshed as the "killer feature" differentiator
+**Priority 1: Fix JACKAL trajectory + action wheel size (Issue #1)**
+- JACKAL interceptor flight path needs fixing
+- Radial action wheel is too large on screen
 
-**CRITICAL: Per-System Coverage Toggle**
-- When placing a system, show **that system's coverage only** at its specific altitude
-- Toggle individual systems on/off to compare coverage patterns
-- Allow "show all" but default to isolating the active system
-- This lets operators analyze gaps: "What does TPQ-50 at 50m cover? What about Shenobi at 30m? Where's the overlap?"
-
-**Priority 2: Export to Mission**
-- Wire "EXPORT TO MISSION" button to generate PlacementConfig
-- Build PlacementConfig from: selected equipment, placed positions (lat/lng → game XY), boundary vertices
-- Launch into Custom Mission with pre-loaded placement
-- Use existing useGameEngine.connect() path
-
-**Priority 3: Save/Load Designs**
+**Priority 2: Save/Load BDA Designs**
 - JSON export/import for architect designs
 - Share designs between users
 - Load previous designs to iterate
 
-**Priority 4: Polish**
-- Equipment count limits from base template
-- Loadout summary panel
-- Coverage analysis vs. approach corridors
+**Priority 3: Code Quality**
+- Add CI test step to GitHub Actions (vitest + pytest)
+- Code-split bundle with React.lazy() (currently 733 KB)
+- Investigate stuck bogey in Lone Wolf
+
+**Priority 4: Innovation Submission**
+- Draft AFWERX/DIU one-pager for OpenSentry
 
 ### Key Files
 
-- `frontend/src/components/BaseDefenseArchitect.tsx` — main architect component
-- `frontend/src/components/CustomMissionScreen.tsx` — reference for equipment selection UI
-- `frontend/src/components/PlacementScreen.tsx` — uses shared components, export target
-- `frontend/src/types.ts` — BaseTemplate, PlacementConfig, PlacedEquipment types
-- `frontend/public/data/equipment/catalog.json` — equipment definitions
-- `frontend/public/data/bases/` — base template JSON files
-
-### Reference: Custom Mission Flow
-
 ```
-Custom Mission:
-1. Select Equipment → 2. Drag Base Perimeter → 3. Play Mission
-
-Base Defense Architect (new):
-1. Select Equipment → 2. Drag Base Perimeter → 3. See Viewshed Coverage → 4. Export to Mission
-```
-
-The difference is step 3: terrain-aware coverage visualization before you commit to playing.
-
----
-
-## The Prompt
-
-```
-Read CLAUDE.md for full project context.
-
-I'm working on Base Defense Architect v2. The goal is to unify it with the Custom Mission flow:
-
-Current Custom Mission:
-1. Select equipment from catalog
-2. Drag base perimeter on map
-3. Play
-
-New Base Defense Architect:
-1. Select equipment from catalog (SAME as Custom Mission)
-2. Drag base perimeter on map (SAME as Custom Mission)
-3. See terrain-aware viewshed coverage (THE DIFFERENTIATOR)
-4. Export to playable mission
-
-Start by studying CustomMissionScreen.tsx to understand the equipment selection pattern, then port/adapt that UI into BaseDefenseArchitect.tsx. Keep the viewshed visualization that's already built.
-
-Focus on making the UX feel consistent between Custom Mission and Base Defense Architect.
-
-**Important:** Implement per-system coverage toggle from the start. When a user places a sensor/effector, show only that system's coverage at its altitude. Add checkboxes/toggles to show/hide individual systems. This is the core analysis feature.
+frontend/src/components/
+  BaseDefenseArchitect.tsx           ← stepper shell (~120 lines)
+  bda/
+    types.ts, constants.ts, viewshed.ts  ← shared modules
+    BdaStepIndicator.tsx             ← step progress bar
+    BdaBaseSelection.tsx             ← step 1: base template + geo search
+    BdaEquipmentSelection.tsx        ← step 2: catalog with enriched cards
+    BdaPlacement.tsx                 ← step 3: map + viewshed + placement
+    BdaExport.tsx                    ← step 4: coverage summary + launch
+    components/                      ← sub-components (palette, markers, etc.)
 ```
 
 ---
 
-*This file documents the unified vision for BDA v2. Updated 2026-04-08.*
+*Updated 2026-04-09 after BDA v2 merge.*

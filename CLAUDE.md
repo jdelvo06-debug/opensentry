@@ -1,4 +1,4 @@
-# CLAUDE.md — OpenSentry Project Guide (Updated 2026-04-05)
+# CLAUDE.md — OpenSentry Project Guide (Updated 2026-04-09)
 
 ## What Is This?
 OpenSentry is a **free, browser-based C-UAS training simulator** designed to teach military operators the **DTID kill chain** (Detect → Track → Identify → Defeat). It's built to emulate real-world C-UAS command and control systems. No clearance required — purely training.
@@ -10,7 +10,7 @@ OpenSentry is a **free, browser-based C-UAS training simulator** designed to tea
 
 ---
 
-## Architecture (as of 2026-04-04)
+## Architecture (as of 2026-04-09)
 
 ### Stack
 - **Frontend:** React 19, TypeScript, Vite, Leaflet.js, HTML5 Canvas
@@ -30,6 +30,11 @@ frontend/                   ← React app (the game UI)
     hooks/useGameEngine.ts  ← 10Hz game loop in browser (replaces WebSocket)
     hooks/useWebSocket.ts   ← Legacy hook (kept for local dev with Python backend)
     components/             ← All UI components
+      bda/                  ← Base Defense Architect v2 (stepper flow)
+        BdaStepIndicator.tsx, BdaBaseSelection.tsx, BdaEquipmentSelection.tsx
+        BdaPlacement.tsx, BdaExport.tsx
+        types.ts, constants.ts, viewshed.ts
+        components/         ← BDA sub-components (palette, markers, detail panel, etc.)
     types.ts                ← TypeScript interfaces for all ServerMessage types
     __tests__/              ← vitest unit tests for game engine
   public/data/              ← Static JSON data (served on GitHub Pages)
@@ -63,14 +68,16 @@ backend/                    ← Python/FastAPI reference implementation (DO NOT 
 
 ## Equipment (All generic — no real system designators)
 
-| System | Catalog ID | Type | Range | Notes |
-|--------|-----------|------|-------|-------|
-| L-Band Multi-Mission Radar | `tpq51` | Sensor | 10km | 360° surveillance |
-| Ku-Band Fire Control Radar | `kufcs` | Sensor | 16km | Required for JACKAL guidance |
-| EO/IR Camera | `eoir_camera` | Sensor | 8km | 15° FOV, thermal + daylight |
-| RF/PNT Jammer | `rf_jammer` | Effector | 5km | Passive area suppression, rechargeable |
-| JACKAL Pallet | `jackal_pallet` | Effector | 10km | 4 interceptors, requires Ku-Band FCS |
-| Shenobi | `shenobi` | Combined | 8km/6km | RF detect + protocol manipulation |
+| System | Catalog ID | Type | Range | LOS | Notes |
+|--------|-----------|------|-------|-----|-------|
+| L-Band Multi-Mission Radar | `tpq51` | Sensor | 10km | Yes | 360° surveillance |
+| Ku-Band Fire Control Radar | `kufcs` | Sensor | 16km | Yes | Required for JACKAL guidance |
+| EO/IR Camera | `eoir_camera` | Sensor | 8km | Yes | 15° FOV, thermal + daylight |
+| RF/PNT Jammer | `rf_jammer` | Effector | 5km | Yes | RF energy blocked by terrain |
+| JACKAL Pallet | `jackal_pallet` | Effector | 10km | No | 4 interceptors, guided flight path |
+| Shenobi | `shenobi` | Combined | 8km/6km | Yes | RF detect + protocol manipulation |
+
+**LOS = Line of Sight.** Systems with LOS=Yes get terrain-aware viewshed visualization in Base Defense Architect. Only JACKAL (kinetic interceptor with guided flight) operates without LOS.
 
 ---
 
@@ -109,7 +116,17 @@ DroneState fields added for PNT: `pnt_jammed`, `pnt_drift_magnitude`, `pnt_jamme
 ## Game Flow
 1. **Main Menu** → 2×2 scenario card grid → LAUNCH → straight into mission (doctrine loadout, no setup)
 2. **CUSTOM MISSION** → Scenario Select → Loadout → Placement → Running → Debrief
-3. **GitHub Pages deploy** → auto on every `git push origin main`
+3. **BASE DEFENSE ARCHITECT** → Base Selection → Equipment Selection → Placement & Viewshed → Export to Mission
+4. **GitHub Pages deploy** → auto on every `git push origin main`
+
+### Base Defense Architect v2 (Shipped 2026-04-09)
+Unified 4-step flow mirroring Custom Mission's UX pattern:
+1. **Base Selection** — template cards (Small FOB, Medium Airbase, Large Installation) or custom geo search
+2. **Equipment Selection** — enriched catalog cards with LOS badge, range, FOV stats, +/- qty, base limit enforcement
+3. **Placement & Viewshed** — full map with terrain-aware LOS visualization, per-system coverage toggle, altitude/facing controls, draggable boundary polygon, Dark/Satellite/Topo tile layers, geo search
+4. **Export** — coverage summary with approach corridor analysis, scenario picker, launch mission or download JSON
+
+The stepper shell (`BaseDefenseArchitect.tsx`, ~120 lines) holds shared state; each step is a focused component in `components/bda/`. Viewshed computation uses Open-Elevation API (SRTM 30m) with 72 rays, 150m steps, and LRU caching.
 
 ---
 
@@ -189,13 +206,14 @@ These are Claude Code subagent types, not custom-built tools. They run as part o
 ---
 
 ## Known Issues / Open TODO
+- JACKAL trajectory + action wheel size (GitHub Issue #1)
 - Intermittent stuck bogey in Lone Wolf — root cause unconfirmed
 - `_evasive_state` dict in drone.py is module-level (shared across connections) — blocks multiplayer, fine for single-player
 - App.tsx has 51 `useState` declarations — should be refactored into useReducer slices (audio, tracks, ATC, phase, UI)
-- Bundle size 689 KB (193 KB gzipped) — should lazy-load BaseDefenseArchitect, StudyModule, PlacementScreen with React.lazy()
+- Bundle size 733 KB (205 KB gzipped) — should lazy-load BaseDefenseArchitect, StudyModule, PlacementScreen with React.lazy()
 - No accessibility — missing ARIA labels, color-only indicators, no keyboard nav on RadialActionWheel
 - Backend Python tests not run in CI — GitHub Actions only builds frontend
-- Duplicate constants (CLASSIFICATIONS, color maps) across multiple components — should centralize into constants.ts
+- BDA viewshed terrain accuracy depends on SRTM 30m data via Open-Elevation API — may not match local terrain perfectly
 - After-action replay (timeline scrub) — deferred
 
 ## Testing
@@ -211,10 +229,22 @@ These are Claude Code subagent types, not custom-built tools. They run as part o
 - Base Defense Architect (#54/55) — altitude-aware sensor placement, viewshed, terrain LOS
 - Free Play scenario (#56/57) — casual mixed-threat sandbox mode
 - Interactive tutorial overhaul (#58/59) — two-phase UI tour + hands-on DTID practice
-- All GitHub issues closed (0 open)
+
+## Shipped in v1.9.0 (2026-04-09)
+- BDA v2 Stepper Refactor (PR #3) — 2830-line monolith → 120-line stepper shell + 13 focused components
+- Unified 4-step flow: Base → Equip → Place → Export (mirrors Custom Mission UX)
+- Per-system coverage toggle — show/hide individual system viewsheds for gap analysis
+- Enriched equipment cards with LOS badge, range, FOV stats
+- Map tile toggle (Dark/Satellite/Topo)
+- Draggable base perimeter with vertex handles
+- Geo search on placement map (Nominatim)
+- Export to mission preserves custom location coordinates
+- LOS corrections: Shenobi and RF Jammer now require LOS (only JACKAL is non-LOS)
+- AGL height range extended down to 2m
 
 ## Next Session — Priority Work
-1. Investigate stuck bogey (Lone Wolf) — still unconfirmed
-2. Add CI test step to GitHub Actions workflow (both vitest and pytest)
-3. Code-split bundle with React.lazy() for heavy components
-4. Draft AFWERX/DIU one-pager for OpenSentry innovation submission
+1. Fix JACKAL trajectory and reduce action wheel size (Issue #1)
+2. Save/load BDA designs as JSON (share with unit, iterate on layouts)
+3. Add CI test step to GitHub Actions workflow (both vitest and pytest)
+4. Code-split bundle with React.lazy() for heavy components (currently 733 KB)
+5. Investigate stuck bogey in Lone Wolf — still unconfirmed
