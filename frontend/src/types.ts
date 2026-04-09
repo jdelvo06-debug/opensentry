@@ -346,6 +346,9 @@ export interface BaseInfo {
   size: string;
   max_sensors: number;
   max_effectors: number;
+  center_lat?: number;
+  center_lng?: number;
+  placement_bounds_km?: number;
 }
 
 export interface PlacedEquipment {

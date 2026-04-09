@@ -5,6 +5,7 @@ import {
   Circle,
   Polygon,
   Marker,
+  Rectangle,
   useMap,
   useMapEvents,
   ScaleControl,
@@ -591,6 +592,53 @@ function MapFlyTo({ lat, lng, zoom }: { lat: number; lng: number; zoom?: number 
   return null;
 }
 
+// ─── Draggable base perimeter (mirrors Custom Mission) ─────────────────────
+
+function DraggableBasePerimeter({
+  perimeter,
+  onChange,
+}: {
+  perimeter: { centerLat: number; centerLng: number; widthKm: number; heightKm: number };
+  onChange: (p: { centerLat: number; centerLng: number; widthKm: number; heightKm: number }) => void;
+}) {
+  const map = useMap();
+  const [dragging, setDragging] = useState<"center" | "nw" | "ne" | "sw" | "se" | null>(null);
+
+  const bounds = useMemo(() => {
+    const halfW = perimeter.widthKm / 2;
+    const halfH = perimeter.heightKm / 2;
+    const nw = offsetLatLng(perimeter.centerLat, perimeter.centerLng, Math.sqrt(halfW ** 2 + halfH ** 2), Math.atan2(-halfH, -halfW));
+    const se = offsetLatLng(perimeter.centerLat, perimeter.centerLng, Math.sqrt(halfW ** 2 + halfH ** 2), Math.atan2(halfH, halfW));
+    return [nw, se] as [number, number][];
+  }, [perimeter]);
+
+  useMapEvents({
+    mousedown(e) {
+      const [lat, lng] = [e.latlng.lat, e.latlng.lng];
+      const [nw, se] = bounds;
+      const isCenter = lat < nw[0] && lat > se[0] && lng > nw[1] && lng < se[1];
+      if (isCenter) setDragging("center");
+    },
+    mouseup() {
+      setDragging(null);
+    },
+    mousemove(e) {
+      if (!dragging) return;
+      const { lat, lng } = e.latlng;
+      if (dragging === "center") {
+        onChange({ ...perimeter, centerLat: lat, centerLng: lng });
+      }
+    },
+  });
+
+  return (
+    <Rectangle
+      bounds={bounds}
+      pathOptions={{ color: COLORS.warning, fillOpacity: 0.05, weight: 2, dashArray: "8,4" }}
+    />
+  );
+}
+
 // ─── Section header component ────────────────────────────────────────────────
 
 function SectionHeader({ title }: { title: string }) {
@@ -636,6 +684,14 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
   const [searchResults, setSearchResults] = useState<{ name: string; lat: number; lng: number }[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
+
+  // Draggable base perimeter (mirrors Custom Mission)
+  const [basePerimeter, setBasePerimeter] = useState<{
+    centerLat: number;
+    centerLng: number;
+    widthKm: number;
+    heightKm: number;
+  } | null>(null);
 
   const uidCounter = useRef(0);
 
@@ -722,8 +778,48 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
     [bases, selectedBaseId],
   );
 
+  const [selectedBaseTemplate, setSelectedBaseTemplate] = useState<{
+    center_lat: number;
+    center_lng: number;
+    placement_bounds_km: number;
+  } | null>(null);
+
+  // Load full base template when selected
+  useEffect(() => {
+    if (!selectedBaseId) {
+      setSelectedBaseTemplate(null);
+      return;
+    }
+    fetch(`${import.meta.env.BASE_URL}data/bases/${selectedBaseId}.json`)
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data?.center_lat && data?.center_lng) {
+          setSelectedBaseTemplate({
+            center_lat: data.center_lat,
+            center_lng: data.center_lng,
+            placement_bounds_km: data.placement_bounds_km ?? 1.0,
+          });
+        }
+      })
+      .catch(() => setSelectedBaseTemplate(null));
+  }, [selectedBaseId]);
+
   const maxSensors = selectedBase?.max_sensors ?? null;
   const maxEffectors = selectedBase?.max_effectors ?? null;
+
+  // Initialize base perimeter when base template changes
+  useEffect(() => {
+    if (selectedBaseTemplate?.center_lat && selectedBaseTemplate?.center_lng) {
+      setBasePerimeter({
+        centerLat: selectedBaseTemplate.center_lat,
+        centerLng: selectedBaseTemplate.center_lng,
+        widthKm: selectedBaseTemplate.placement_bounds_km * 2,
+        heightKm: selectedBaseTemplate.placement_bounds_km * 2,
+      });
+    } else {
+      setBasePerimeter(null);
+    }
+  }, [selectedBaseTemplate]);
 
   // ─── Derived: current placed counts ────────────────────────────────────
 
@@ -1601,6 +1697,12 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
             zoomControl={false}
           >
             {flyTo && <MapFlyTo lat={flyTo.lat} lng={flyTo.lng} zoom={flyTo.zoom} />}
+            {basePerimeter && (
+              <DraggableBasePerimeter
+                perimeter={basePerimeter}
+                onChange={setBasePerimeter}
+              />
+            )}
             <ScaleControl position="bottomleft" />
             <TileLayer
               url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
