@@ -607,9 +607,12 @@ function DraggableBasePerimeter({
   const bounds = useMemo(() => {
     const halfW = perimeter.widthKm / 2;
     const halfH = perimeter.heightKm / 2;
-    const nw = offsetLatLng(perimeter.centerLat, perimeter.centerLng, Math.sqrt(halfW ** 2 + halfH ** 2), Math.atan2(-halfH, -halfW));
-    const se = offsetLatLng(perimeter.centerLat, perimeter.centerLng, Math.sqrt(halfW ** 2 + halfH ** 2), Math.atan2(halfH, halfW));
-    return [nw, se] as [number, number][];
+    // Simple lat/lng offset — 1 degree lat ≈ 111km, 1 degree lng ≈ 111km * cos(lat)
+    const latDelta = halfH / 111.0;
+    const lngDelta = halfW / (111.0 * Math.cos((perimeter.centerLat * Math.PI) / 180));
+    const nw: [number, number] = [perimeter.centerLat + latDelta, perimeter.centerLng - lngDelta];
+    const se: [number, number] = [perimeter.centerLat - latDelta, perimeter.centerLng + lngDelta];
+    return [nw, se] as [[number, number], [number, number]];
   }, [perimeter]);
 
   useMapEvents({
@@ -699,8 +702,10 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
 
   const handleGeocodeSearch = useCallback(
     (query: string) => {
+      console.log(`[BDA GeoSearch] Query: "${query}"`);
       setSearchQuery(query);
       if (query.trim().length < 2) {
+        console.log('[BDA GeoSearch] Too short, clearing results');
         setSearchResults([]);
         return;
       }
@@ -709,8 +714,12 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
         { headers: { "Accept-Language": "en", "User-Agent": "OpenSentry-BDA/1.0" } },
       )
-        .then((res) => res.json())
+        .then((res) => {
+          console.log(`[BDA GeoSearch] Response status: ${res.status}`);
+          return res.json();
+        })
         .then((data) => {
+          console.log(`[BDA GeoSearch] Results: ${data.length} items`, data);
           setSearchResults(
             data.map((r: { display_name: string; lat: string; lon: string }) => ({
               name: r.display_name.split(",").slice(0, 2).join(","),
@@ -720,7 +729,8 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
           );
           setSearchLoading(false);
         })
-        .catch(() => {
+        .catch((err) => {
+          console.error('[BDA GeoSearch] Error:', err);
           setSearchResults([]);
           setSearchLoading(false);
         });
