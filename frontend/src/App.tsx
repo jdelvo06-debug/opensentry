@@ -820,7 +820,11 @@ export default function App() {
     setPhase("plan");
   };
 
-  const handlePlacementConfirm = (placement: PlacementConfig) => {
+  const handlePlacementConfirm = (
+    placement: PlacementConfig,
+    overrideScenarioId?: string,
+    overrideBaseId?: string,
+  ) => {
     setPlacementConfig(placement);
     // Reset running state
     setScore(null);
@@ -851,8 +855,8 @@ export default function App() {
 
     // Connect with placement data — score placement since player placed equipment
     connect({
-      scenarioId,
-      baseId,
+      scenarioId: overrideScenarioId ?? scenarioId,
+      baseId: overrideBaseId ?? baseId,
       placement,
       scorePlacement: true,
     });
@@ -1590,7 +1594,16 @@ export default function App() {
   if (phase === "architect") {
     return (
       <ErrorBoundary>
-        <BaseDefenseArchitect onBack={() => setPhase("waiting")} />
+        <BaseDefenseArchitect
+          onBack={() => setPhase("waiting")}
+          onExportToMission={(placement, exportScenarioId, exportBaseId, exportBaseTemplate) => {
+            setScenarioId(exportScenarioId);
+            setBaseId(exportBaseId);
+            setBaseTemplate(exportBaseTemplate);
+            handlePlacementConfirm(placement, exportScenarioId, exportBaseId);
+            setPhase("running");
+          }}
+        />
       </ErrorBoundary>
     );
   }

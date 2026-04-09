@@ -80,7 +80,7 @@
         "Ineffective vs autonomous UAS",
         "Can affect friendly GPS"
       ],
-      "requires_los": false,
+      "requires_los": true,
       "collateral_risk": "medium"
     },
     {
@@ -119,7 +119,7 @@
       "fov_deg": 360,
       "recharge_seconds": 5,
       "single_use": false,
-      "requires_los": false,
+      "requires_los": true,
       "collateral_risk": "none",
       "pros": [
         "Detect + defeat in one system",
