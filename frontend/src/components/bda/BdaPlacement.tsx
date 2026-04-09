@@ -6,6 +6,7 @@ import {
   Polygon,
   Marker,
   ScaleControl,
+  LayersControl,
   useMap,
 } from "react-leaflet";
 import L from "leaflet";
@@ -28,6 +29,7 @@ import MapClickHandler from "./components/MapClickHandler";
 import DraggableSystemMarker from "./components/DraggableSystemMarker";
 import EquipmentPalette, { type PaletteItem } from "./components/EquipmentPalette";
 import SystemDetailPanel from "./components/SystemDetailPanel";
+import DraggableBasePerimeter from "./components/DraggableBasePerimeter";
 
 // ─── Leaflet icon for ring labels ───────────────────────────────────────────
 
@@ -235,8 +237,8 @@ export default function BdaPlacement({
       computeViewshed(lat, lng, alt, rangeKm)
         .then((result) => {
           viewshedCache.set(key, result);
-          onSystemsChange(
-            systems.map((s) =>
+          setSystems((prev) =>
+            prev.map((s) =>
               s.uid === uid
                 ? {
                     ...s,
@@ -261,8 +263,8 @@ export default function BdaPlacement({
             fallbackPoly.push(offsetLatLng(lat, lng, rangeKm, bearing));
           }
           const area = Math.PI * rangeKm * rangeKm;
-          onSystemsChange(
-            systems.map((s) =>
+          setSystems((prev) =>
+            prev.map((s) =>
               s.uid === uid
                 ? {
                     ...s,
@@ -277,7 +279,7 @@ export default function BdaPlacement({
           );
         });
     },
-    [systems, onSystemsChange, setSystems],
+    [setSystems],
   );
 
   // ─── Place handler ────────────────────────────────────────────────────
@@ -303,14 +305,22 @@ export default function BdaPlacement({
       const updated = [...systems, newSystem];
       onSystemsChange(updated);
       setSelectedUid(uid);
-      setActiveDef(null);
+
+      // Check if there are more instances of this type to place
+      const placedOfType = systems.filter(s => s.def.id === activeDef.id).length + 1; // +1 for the one we just placed
+      const totalOfType = [...selectedEquipment.sensors, ...selectedEquipment.effectors, ...selectedEquipment.combined]
+        .filter(g => g.catalogId === activeDef.id)
+        .reduce((sum, g) => sum + g.qty, 0);
+      if (placedOfType >= totalOfType) {
+        setActiveDef(null);
+      }
+      // else keep activeDef so user can keep clicking to place more
 
       if (activeDef.requires_los && activeDef.range_km) {
-        // Need to use the updated systems for viewshed fetch
         fetchViewshedForSystem(uid, lat, lng, 10, activeDef.range_km);
       }
     },
-    [activeDef, systems, onSystemsChange, fetchViewshedForSystem],
+    [activeDef, systems, selectedEquipment, onSystemsChange, fetchViewshedForSystem],
   );
 
   // ─── Drag end ─────────────────────────────────────────────────────────
@@ -554,11 +564,26 @@ export default function BdaPlacement({
               zoom={baseTemplate.default_zoom ?? 14}
             />
             <ScaleControl position="bottomleft" />
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              maxZoom={19}
-            />
+            <LayersControl position="topright">
+              <LayersControl.BaseLayer name="Dark">
+                <TileLayer
+                  url="https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                  maxZoom={20}
+                />
+              </LayersControl.BaseLayer>
+              <LayersControl.BaseLayer name="Satellite" checked>
+                <TileLayer
+                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                  maxZoom={19}
+                />
+              </LayersControl.BaseLayer>
+              <LayersControl.BaseLayer name="Topo">
+                <TileLayer
+                  url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+                  maxZoom={17}
+                />
+              </LayersControl.BaseLayer>
+            </LayersControl>
 
             <MapClickHandler
               active={activeDef !== null}
@@ -566,19 +591,12 @@ export default function BdaPlacement({
               onMapClick={handlePlace}
             />
 
-            {/* Base boundary */}
-            {boundaryPositions.length > 0 && (
-              <Polygon
-                positions={boundaryPositions}
-                pathOptions={{
-                  color: COLORS.muted,
-                  fillColor: COLORS.muted,
-                  fillOpacity: 0.04,
-                  weight: 2,
-                  dashArray: "8,4",
-                }}
-              />
-            )}
+            {/* Draggable base boundary */}
+            <DraggableBasePerimeter
+              baseLat={baseLat}
+              baseLng={baseLng}
+              placementBoundsKm={baseTemplate.placement_bounds_km}
+            />
 
             {/* Terrain features */}
             {terrainFeatures.map((t) => (
