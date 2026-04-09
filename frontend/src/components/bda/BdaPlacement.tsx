@@ -662,8 +662,8 @@ export default function BdaPlacement({
                 )),
               )}
 
-            {/* Range rings for non-LOS systems */}
-            {systems.map((sys) => {
+            {/* Range rings for non-LOS systems (respects visibility toggle) */}
+            {systems.filter((sys) => sys.visible).map((sys) => {
               if (sys.def.requires_los) return null;
               if (sys.def.category === "combined") {
                 return (
@@ -713,8 +713,8 @@ export default function BdaPlacement({
               );
             })}
 
-            {/* FOV cones for narrow-FOV systems */}
-            {systems.map((sys) => {
+            {/* FOV cones for narrow-FOV systems (respects visibility toggle) */}
+            {systems.filter((sys) => sys.visible).map((sys) => {
               if (!isNarrowFov(sys.def)) return null;
               const cone = computeFovCone(
                 sys.lat,
@@ -737,8 +737,8 @@ export default function BdaPlacement({
               );
             })}
 
-            {/* Range ring labels */}
-            {systems.map((sys) => {
+            {/* Range ring labels (respects visibility toggle) */}
+            {systems.filter((sys) => sys.visible).map((sys) => {
               if (sys.def.category === "combined") {
                 return (
                   <React.Fragment key={`rl-${sys.uid}`}>
@@ -783,7 +783,7 @@ export default function BdaPlacement({
             })}
 
             {/* Fallback range ring for LOS systems while viewshed not loaded */}
-            {systems.map(
+            {systems.filter((sys) => sys.visible).map(
               (sys) =>
                 sys.def.requires_los &&
                 !sys.viewshed &&
