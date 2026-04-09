@@ -803,10 +803,10 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
     fetch(`${import.meta.env.BASE_URL}data/bases/${selectedBaseId}.json`)
       .then((res) => res.ok ? res.json() : null)
       .then((data) => {
-        if (data?.center_lat && data?.center_lng) {
+        if (data) {
           setSelectedBaseTemplate({
-            center_lat: data.center_lat,
-            center_lng: data.center_lng,
+            center_lat: SHAW_AFB.lat,   // Use current map center (Shaw AFB default)
+            center_lng: SHAW_AFB.lng,
             placement_bounds_km: data.placement_bounds_km ?? 1.0,
           });
         }
