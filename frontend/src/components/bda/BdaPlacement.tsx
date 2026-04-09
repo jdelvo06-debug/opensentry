@@ -1,0 +1,871 @@
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  Circle,
+  Polygon,
+  Marker,
+  ScaleControl,
+  useMap,
+} from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+import type { BaseTemplate } from "../../types";
+import type { PlacedSystem, SelectedEquipment, SystemDef } from "./types";
+import { COLORS, buildSystemDefs } from "./constants";
+import {
+  computeViewshed,
+  computeFovCone,
+  viewshedCache,
+  cacheKey,
+  offsetLatLng,
+  NUM_RAYS,
+} from "./viewshed";
+import { gameXYToLatLng } from "../../utils/coordinates";
+
+import MapClickHandler from "./components/MapClickHandler";
+import DraggableSystemMarker from "./components/DraggableSystemMarker";
+import EquipmentPalette, { type PaletteItem } from "./components/EquipmentPalette";
+import SystemDetailPanel from "./components/SystemDetailPanel";
+
+// ─── Leaflet icon for ring labels ───────────────────────────────────────────
+
+function createRingLabel(
+  name: string,
+  rangeKm: number,
+  color: string,
+): L.DivIcon {
+  return L.divIcon({
+    html: `<span style="font:600 9px 'JetBrains Mono',monospace;color:${color};white-space:nowrap;pointer-events:none;background:rgba(10,14,26,0.75);padding:1px 5px;border-radius:2px;">${name} \u2014 ${rangeKm}km</span>`,
+    className: "",
+    iconSize: [120, 14],
+    iconAnchor: [60, 7],
+  });
+}
+
+// ─── Leaflet icon for protected assets ──────────────────────────────────────
+
+function createAssetIcon(priority: number): L.DivIcon {
+  const color =
+    priority === 1
+      ? COLORS.danger
+      : priority === 2
+        ? COLORS.warning
+        : COLORS.muted;
+  return L.divIcon({
+    html: `<div style="font-size:16px;color:${color};text-shadow:0 0 4px rgba(0,0,0,0.8);text-align:center;line-height:1;">&#9733;</div>`,
+    className: "",
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+  });
+}
+
+// ─── FlyTo component ────────────────────────────────────────────────────────
+
+function MapFlyTo({ lat, lng, zoom }: { lat: number; lng: number; zoom?: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo([lat, lng], zoom ?? map.getZoom(), { duration: 1.5 });
+  }, [lat, lng, zoom, map]);
+  return null;
+}
+
+// ─── Helper ─────────────────────────────────────────────────────────────────
+
+function isNarrowFov(def: SystemDef): boolean {
+  return def.fov_deg < 360;
+}
+
+// ─── Props ──────────────────────────────────────────────────────────────────
+
+interface Props {
+  baseTemplate: BaseTemplate;
+  selectedEquipment: SelectedEquipment;
+  systems: PlacedSystem[];
+  onSystemsChange: (systems: PlacedSystem[]) => void;
+  onBack: () => void;
+  onNext: () => void;
+}
+
+export default function BdaPlacement({
+  baseTemplate,
+  selectedEquipment,
+  systems,
+  onSystemsChange,
+  onBack,
+  onNext,
+}: Props) {
+  const [selectedUid, setSelectedUid] = useState<string | null>(null);
+  const [activeDef, setActiveDef] = useState<SystemDef | null>(null);
+  const uidCounter = useRef(0);
+
+  // Keep counter ahead of existing systems
+  useEffect(() => {
+    for (const sys of systems) {
+      const num = parseInt(sys.uid.replace("sys_", ""), 10);
+      if (!isNaN(num) && num >= uidCounter.current) {
+        uidCounter.current = num + 1;
+      }
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ─── Map center ───────────────────────────────────────────────────────
+
+  const mapCenter: [number, number] = useMemo(
+    () => [baseTemplate.center_lat ?? 33.9722, baseTemplate.center_lng ?? -80.4756],
+    [baseTemplate.center_lat, baseTemplate.center_lng],
+  );
+
+  const baseLat = baseTemplate.center_lat ?? 32.5;
+  const baseLng = baseTemplate.center_lng ?? 45.5;
+
+  // ─── Build catalog-based SystemDef lookup ────────────────────────────
+
+  const [catalog, setCatalog] = useState<import("../../types").EquipmentCatalog | null>(null);
+
+  useEffect(() => {
+    fetch(`${import.meta.env.BASE_URL}data/equipment/catalog.json`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => setCatalog(data))
+      .catch((err) => console.warn("[BdaPlacement] Failed to load catalog:", err));
+  }, []);
+
+  const allDefs = useMemo(() => (catalog ? buildSystemDefs(catalog) : []), [catalog]);
+
+  const defMap = useMemo(() => {
+    const m = new Map<string, SystemDef>();
+    for (const d of allDefs) m.set(d.id, d);
+    return m;
+  }, [allDefs]);
+
+  // ─── Build palette items from selectedEquipment ──────────────────────
+
+  const paletteItems: PaletteItem[] = useMemo(() => {
+    const items: PaletteItem[] = [];
+    const groups = [
+      ...selectedEquipment.sensors,
+      ...selectedEquipment.effectors,
+      ...selectedEquipment.combined,
+    ];
+
+    // Track instance numbers per catalogId
+    const instanceCounts = new Map<string, number>();
+
+    for (const grp of groups) {
+      const def = defMap.get(grp.catalogId);
+      if (!def) continue;
+      for (let i = 0; i < grp.qty; i++) {
+        const count = (instanceCounts.get(grp.catalogId) ?? 0) + 1;
+        instanceCounts.set(grp.catalogId, count);
+        const label =
+          grp.qty > 1 ? `${def.name} #${count}` : def.name;
+
+        // Check how many of this catalogId are placed
+        const placedOfType = systems.filter((s) => s.def.id === grp.catalogId).length;
+        items.push({
+          def,
+          totalQty: 1,
+          placedQty: i < placedOfType ? 1 : 0,
+          instanceLabel: label,
+        });
+      }
+    }
+    return items;
+  }, [selectedEquipment, defMap, systems]);
+
+  const allPlaced = useMemo(
+    () =>
+      paletteItems.length > 0 &&
+      paletteItems.every((it) => it.placedQty >= it.totalQty),
+    [paletteItems],
+  );
+
+  // ─── Selected system ──────────────────────────────────────────────────
+
+  const selectedSystem = useMemo(
+    () => systems.find((s) => s.uid === selectedUid) ?? null,
+    [systems, selectedUid],
+  );
+
+  // ─── Wrapper to update systems (delegates to parent) ──────────────────
+
+  const setSystems = useCallback(
+    (updater: PlacedSystem[] | ((prev: PlacedSystem[]) => PlacedSystem[])) => {
+      if (typeof updater === "function") {
+        onSystemsChange(updater(systems));
+      } else {
+        onSystemsChange(updater);
+      }
+    },
+    [systems, onSystemsChange],
+  );
+
+  // ─── Fetch viewshed ──────────────────────────────────────────────────
+
+  const fetchViewshedForSystem = useCallback(
+    (uid: string, lat: number, lng: number, alt: number, rangeKm: number) => {
+      const key = cacheKey(lat, lng, alt, rangeKm);
+      const cached = viewshedCache.get(key);
+      if (cached) {
+        setSystems((prev) =>
+          prev.map((s) =>
+            s.uid === uid
+              ? {
+                  ...s,
+                  viewshed: cached.polygon,
+                  blockedSectors: cached.blockedSectors,
+                  viewshedArea: cached.area,
+                  viewshedStats: cached.stats,
+                  viewshedLoading: false,
+                }
+              : s,
+          ),
+        );
+        return;
+      }
+
+      setSystems((prev) =>
+        prev.map((s) => (s.uid === uid ? { ...s, viewshedLoading: true } : s)),
+      );
+
+      computeViewshed(lat, lng, alt, rangeKm)
+        .then((result) => {
+          viewshedCache.set(key, result);
+          onSystemsChange(
+            systems.map((s) =>
+              s.uid === uid
+                ? {
+                    ...s,
+                    viewshed: result.polygon,
+                    blockedSectors: result.blockedSectors,
+                    viewshedArea: result.area,
+                    viewshedStats: result.stats,
+                    viewshedLoading: false,
+                  }
+                : s,
+            ),
+          );
+        })
+        .catch((err) => {
+          console.warn(
+            `[BDA] Viewshed fetch failed for ${uid}:`,
+            err.message || err,
+          );
+          const fallbackPoly: [number, number][] = [];
+          for (let i = 0; i <= NUM_RAYS; i++) {
+            const bearing = (i / NUM_RAYS) * 2 * Math.PI;
+            fallbackPoly.push(offsetLatLng(lat, lng, rangeKm, bearing));
+          }
+          const area = Math.PI * rangeKm * rangeKm;
+          onSystemsChange(
+            systems.map((s) =>
+              s.uid === uid
+                ? {
+                    ...s,
+                    viewshed: fallbackPoly,
+                    blockedSectors: [],
+                    viewshedArea: area,
+                    viewshedStats: null,
+                    viewshedLoading: false,
+                  }
+                : s,
+            ),
+          );
+        });
+    },
+    [systems, onSystemsChange, setSystems],
+  );
+
+  // ─── Place handler ────────────────────────────────────────────────────
+
+  const handlePlace = useCallback(
+    (lat: number, lng: number) => {
+      if (!activeDef) return;
+      const uid = `sys_${++uidCounter.current}`;
+      const newSystem: PlacedSystem = {
+        uid,
+        def: activeDef,
+        lat,
+        lng,
+        altitude: 10,
+        facing_deg: 0,
+        viewshed: null,
+        blockedSectors: null,
+        viewshedLoading: false,
+        viewshedArea: null,
+        viewshedStats: null,
+        visible: true,
+      };
+      const updated = [...systems, newSystem];
+      onSystemsChange(updated);
+      setSelectedUid(uid);
+      setActiveDef(null);
+
+      if (activeDef.requires_los && activeDef.range_km) {
+        // Need to use the updated systems for viewshed fetch
+        fetchViewshedForSystem(uid, lat, lng, 10, activeDef.range_km);
+      }
+    },
+    [activeDef, systems, onSystemsChange, fetchViewshedForSystem],
+  );
+
+  // ─── Drag end ─────────────────────────────────────────────────────────
+
+  const handleDragEnd = useCallback(
+    (uid: string, lat: number, lng: number) => {
+      const sys = systems.find((s) => s.uid === uid);
+      if (!sys) return;
+      setSystems((prev) =>
+        prev.map((s) => (s.uid === uid ? { ...s, lat, lng } : s)),
+      );
+      if (sys.def.requires_los && sys.def.range_km) {
+        fetchViewshedForSystem(uid, lat, lng, sys.altitude, sys.def.range_km);
+      }
+    },
+    [systems, setSystems, fetchViewshedForSystem],
+  );
+
+  // ─── Altitude change ──────────────────────────────────────────────────
+
+  const handleAltitudeChange = useCallback(
+    (uid: string, newAlt: number) => {
+      const sys = systems.find((s) => s.uid === uid);
+      if (!sys) return;
+      setSystems((prev) =>
+        prev.map((s) =>
+          s.uid === uid
+            ? {
+                ...s,
+                altitude: newAlt,
+                viewshed: null,
+                blockedSectors: null,
+                viewshedArea: null,
+                viewshedStats: null,
+                viewshedLoading: sys.def.requires_los,
+              }
+            : s,
+        ),
+      );
+      if (sys.def.requires_los && sys.def.range_km) {
+        fetchViewshedForSystem(uid, sys.lat, sys.lng, newAlt, sys.def.range_km);
+      }
+    },
+    [systems, setSystems, fetchViewshedForSystem],
+  );
+
+  // ─── Rotate ───────────────────────────────────────────────────────────
+
+  const handleRotate = useCallback(
+    (uid: string, deltaDeg: number) => {
+      setSystems((prev) =>
+        prev.map((s) =>
+          s.uid === uid
+            ? { ...s, facing_deg: (s.facing_deg + deltaDeg + 360) % 360 }
+            : s,
+        ),
+      );
+    },
+    [setSystems],
+  );
+
+  // ─── Delete ───────────────────────────────────────────────────────────
+
+  const handleDelete = useCallback(
+    (uid: string) => {
+      setSystems((prev) => prev.filter((s) => s.uid !== uid));
+      if (selectedUid === uid) setSelectedUid(null);
+    },
+    [selectedUid, setSystems],
+  );
+
+  // ─── Toggle visibility ────────────────────────────────────────────────
+
+  const handleToggleVisibility = useCallback(
+    (uid: string) => {
+      setSystems((prev) =>
+        prev.map((s) => (s.uid === uid ? { ...s, visible: !s.visible } : s)),
+      );
+    },
+    [setSystems],
+  );
+
+  const handleShowAll = useCallback(() => {
+    setSystems((prev) => prev.map((s) => ({ ...s, visible: true })));
+  }, [setSystems]);
+
+  const handleHideAll = useCallback(() => {
+    setSystems((prev) => prev.map((s) => ({ ...s, visible: false })));
+  }, [setSystems]);
+
+  // ─── Recalculate viewshed ─────────────────────────────────────────────
+
+  const handleRecalculate = useCallback(
+    (uid: string) => {
+      const sys = systems.find((s) => s.uid === uid);
+      if (sys && sys.def.requires_los && sys.def.range_km) {
+        const key = cacheKey(sys.lat, sys.lng, sys.altitude, sys.def.range_km);
+        viewshedCache.delete(key);
+        fetchViewshedForSystem(uid, sys.lat, sys.lng, sys.altitude, sys.def.range_km);
+      }
+    },
+    [systems, fetchViewshedForSystem],
+  );
+
+  // ─── Derived ──────────────────────────────────────────────────────────
+
+  const loadingSystems = systems.filter((s) => s.viewshedLoading).length;
+
+  // ─── Coordinate conversion helpers for base template features ─────────
+
+  const boundaryPositions = useMemo(() => {
+    if (!baseTemplate.boundary?.length) return [];
+    return baseTemplate.boundary.map(([x, y]) =>
+      gameXYToLatLng(x, y, baseLat, baseLng),
+    );
+  }, [baseTemplate.boundary, baseLat, baseLng]);
+
+  const terrainFeatures = useMemo(() => {
+    if (!baseTemplate.terrain?.length) return [];
+    return baseTemplate.terrain.map((t) => ({
+      ...t,
+      positions: t.polygon.map(([x, y]) => gameXYToLatLng(x, y, baseLat, baseLng)),
+    }));
+  }, [baseTemplate.terrain, baseLat, baseLng]);
+
+  const assetPositions = useMemo(() => {
+    if (!baseTemplate.protected_assets?.length) return [];
+    return baseTemplate.protected_assets.map((a) => ({
+      ...a,
+      position: gameXYToLatLng(a.x, a.y, baseLat, baseLng) as [number, number],
+    }));
+  }, [baseTemplate.protected_assets, baseLat, baseLng]);
+
+  const corridorLines = useMemo(() => {
+    if (!baseTemplate.approach_corridors?.length) return [];
+    const center: [number, number] = [baseLat, baseLng];
+    return baseTemplate.approach_corridors.map((c) => {
+      const bearingRad = (c.bearing_deg * Math.PI) / 180;
+      const endPoint = offsetLatLng(center[0], center[1], 15, bearingRad);
+      return { name: c.name, positions: [center, endPoint] as [[number, number], [number, number]] };
+    });
+  }, [baseTemplate.approach_corridors, baseLat, baseLng]);
+
+  // ─── Render ───────────────────────────────────────────────────────────
+
+  return (
+    <div
+      style={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        background: COLORS.bg,
+        color: COLORS.text,
+        fontFamily: "'Inter', 'JetBrains Mono', monospace",
+        overflow: "hidden",
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "8px 16px",
+          background: COLORS.card,
+          borderBottom: `1px solid ${COLORS.border}`,
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button
+            onClick={onBack}
+            style={{
+              padding: "4px 12px",
+              fontSize: 11,
+              fontWeight: 600,
+              background: "transparent",
+              border: `1px solid ${COLORS.border}`,
+              borderRadius: 4,
+              color: COLORS.muted,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            &lt; BACK
+          </button>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: 1, color: COLORS.text }}>
+              PLACE SYSTEMS
+            </div>
+            <div style={{ fontSize: 10, color: COLORS.muted }}>
+              {baseTemplate.name}
+              {activeDef && (
+                <span style={{ color: COLORS.accent, marginLeft: 12 }}>
+                  PLACING: {activeDef.name} &mdash; click map
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={onNext}
+          disabled={!allPlaced}
+          style={{
+            padding: "6px 18px",
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: 1,
+            background: allPlaced ? COLORS.accent : `${COLORS.accent}40`,
+            border: `1px solid ${allPlaced ? COLORS.accent : COLORS.border}`,
+            borderRadius: 5,
+            color: allPlaced ? COLORS.bg : COLORS.muted,
+            cursor: allPlaced ? "pointer" : "not-allowed",
+            fontFamily: "inherit",
+          }}
+        >
+          {allPlaced ? "NEXT \u25B6" : "Place all systems to continue"}
+        </button>
+      </div>
+
+      {/* 3-panel layout */}
+      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+        {/* Left: Equipment Palette */}
+        <EquipmentPalette
+          items={paletteItems}
+          activeDef={activeDef}
+          onSelectDef={setActiveDef}
+        />
+
+        {/* Center: Map */}
+        <div style={{ flex: 1, position: "relative" }}>
+          <MapContainer
+            center={mapCenter}
+            zoom={baseTemplate.default_zoom ?? 14}
+            style={{ width: "100%", height: "100%" }}
+            zoomControl={false}
+          >
+            <MapFlyTo
+              lat={mapCenter[0]}
+              lng={mapCenter[1]}
+              zoom={baseTemplate.default_zoom ?? 14}
+            />
+            <ScaleControl position="bottomleft" />
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              maxZoom={19}
+            />
+
+            <MapClickHandler
+              active={activeDef !== null}
+              placingDef={activeDef}
+              onMapClick={handlePlace}
+            />
+
+            {/* Base boundary */}
+            {boundaryPositions.length > 0 && (
+              <Polygon
+                positions={boundaryPositions}
+                pathOptions={{
+                  color: COLORS.muted,
+                  fillColor: COLORS.muted,
+                  fillOpacity: 0.04,
+                  weight: 2,
+                  dashArray: "8,4",
+                }}
+              />
+            )}
+
+            {/* Terrain features */}
+            {terrainFeatures.map((t) => (
+              <Polygon
+                key={t.id}
+                positions={t.positions}
+                pathOptions={{
+                  color: t.blocks_los ? COLORS.warning : COLORS.muted,
+                  fillColor: t.blocks_los ? COLORS.warning : COLORS.muted,
+                  fillOpacity: t.blocks_los ? 0.15 : 0.08,
+                  weight: 1,
+                }}
+              />
+            ))}
+
+            {/* Protected assets */}
+            {assetPositions.map((a) => (
+              <Marker
+                key={a.id}
+                position={a.position}
+                icon={createAssetIcon(a.priority)}
+                interactive={false}
+              />
+            ))}
+
+            {/* Approach corridors */}
+            {corridorLines.map((c) => (
+              <Polygon
+                key={c.name}
+                positions={c.positions}
+                pathOptions={{
+                  color: COLORS.danger,
+                  weight: 1,
+                  dashArray: "6,4",
+                  fillOpacity: 0,
+                }}
+              />
+            ))}
+
+            {/* Viewshed polygons (green) */}
+            {systems
+              .filter((sys) => sys.visible)
+              .map(
+                (sys) =>
+                  sys.viewshed && (
+                    <Polygon
+                      key={`vs-${sys.uid}`}
+                      positions={sys.viewshed}
+                      pathOptions={{
+                        color: COLORS.success,
+                        fillColor: COLORS.success,
+                        fillOpacity: selectedUid === sys.uid ? 0.25 : 0.15,
+                        weight: selectedUid === sys.uid ? 2 : 1,
+                      }}
+                    />
+                  ),
+              )}
+
+            {/* Blocked sectors (red) */}
+            {systems
+              .filter((sys) => sys.visible)
+              .map((sys) =>
+                sys.blockedSectors?.map((sector, i) => (
+                  <Polygon
+                    key={`bl-${sys.uid}-${i}`}
+                    positions={sector}
+                    pathOptions={{
+                      color: COLORS.danger,
+                      fillColor: COLORS.danger,
+                      fillOpacity: selectedUid === sys.uid ? 0.2 : 0.1,
+                      weight: 0,
+                    }}
+                  />
+                )),
+              )}
+
+            {/* Range rings for non-LOS systems */}
+            {systems.map((sys) => {
+              if (sys.def.requires_los) return null;
+              if (sys.def.category === "combined") {
+                return (
+                  <React.Fragment key={`rr-${sys.uid}`}>
+                    <Circle
+                      center={[sys.lat, sys.lng]}
+                      radius={
+                        (sys.def.sensor_range_km ?? sys.def.range_km) * 1000
+                      }
+                      pathOptions={{
+                        color: "#388bfd",
+                        fillColor: "#388bfd",
+                        fillOpacity: 0.06,
+                        weight: 1,
+                        dashArray: "6,4",
+                      }}
+                    />
+                    <Circle
+                      center={[sys.lat, sys.lng]}
+                      radius={
+                        (sys.def.effector_range_km ?? sys.def.range_km) * 1000
+                      }
+                      pathOptions={{
+                        color: "#f85149",
+                        fillColor: "#f85149",
+                        fillOpacity: 0.06,
+                        weight: 1,
+                        dashArray: "6,4",
+                      }}
+                    />
+                  </React.Fragment>
+                );
+              }
+              return (
+                <Circle
+                  key={`rr-${sys.uid}`}
+                  center={[sys.lat, sys.lng]}
+                  radius={sys.def.range_km * 1000}
+                  pathOptions={{
+                    color: sys.def.color,
+                    fillColor: sys.def.color,
+                    fillOpacity: 0.06,
+                    weight: 1,
+                    dashArray: "6,4",
+                  }}
+                />
+              );
+            })}
+
+            {/* FOV cones for narrow-FOV systems */}
+            {systems.map((sys) => {
+              if (!isNarrowFov(sys.def)) return null;
+              const cone = computeFovCone(
+                sys.lat,
+                sys.lng,
+                sys.def.range_km,
+                sys.facing_deg,
+                sys.def.fov_deg,
+              );
+              return (
+                <Polygon
+                  key={`fov-${sys.uid}`}
+                  positions={cone}
+                  pathOptions={{
+                    color: sys.def.color,
+                    fillColor: sys.def.color,
+                    fillOpacity: selectedUid === sys.uid ? 0.25 : 0.15,
+                    weight: selectedUid === sys.uid ? 2 : 1,
+                  }}
+                />
+              );
+            })}
+
+            {/* Range ring labels */}
+            {systems.map((sys) => {
+              if (sys.def.category === "combined") {
+                return (
+                  <React.Fragment key={`rl-${sys.uid}`}>
+                    <Marker
+                      position={[
+                        sys.lat +
+                          (sys.def.sensor_range_km ?? sys.def.range_km) / 111.32,
+                        sys.lng,
+                      ]}
+                      icon={createRingLabel(
+                        `${sys.def.name} DET`,
+                        sys.def.sensor_range_km ?? sys.def.range_km,
+                        "#388bfd",
+                      )}
+                      interactive={false}
+                    />
+                    <Marker
+                      position={[
+                        sys.lat +
+                          (sys.def.effector_range_km ?? sys.def.range_km) /
+                            111.32,
+                        sys.lng + 0.01,
+                      ]}
+                      icon={createRingLabel(
+                        `${sys.def.name} DEF`,
+                        sys.def.effector_range_km ?? sys.def.range_km,
+                        "#f85149",
+                      )}
+                      interactive={false}
+                    />
+                  </React.Fragment>
+                );
+              }
+              return (
+                <Marker
+                  key={`rl-${sys.uid}`}
+                  position={[sys.lat + sys.def.range_km / 111.32, sys.lng]}
+                  icon={createRingLabel(sys.def.name, sys.def.range_km, sys.def.color)}
+                  interactive={false}
+                />
+              );
+            })}
+
+            {/* Fallback range ring for LOS systems while viewshed not loaded */}
+            {systems.map(
+              (sys) =>
+                sys.def.requires_los &&
+                !sys.viewshed &&
+                !sys.viewshedLoading &&
+                !isNarrowFov(sys.def) && (
+                  <Circle
+                    key={`rr-fallback-${sys.uid}`}
+                    center={[sys.lat, sys.lng]}
+                    radius={sys.def.range_km * 1000}
+                    pathOptions={{
+                      color: sys.def.color,
+                      fillColor: sys.def.color,
+                      fillOpacity: 0.06,
+                      weight: 1,
+                      dashArray: "6,4",
+                    }}
+                  />
+                ),
+            )}
+
+            {/* System markers */}
+            {systems.map((sys) => (
+              <DraggableSystemMarker
+                key={sys.uid}
+                system={sys}
+                selected={selectedUid === sys.uid}
+                onSelect={() => setSelectedUid(sys.uid)}
+                onDragEnd={(lat, lng) => handleDragEnd(sys.uid, lat, lng)}
+              />
+            ))}
+          </MapContainer>
+
+          {/* Loading indicator overlay */}
+          {loadingSystems > 0 && (
+            <div
+              style={{
+                position: "absolute",
+                top: 10,
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 1000,
+                background: `${COLORS.card}ee`,
+                border: `1px solid ${COLORS.warning}`,
+                borderRadius: 6,
+                padding: "8px 16px",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                fontSize: 11,
+                fontWeight: 600,
+                color: COLORS.warning,
+              }}
+            >
+              <span
+                style={{
+                  display: "inline-block",
+                  width: 12,
+                  height: 12,
+                  border: `2px solid ${COLORS.warning}40`,
+                  borderTop: `2px solid ${COLORS.warning}`,
+                  borderRadius: "50%",
+                  animation: "bda-spin 0.8s linear infinite",
+                }}
+              />
+              Computing viewshed ({loadingSystems} remaining)...
+            </div>
+          )}
+
+          <style>{`
+            @keyframes bda-spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+
+        {/* Right: System Detail Panel */}
+        <SystemDetailPanel
+          systems={systems}
+          selectedSystem={selectedSystem}
+          onSelectSystem={setSelectedUid}
+          onAltitudeChange={handleAltitudeChange}
+          onRotate={handleRotate}
+          onToggleVisibility={handleToggleVisibility}
+          onShowAll={handleShowAll}
+          onHideAll={handleHideAll}
+          onDelete={handleDelete}
+          onRecalculate={handleRecalculate}
+        />
+      </div>
+    </div>
+  );
+}
