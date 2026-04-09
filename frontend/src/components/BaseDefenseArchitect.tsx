@@ -17,7 +17,7 @@ import type {
   BaseInfo,
   PlacementConfig,
 } from "../types";
-import { latLngToGameXY } from "../utils/coordinates";
+import { latLngToGameXY, gameXYToLatLng } from "../utils/coordinates";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -594,53 +594,181 @@ function MapFlyTo({ lat, lng, zoom }: { lat: number; lng: number; zoom?: number 
   return null;
 }
 
-// ─── Draggable base perimeter (mirrors Custom Mission) ─────────────────────
+// ─── Draggable base perimeter polygon (mirrors Custom Mission) ─────────────
+
+// Create perimeter corner drag handle
+function createCornerHandle(): L.DivIcon {
+  const svg = `<svg width="14" height="14" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="7" cy="7" r="6" fill="#d29922" stroke="#ffb800" stroke-width="1.5" opacity="0.9"/>
+  </svg>`;
+  return L.divIcon({
+    html: svg,
+    className: "",
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+  });
+}
+
+// Create midpoint handle for polygon vertex insertion
+function createMidpointHandle(): L.DivIcon {
+  const svg = `<svg width="10" height="10" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="5" cy="5" r="4" fill="#d29922" stroke="#ffb800" stroke-width="1" opacity="0.6"/>
+  </svg>`;
+  return L.divIcon({
+    html: svg,
+    className: "",
+    iconSize: [10, 10],
+    iconAnchor: [5, 5],
+  });
+}
+
+// Create polygon centroid label showing vertex count and area
+function createPolygonLabel(text: string): L.DivIcon {
+  const html = `<span style="font:600 10px 'JetBrains Mono',monospace;color:#d29922;white-space:nowrap;pointer-events:none;background:rgba(13,17,23,0.85);padding:2px 6px;border-radius:3px;border:1px solid #d2992244;">${text}</span>`;
+  return L.divIcon({
+    html,
+    className: "",
+    iconSize: [120, 16],
+    iconAnchor: [60, 8],
+  });
+}
+
+// Shoelace formula for polygon area in km²
+function shoelaceArea(vertices: { x: number; y: number }[]): number {
+  let area = 0;
+  const n = vertices.length;
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n;
+    area += vertices[i].x * vertices[j].y;
+    area -= vertices[j].x * vertices[i].y;
+  }
+  return Math.abs(area) / 2;
+}
+
+// Centroid of polygon vertices in game XY
+function verticesCentroid(vertices: { x: number; y: number }[]): { x: number; y: number } {
+  let cx = 0;
+  let cy = 0;
+  for (const v of vertices) {
+    cx += v.x;
+    cy += v.y;
+  }
+  return { x: cx / vertices.length, y: cy / vertices.length };
+}
 
 function DraggableBasePerimeter({
-  perimeter,
-  onChange,
+  baseLat,
+  baseLng,
+  placementBoundsKm,
 }: {
-  perimeter: { centerLat: number; centerLng: number; widthKm: number; heightKm: number };
-  onChange: (p: { centerLat: number; centerLng: number; widthKm: number; heightKm: number }) => void;
+  baseLat: number;
+  baseLng: number;
+  placementBoundsKm: number;
 }) {
-  const map = useMap();
-  const [dragging, setDragging] = useState<"center" | "nw" | "ne" | "sw" | "se" | null>(null);
+  // Freeform polygon perimeter vertices in game XY (km from base center)
+  const [perimVertices, setPerimVertices] = useState<{x: number; y: number}[]>([
+    { x: -0.5, y: -0.5 },
+    { x: -0.5, y:  0.5 },
+    { x:  0.5, y:  0.5 },
+    { x:  0.5, y: -0.5 },
+  ]);
 
-  const bounds = useMemo(() => {
-    const halfW = perimeter.widthKm / 2;
-    const halfH = perimeter.heightKm / 2;
-    // Simple lat/lng offset — 1 degree lat ≈ 111km, 1 degree lng ≈ 111km * cos(lat)
-    const latDelta = halfH / 111.0;
-    const lngDelta = halfW / (111.0 * Math.cos((perimeter.centerLat * Math.PI) / 180));
-    const nw: [number, number] = [perimeter.centerLat + latDelta, perimeter.centerLng - lngDelta];
-    const se: [number, number] = [perimeter.centerLat - latDelta, perimeter.centerLng + lngDelta];
-    return [nw, se] as [[number, number], [number, number]];
-  }, [perimeter]);
+  // Polygon perimeter as lat/lng positions
+  const perimPositions = useMemo(
+    () => perimVertices.map(v => gameXYToLatLng(v.x, v.y, baseLat, baseLng)),
+    [perimVertices, baseLat, baseLng],
+  );
 
-  useMapEvents({
-    mousedown(e) {
-      const [lat, lng] = [e.latlng.lat, e.latlng.lng];
-      const [nw, se] = bounds;
-      const isCenter = lat < nw[0] && lat > se[0] && lng > nw[1] && lng < se[1];
-      if (isCenter) setDragging("center");
-    },
-    mouseup() {
-      setDragging(null);
-    },
-    mousemove(e) {
-      if (!dragging) return;
-      const { lat, lng } = e.latlng;
-      if (dragging === "center") {
-        onChange({ ...perimeter, centerLat: lat, centerLng: lng });
-      }
-    },
-  });
+  // Polygon area and centroid
+  const perimArea = useMemo(() => shoelaceArea(perimVertices), [perimVertices]);
+  const perimCentroid = useMemo(() => verticesCentroid(perimVertices), [perimVertices]);
+  const perimLabelPos = useMemo(
+    () => gameXYToLatLng(perimCentroid.x, perimCentroid.y, baseLat, baseLng),
+    [perimCentroid, baseLat, baseLng],
+  );
+
+  // Midpoints between consecutive vertices
+  const perimMidpoints = useMemo(() => {
+    return perimVertices.map((v, i) => {
+      const next = perimVertices[(i + 1) % perimVertices.length];
+      return {
+        x: (v.x + next.x) / 2,
+        y: (v.y + next.y) / 2,
+        afterIndex: i,
+      };
+    });
+  }, [perimVertices]);
 
   return (
-    <Rectangle
-      bounds={bounds}
-      pathOptions={{ color: COLORS.warning, fillOpacity: 0.05, weight: 2, dashArray: "8,4" }}
-    />
+    <>
+      {/* Freeform polygon perimeter */}
+      <Polygon
+        positions={perimPositions}
+        pathOptions={{
+          color: "#d29922",
+          fillColor: "#d29922",
+          fillOpacity: 0.06,
+          weight: 2,
+          dashArray: "8,4",
+        }}
+      />
+      {/* Vertex drag handles */}
+      {perimVertices.map((v, i) => {
+        const pos = gameXYToLatLng(v.x, v.y, baseLat, baseLng);
+        return (
+          <Marker
+            key={`perim-v-${i}`}
+            position={pos}
+            icon={createCornerHandle()}
+            draggable
+            eventHandlers={{
+              dragend: (e: L.LeafletEvent) => {
+                const latlng = (e.target as L.Marker).getLatLng();
+                const { x, y } = latLngToGameXY(latlng.lat, latlng.lng, baseLat, baseLng);
+                setPerimVertices(prev => prev.map((pv, j) =>
+                  j === i ? { x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100 } : pv
+                ));
+              },
+              contextmenu: (e: L.LeafletMouseEvent) => {
+                L.DomEvent.preventDefault(e.originalEvent);
+                L.DomEvent.stopPropagation(e.originalEvent);
+                if (perimVertices.length > 3) {
+                  setPerimVertices(prev => prev.filter((_, j) => j !== i));
+                }
+              },
+            }}
+          />
+        );
+      })}
+      {/* Midpoint handles — click to insert vertex */}
+      {perimMidpoints.map((mp, i) => {
+        const pos = gameXYToLatLng(mp.x, mp.y, baseLat, baseLng);
+        return (
+          <Marker
+            key={`perim-mid-${i}`}
+            position={pos}
+            icon={createMidpointHandle()}
+            eventHandlers={{
+              click: (e: L.LeafletMouseEvent) => {
+                L.DomEvent.stopPropagation(e.originalEvent);
+                const insertIdx = mp.afterIndex + 1;
+                setPerimVertices(prev => [
+                  ...prev.slice(0, insertIdx),
+                  { x: Math.round(mp.x * 100) / 100, y: Math.round(mp.y * 100) / 100 },
+                  ...prev.slice(insertIdx),
+                ]);
+              },
+            }}
+          />
+        );
+      })}
+      {/* Polygon centroid label */}
+      <Marker
+        position={perimLabelPos}
+        icon={createPolygonLabel(`${perimVertices.length} pts — ${perimArea.toFixed(1)} km²`)}
+        interactive={false}
+      />
+    </>
   );
 }
 
@@ -690,14 +818,6 @@ export default function BaseDefenseArchitect({ onBack, onExportToMission }: Prop
   const [searchResults, setSearchResults] = useState<{ name: string; lat: number; lng: number }[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
-
-  // Draggable base perimeter (mirrors Custom Mission)
-  const [basePerimeter, setBasePerimeter] = useState<{
-    centerLat: number;
-    centerLng: number;
-    widthKm: number;
-    heightKm: number;
-  } | null>(null);
 
   const uidCounter = useRef(0);
 
@@ -792,8 +912,6 @@ export default function BaseDefenseArchitect({ onBack, onExportToMission }: Prop
   );
 
   const [selectedBaseTemplate, setSelectedBaseTemplate] = useState<{
-    center_lat: number;
-    center_lng: number;
     placement_bounds_km: number;
   } | null>(null);
 
@@ -808,8 +926,6 @@ export default function BaseDefenseArchitect({ onBack, onExportToMission }: Prop
       .then((data) => {
         if (data) {
           setSelectedBaseTemplate({
-            center_lat: SHAW_AFB.lat,   // Use current map center (Shaw AFB default)
-            center_lng: SHAW_AFB.lng,
             placement_bounds_km: data.placement_bounds_km ?? 1.0,
           });
         }
@@ -819,20 +935,6 @@ export default function BaseDefenseArchitect({ onBack, onExportToMission }: Prop
 
   const maxSensors = selectedBase?.max_sensors ?? null;
   const maxEffectors = selectedBase?.max_effectors ?? null;
-
-  // Initialize base perimeter when base template changes
-  useEffect(() => {
-    if (selectedBaseTemplate?.center_lat && selectedBaseTemplate?.center_lng) {
-      setBasePerimeter({
-        centerLat: selectedBaseTemplate.center_lat,
-        centerLng: selectedBaseTemplate.center_lng,
-        widthKm: selectedBaseTemplate.placement_bounds_km * 2,
-        heightKm: selectedBaseTemplate.placement_bounds_km * 2,
-      });
-    } else {
-      setBasePerimeter(null);
-    }
-  }, [selectedBaseTemplate]);
 
   // ─── Derived: current placed counts ────────────────────────────────────
 
@@ -1710,10 +1812,11 @@ export default function BaseDefenseArchitect({ onBack, onExportToMission }: Prop
             zoomControl={false}
           >
             {flyTo && <MapFlyTo lat={flyTo.lat} lng={flyTo.lng} zoom={flyTo.zoom} />}
-            {basePerimeter && (
+            {selectedBaseTemplate && (
               <DraggableBasePerimeter
-                perimeter={basePerimeter}
-                onChange={setBasePerimeter}
+                baseLat={SHAW_AFB.lat}
+                baseLng={SHAW_AFB.lng}
+                placementBoundsKm={selectedBaseTemplate.placement_bounds_km}
               />
             )}
             <ScaleControl position="bottomleft" />
@@ -2651,9 +2754,9 @@ export default function BaseDefenseArchitect({ onBack, onExportToMission }: Prop
                     // Determine the base center for coordinate conversion.
                     // BDA places systems in real-world lat/lng; the game engine
                     // uses km offsets (x=east, y=north) from the base template center.
-                    // We use the base template's game-world center_lat/center_lng.
-                    const baseLat = selectedBaseTemplate?.center_lat ?? 32.5;
-                    const baseLng = selectedBaseTemplate?.center_lng ?? 45.5;
+                    // We use the game-world default center (same as Custom Mission).
+                    const baseLat = 32.5;
+                    const baseLng = 45.5;
                     const effectiveBaseId = selectedBaseId ?? "medium_airbase";
 
                     const placement: PlacementConfig = {
