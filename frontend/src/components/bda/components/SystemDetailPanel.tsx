@@ -271,7 +271,7 @@ export default function SystemDetailPanel({
 
             <input
               type="range"
-              min={1}
+              min={2}
               max={2000}
               value={selectedSystem.altitude}
               onChange={(e) =>

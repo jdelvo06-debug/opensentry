@@ -40,6 +40,7 @@ export const ALTITUDE_BANDS: AltitudeBand[] = [
     color: "#3fb950",
     icon: "🟢",
     presets: [
+      { value: 2, label: "2m" },
       { value: 10, label: "10m" },
       { value: 25, label: "25m" },
       { value: 50, label: "50m" },
