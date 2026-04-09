@@ -15,7 +15,9 @@ import "leaflet/dist/leaflet.css";
 import type {
   EquipmentCatalog,
   BaseInfo,
+  PlacementConfig,
 } from "../types";
+import { latLngToGameXY } from "../utils/coordinates";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -666,9 +668,10 @@ function SectionHeader({ title }: { title: string }) {
 
 interface Props {
   onBack: () => void;
+  onExportToMission?: (placement: PlacementConfig, scenarioId: string, baseId: string) => void;
 }
 
-export default function BaseDefenseArchitect({ onBack }: Props) {
+export default function BaseDefenseArchitect({ onBack, onExportToMission }: Props) {
   const [catalog, setCatalog] = useState<EquipmentCatalog | null>(null);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogError, setCatalogError] = useState<string | null>(null);
@@ -2641,37 +2644,52 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
                   DELETE SYSTEM
                 </button>
 
+                {/* Export to Mission — launches a Free Play mission with placed equipment */}
                 <button
+                  disabled={systems.length === 0}
                   onClick={() => {
-                    const config: {
-                      base_id: string;
-                      sensors: { catalog_id: string; x: number; y: number; facing_deg: number }[];
-                      effectors: { catalog_id: string; x: number; y: number; facing_deg: number }[];
-                      combined: { catalog_id: string; x: number; y: number; facing_deg: number }[];
-                    } = {
-                      base_id: selectedBaseId ?? "",
+                    // Determine the base center for coordinate conversion.
+                    // BDA places systems in real-world lat/lng; the game engine
+                    // uses km offsets (x=east, y=north) from the base template center.
+                    // We use the base template's game-world center_lat/center_lng.
+                    const baseLat = selectedBaseTemplate?.center_lat ?? 32.5;
+                    const baseLng = selectedBaseTemplate?.center_lng ?? 45.5;
+                    const effectiveBaseId = selectedBaseId ?? "medium_airbase";
+
+                    const placement: PlacementConfig = {
+                      base_id: effectiveBaseId,
                       sensors: [],
                       effectors: [],
                       combined: [],
+                      placement_bounds_km: selectedBaseTemplate?.placement_bounds_km,
                     };
+
                     systems.forEach((sys) => {
+                      const { x, y } = latLngToGameXY(sys.lat, sys.lng, baseLat, baseLng);
                       const item = {
                         catalog_id: sys.def.id,
-                        x: sys.lng,
-                        y: sys.lat,
+                        x,
+                        y,
                         facing_deg: sys.facing_deg,
                       };
-                      if (sys.def.category === "sensor") config.sensors.push(item);
-                      else if (sys.def.category === "effector") config.effectors.push(item);
-                      else if (sys.def.category === "combined") config.combined.push(item);
+                      if (sys.def.category === "sensor") placement.sensors.push(item);
+                      else if (sys.def.category === "effector") placement.effectors.push(item);
+                      else if (sys.def.category === "combined") placement.combined.push(item);
                     });
-                    const blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = `bda-${selectedBaseId ?? "freeform"}-${Date.now()}.json`;
-                    a.click();
-                    URL.revokeObjectURL(url);
+
+                    // If onExportToMission callback provided, launch the mission
+                    if (onExportToMission) {
+                      onExportToMission(placement, "free_play", effectiveBaseId);
+                    } else {
+                      // Fallback: download JSON for manual inspection
+                      const blob = new Blob([JSON.stringify(placement, null, 2)], { type: "application/json" });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `bda-${effectiveBaseId}-${Date.now()}.json`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }
                   }}
                   style={{
                     width: "100%",
@@ -2679,16 +2697,26 @@ export default function BaseDefenseArchitect({ onBack }: Props) {
                     fontSize: 11,
                     fontWeight: 700,
                     letterSpacing: 1,
-                    background: COLORS.accent,
-                    border: `1px solid ${COLORS.accent}`,
+                    background: systems.length === 0 ? `${COLORS.accent}40` : COLORS.accent,
+                    border: `1px solid ${systems.length === 0 ? COLORS.border : COLORS.accent}`,
                     borderRadius: 5,
-                    color: COLORS.bg,
-                    cursor: "pointer",
+                    color: systems.length === 0 ? COLORS.muted : COLORS.bg,
+                    cursor: systems.length === 0 ? "not-allowed" : "pointer",
                     fontFamily: "inherit",
                   }}
                 >
-                  EXPORT TO MISSION
+                  {onExportToMission ? "▶ LAUNCH MISSION" : "EXPORT TO MISSION"}
                 </button>
+                {systems.length === 0 && (
+                  <div style={{ fontSize: 9, color: COLORS.muted, textAlign: "center", marginTop: 4, opacity: 0.6 }}>
+                    Place at least one system to launch
+                  </div>
+                )}
+                {systems.length > 0 && !onExportToMission && (
+                  <div style={{ fontSize: 9, color: COLORS.muted, textAlign: "center", marginTop: 4, opacity: 0.6 }}>
+                    Downloads placement JSON
+                  </div>
+                )}
               </div>
             </div>
           )}
