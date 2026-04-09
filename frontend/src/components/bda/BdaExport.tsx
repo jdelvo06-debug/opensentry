@@ -8,7 +8,7 @@ import { latLngToGameXY } from "../../utils/coordinates";
 interface Props {
   baseTemplate: BaseTemplate;
   systems: PlacedSystem[];
-  onExportToMission?: (placement: PlacementConfig, scenarioId: string, baseId: string) => void;
+  onExportToMission?: (placement: PlacementConfig, scenarioId: string, baseId: string, baseTemplate: BaseTemplate) => void;
   onBack: () => void;
   onBackToMenu: () => void;
 }
@@ -222,7 +222,7 @@ export default function BdaExport({
   const handleLaunch = useCallback(() => {
     if (!onExportToMission) return;
     const placement = buildPlacement(baseTemplate, systems);
-    onExportToMission(placement, selectedScenarioId, baseTemplate.id);
+    onExportToMission(placement, selectedScenarioId, baseTemplate.id, baseTemplate);
   }, [onExportToMission, baseTemplate, systems, selectedScenarioId]);
 
   const handleDownload = useCallback(() => {

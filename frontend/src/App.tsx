@@ -1596,9 +1596,10 @@ export default function App() {
       <ErrorBoundary>
         <BaseDefenseArchitect
           onBack={() => setPhase("waiting")}
-          onExportToMission={(placement, exportScenarioId, exportBaseId) => {
+          onExportToMission={(placement, exportScenarioId, exportBaseId, exportBaseTemplate) => {
             setScenarioId(exportScenarioId);
             setBaseId(exportBaseId);
+            setBaseTemplate(exportBaseTemplate);
             handlePlacementConfirm(placement, exportScenarioId, exportBaseId);
             setPhase("running");
           }}

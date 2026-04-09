@@ -10,7 +10,7 @@ import BdaExport from "./bda/BdaExport";
 
 interface Props {
   onBack: () => void;
-  onExportToMission?: (placement: PlacementConfig, scenarioId: string, baseId: string) => void;
+  onExportToMission?: (placement: PlacementConfig, scenarioId: string, baseId: string, baseTemplate: BaseTemplate) => void;
 }
 
 export default function BaseDefenseArchitect({ onBack, onExportToMission }: Props) {
