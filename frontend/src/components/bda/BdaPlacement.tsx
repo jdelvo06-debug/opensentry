@@ -101,6 +101,10 @@ export default function BdaPlacement({
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [activeDef, setActiveDef] = useState<SystemDef | null>(null);
   const uidCounter = useRef(0);
+  const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<{ name: string; lat: number; lng: number }[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   // Keep counter ahead of existing systems
   useEffect(() => {
@@ -111,6 +115,30 @@ export default function BdaPlacement({
       }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ─── Geo search ───────────────────────────────────────────────────────
+
+  const handleGeoSearch = useCallback((query: string) => {
+    setSearchQuery(query);
+    if (query.trim().length < 2) { setSearchResults([]); return; }
+    setSearchLoading(true);
+    fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
+      { headers: { "Accept-Language": "en", "User-Agent": "OpenSentry-BDA/1.0" } },
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setSearchResults(
+          data.map((r: { display_name: string; lat: string; lon: string }) => ({
+            name: r.display_name.split(",").slice(0, 2).join(","),
+            lat: parseFloat(r.lat),
+            lng: parseFloat(r.lon),
+          })),
+        );
+        setSearchLoading(false);
+      })
+      .catch(() => { setSearchResults([]); setSearchLoading(false); });
+  }, []);
 
   // ─── Map center ───────────────────────────────────────────────────────
 
@@ -548,9 +576,9 @@ export default function BdaPlacement({
             zoomControl={false}
           >
             <MapFlyTo
-              lat={mapCenter[0]}
-              lng={mapCenter[1]}
-              zoom={baseTemplate.default_zoom ?? 14}
+              lat={flyTo?.lat ?? mapCenter[0]}
+              lng={flyTo?.lng ?? mapCenter[1]}
+              zoom={flyTo?.zoom ?? baseTemplate.default_zoom ?? 14}
             />
             <ScaleControl position="bottomleft" />
             <LayersControl position="topright">
@@ -815,6 +843,68 @@ export default function BdaPlacement({
               />
             ))}
           </MapContainer>
+
+          {/* Geo search overlay */}
+          <div
+            style={{
+              position: "absolute",
+              top: 10,
+              left: 10,
+              zIndex: 1000,
+              width: 260,
+            }}
+          >
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => handleGeoSearch(e.target.value)}
+              placeholder="Search location..."
+              style={{
+                width: "100%",
+                padding: "8px 10px",
+                background: `${COLORS.card}ee`,
+                border: `1px solid ${COLORS.border}`,
+                borderRadius: 6,
+                color: COLORS.text,
+                fontSize: 12,
+                fontFamily: "'Inter', sans-serif",
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+            {searchLoading && (
+              <div style={{ fontSize: 11, color: COLORS.muted, padding: "4px 8px", background: `${COLORS.card}ee`, borderRadius: 4, marginTop: 2 }}>
+                Searching...
+              </div>
+            )}
+            {searchResults.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 2, marginTop: 2 }}>
+                {searchResults.map((r, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      setFlyTo({ lat: r.lat, lng: r.lng, zoom: 14 });
+                      setSearchQuery(r.name);
+                      setSearchResults([]);
+                    }}
+                    style={{
+                      background: `${COLORS.card}ee`,
+                      border: `1px solid ${COLORS.border}`,
+                      borderRadius: 4,
+                      padding: "6px 8px",
+                      color: COLORS.text,
+                      fontSize: 11,
+                      cursor: "pointer",
+                      textAlign: "left",
+                      fontFamily: "'Inter', sans-serif",
+                    }}
+                  >
+                    {r.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Loading indicator overlay */}
           {loadingSystems > 0 && (
