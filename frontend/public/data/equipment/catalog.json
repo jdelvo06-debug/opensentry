@@ -80,7 +80,7 @@
         "Ineffective vs autonomous UAS",
         "Can affect friendly GPS"
       ],
-      "requires_los": false,
+      "requires_los": true,
       "collateral_risk": "medium"
     },
     {
