@@ -193,18 +193,9 @@ export default function BdaPlacement({
     [systems, selectedUid],
   );
 
-  // ─── Wrapper to update systems (delegates to parent) ──────────────────
-
-  const setSystems = useCallback(
-    (updater: PlacedSystem[] | ((prev: PlacedSystem[]) => PlacedSystem[])) => {
-      if (typeof updater === "function") {
-        onSystemsChange(updater(systems));
-      } else {
-        onSystemsChange(updater);
-      }
-    },
-    [systems, onSystemsChange],
-  );
+  // onSystemsChange is React's setState — supports both direct values and
+  // functional updaters. Use functional form (prev => ...) to avoid stale closures.
+  const setSystems = onSystemsChange as React.Dispatch<React.SetStateAction<PlacedSystem[]>>;
 
   // ─── Fetch viewshed ──────────────────────────────────────────────────
 
@@ -302,25 +293,23 @@ export default function BdaPlacement({
         viewshedStats: null,
         visible: true,
       };
-      const updated = [...systems, newSystem];
-      onSystemsChange(updated);
+      setSystems((prev) => [...prev, newSystem]);
       setSelectedUid(uid);
 
       // Check if there are more instances of this type to place
-      const placedOfType = systems.filter(s => s.def.id === activeDef.id).length + 1; // +1 for the one we just placed
+      const placedOfType = systems.filter(s => s.def.id === activeDef.id).length + 1;
       const totalOfType = [...selectedEquipment.sensors, ...selectedEquipment.effectors, ...selectedEquipment.combined]
         .filter(g => g.catalogId === activeDef.id)
         .reduce((sum, g) => sum + g.qty, 0);
       if (placedOfType >= totalOfType) {
         setActiveDef(null);
       }
-      // else keep activeDef so user can keep clicking to place more
 
       if (activeDef.requires_los && activeDef.range_km) {
         fetchViewshedForSystem(uid, lat, lng, 10, activeDef.range_km);
       }
     },
-    [activeDef, systems, selectedEquipment, onSystemsChange, fetchViewshedForSystem],
+    [activeDef, systems, selectedEquipment, setSystems, fetchViewshedForSystem],
   );
 
   // ─── Drag end ─────────────────────────────────────────────────────────
