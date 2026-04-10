@@ -10,6 +10,8 @@ import EngagementPanel from "./components/EngagementPanel";
 import EventLog from "./components/EventLog";
 import DebriefScreen from "./components/DebriefScreen";
 import ScenarioSelect from "./components/ScenarioSelect";
+import LandingPage from "./components/LandingPage";
+import "./components/LandingPage.css";
 import LoadoutScreen from "./components/LoadoutScreen";
 import PlacementScreen from "./components/PlacementScreen";
 import CameraPanel from "./components/CameraPanel";
@@ -1365,228 +1367,16 @@ export default function App() {
   // --- Phase: Waiting (title screen) ---
   if (phase === "waiting") {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#0d1117",
-          position: "relative",
-          overflowY: "auto",
-          padding: "40px 0",
-          backgroundImage:
-            "linear-gradient(#1c233322 1px, transparent 1px), linear-gradient(90deg, #1c233322 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }}
-      >
-        <div
-          style={{
-            position: "relative",
-            zIndex: 1,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 32,
-          }}
-        >
-          {/* Title */}
-          <div>
-            <div
-              style={{
-                fontSize: 48,
-                fontWeight: 700,
-                color: "#e6edf3",
-                letterSpacing: 6,
-                fontFamily: "'Inter', sans-serif",
-                textAlign: "center",
-              }}
-            >
-              OpenSentry
-            </div>
-            <div
-              style={{
-                fontSize: 12,
-                color: "#8b949e",
-                letterSpacing: 4,
-                textAlign: "center",
-                marginTop: 4,
-                fontWeight: 500,
-              }}
-            >
-              C-UAS TRAINING SIMULATOR
-            </div>
-          </div>
-
-          {/* Scenario card grid */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 16,
-              maxWidth: 640,
-              width: "100%",
-            }}
-          >
-            {SCENARIO_CARDS.map((sc) => (
-              <div
-                key={sc.id}
-                style={{
-                  background: "#161b22",
-                  border: "1px solid #30363d",
-                  borderTop: `3px solid ${sc.accent}`,
-                  borderRadius: 8,
-                  padding: "20px 20px 16px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 10,
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                    <span
-                      style={{
-                        fontSize: 16,
-                        fontWeight: 700,
-                        color: "#e6edf3",
-                        letterSpacing: 1.5,
-                        fontFamily: "'Inter', sans-serif",
-                      }}
-                    >
-                      {sc.name}
-                    </span>
-                    {"subtitle" in sc && (
-                      <span style={{ fontSize: 10, color: "#8b949e", fontWeight: 500, letterSpacing: 0.5 }}>
-                        {String(sc.subtitle)}
-                      </span>
-                    )}
-                  </div>
-                  <span
-                    style={{
-                      fontSize: 9,
-                      fontWeight: 600,
-                      color: sc.accent,
-                      letterSpacing: 0.5,
-                    }}
-                  >
-                    {sc.duration}
-                  </span>
-                </div>
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: "#8b949e",
-                    lineHeight: 1.5,
-                    minHeight: 36,
-                  }}
-                >
-                  {sc.description}
-                </div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
-                  <span
-                    style={{
-                      fontSize: 9,
-                      fontWeight: 700,
-                      letterSpacing: 1,
-                      padding: "3px 8px",
-                      borderRadius: 4,
-                      background: `${sc.accent}18`,
-                      color: sc.accent,
-                    }}
-                  >
-                    {sc.difficulty}
-                  </span>
-                </div>
-                <button
-                  onClick={() => handleScenarioLaunch(sc.id)}
-                  style={{
-                    marginTop: 4,
-                    padding: "10px 0",
-                    background: sc.accent,
-                    border: "none",
-                    borderRadius: 5,
-                    color: "#0d1117",
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    letterSpacing: 2,
-                    cursor: "pointer",
-                    transition: "all 0.15s",
-                    width: "100%",
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.filter = "brightness(1.2)";
-                    (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 16px ${sc.accent}40`;
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.filter = "none";
-                    (e.currentTarget as HTMLElement).style.boxShadow = "none";
-                  }}
-                >
-                  LAUNCH
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* Custom Mission button */}
-          <button
-            onClick={() => { soundEngine.init(); setPhase("scenario_select"); }}
-            className="menu-btn"
-          >
-            CUSTOM MISSION
-          </button>
-
-          {/* Base Defense Architect */}
-          <button
-            onClick={() => { soundEngine.init(); setPhase("architect"); }}
-            className="menu-btn menu-btn--gold"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 10,
-            }}
-          >
-            BASE DEFENSE ARCHITECT
-            <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1, padding: "2px 6px", borderRadius: 3, background: "#d2992220", color: "#d29922" }}>BETA</span>
-          </button>
-
-          {/* Footer */}
-          <div style={{ marginTop: 40, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-            <button
-              onClick={() => setShowFeedback(true)}
-              className="footer-btn footer-btn--green"
-            >
-              <span style={{ fontSize: 16 }}>💬</span>
-              <span><span style={{ fontWeight: 700, letterSpacing: 1.5 }}>Feedback</span><span style={{ color: "#484f58", margin: "0 6px" }}>·</span><span style={{ fontWeight: 400 }}>Bug reports &amp; suggestions</span></span>
-            </button>
-            <a
-              href="https://github.com/jdelvo06-debug/opensentry#readme"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="footer-btn"
-            >
-              <span style={{ fontSize: 16 }}>📖</span>
-              <span>
-                <span style={{ fontWeight: 700, letterSpacing: 1.5 }}>OpenSentry</span>
-                <span style={{ color: "#484f58", margin: "0 6px" }}>·</span>
-                <span style={{ fontWeight: 400 }}>Documentation &amp; How It Works</span>
-              </span>
-              <span style={{ fontSize: 11, opacity: 0.5 }}>↗</span>
-            </a>
-            <button
-              onClick={() => { setPhase("study"); setActiveStudyModule(null); }}
-              className="footer-btn footer-btn--gold"
-            >
-              <span style={{ fontSize: 16 }}>📚</span>
-              <span><span style={{ fontWeight: 700, letterSpacing: 1.5 }}>Training Library</span><span style={{ color: "#484f58", margin: "0 6px" }}>·</span><span style={{ fontWeight: 400 }}>5-module C-UAS curriculum</span></span>
-            </button>
-          </div>
-          {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
-        </div>
-      </div>
+      <>
+        <LandingPage
+          onScenarioLaunch={(id) => handleScenarioLaunch(id)}
+          onCustomMission={() => { soundEngine.init(); setPhase("scenario_select"); }}
+          onBDA={() => { soundEngine.init(); setPhase("architect"); }}
+          onFeedback={() => setShowFeedback(true)}
+          onStudy={() => { setPhase("study"); setActiveStudyModule(null); }}
+        />
+        {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
+      </>
     );
   }
 
