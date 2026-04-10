@@ -1,6 +1,6 @@
 # OpenSentry
 
-![OpenSentry C-UAS Training Simulator](./assets/opensentry-thumbnail.jpg)
+![OpenSentry C-UAS Training Simulator](./docs/opensentry-hero.jpg)
 
 **Free, browser-based C-UAS training simulator.** Practice the full DTID kill chain (Detect → Track → Identify → Defeat) in a realistic tactical operations center — no install, no account, no clearance required.
 
