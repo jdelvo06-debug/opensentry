@@ -179,7 +179,7 @@ export default function LandingPage({
         </div>
         <div className="lp-hero__grid" aria-hidden="true" />
         <div className="lp-hero__content">
-          <div className="lp-hero__classification">UNCLASSIFIED // FOUO</div>
+          <div className="lp-hero__classification">UNCLASSIFIED</div>
           <h1 className="lp-hero__title">OPENSENTRY</h1>
           <p className="lp-hero__subtitle">C-UAS Training Simulator</p>
           <p className="lp-hero__tagline">
