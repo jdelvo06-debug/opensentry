@@ -5,6 +5,7 @@ interface Props {
   track: TrackData | null;
   allTracks: TrackData[];
   sensorConfigs: SensorStatus[];
+  selectedCamera: SensorStatus | null;
   degraded?: boolean;
 }
 
@@ -27,15 +28,69 @@ function calcRange(x: number, y: number): number {
   return Math.sqrt(x * x + y * y);
 }
 
-function calcBearing(x: number, y: number): number {
-  const rad = Math.atan2(x, -y);
+function getSensorCoordinate(value?: number): number {
+  return typeof value === "number" ? value : 0;
+}
+
+export function calcRangeFromCamera(
+  targetX: number,
+  targetY: number,
+  cameraX = 0,
+  cameraY = 0,
+): number {
+  return calcRange(targetX - cameraX, targetY - cameraY);
+}
+
+export function calcBearing(
+  targetX: number,
+  targetY: number,
+  cameraX = 0,
+  cameraY = 0,
+): number {
+  const relX = targetX - cameraX;
+  const relY = targetY - cameraY;
+  const rad = Math.atan2(relX, -relY);
   return ((rad * 180) / Math.PI + 360) % 360;
 }
 
-function calcElevation(altFt: number, rangeKm: number): number {
+export function calcElevation(
+  altFt: number,
+  targetX: number,
+  targetY: number,
+  cameraX = 0,
+  cameraY = 0,
+): number {
+  const rangeKm = calcRangeFromCamera(targetX, targetY, cameraX, cameraY);
   if (rangeKm < 0.01) return 45;
   const altKm = altFt * 0.0003048;
   return Math.atan2(altKm, rangeKm) * (180 / Math.PI);
+}
+
+export function findBestCameraForTrack(
+  track: TrackData | null,
+  sensorConfigs: SensorStatus[],
+): SensorStatus | null {
+  if (!track) return null;
+
+  const eoirSensors = sensorConfigs.filter((sensor) => sensor.type === "eoir");
+  if (eoirSensors.length === 0) return null;
+
+  return eoirSensors.reduce<SensorStatus | null>((closest, sensor) => {
+    const sensorX = getSensorCoordinate(sensor.x);
+    const sensorY = getSensorCoordinate(sensor.y);
+    const distance = calcRangeFromCamera(track.x, track.y, sensorX, sensorY);
+
+    if (!closest) return sensor;
+
+    const closestDistance = calcRangeFromCamera(
+      track.x,
+      track.y,
+      getSensorCoordinate(closest.x),
+      getSensorCoordinate(closest.y),
+    );
+
+    return distance < closestDistance ? sensor : closest;
+  }, null);
 }
 
 function noiseFactor(rangeKm: number): number {
@@ -78,8 +133,10 @@ function calcAspectAngle(
   droneX: number,
   droneY: number,
   headingDeg: number,
+  cameraX = 0,
+  cameraY = 0,
 ): { aspect: number; visualRotationDeg: number } {
-  const bearingToDrone = calcBearing(droneX, droneY); // bearing from base/camera to drone
+  const bearingToDrone = calcBearing(droneX, droneY, cameraX, cameraY); // bearing from base/camera to drone
   // Signed difference: how far the drone heading deviates from the bearing *toward* the camera
   // If the drone is flying straight at the camera, heading ≈ bearingToDrone + 180
   const inboundBearing = (bearingToDrone + 180) % 360;
@@ -1464,6 +1521,7 @@ export default function CameraPanel({
   track,
   allTracks,
   sensorConfigs,
+  selectedCamera,
   degraded = false,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -1494,6 +1552,8 @@ export default function CameraPanel({
   // Effective FOV based on zoom
   const fovH = BASE_FOV_H / zoom;
   const fovV = BASE_FOV_V / zoom;
+  const cameraX = getSensorCoordinate(selectedCamera?.x);
+  const cameraY = getSensorCoordinate(selectedCamera?.y);
 
   // When a new track is slewed, enter auto-track mode
   useEffect(() => {
@@ -1529,13 +1589,13 @@ export default function CameraPanel({
       return;
     }
 
-    const trackBearing = calcBearing(track.x, track.y);
-    const trackRange = calcRange(track.x, track.y);
-    const trackElev = calcElevation(track.altitude_ft, trackRange);
+    const trackBearing = calcBearing(track.x, track.y, cameraX, cameraY);
+    const trackRange = calcRangeFromCamera(track.x, track.y, cameraX, cameraY);
+    const trackElev = calcElevation(track.altitude_ft, track.x, track.y, cameraX, cameraY);
     setCameraBearing(trackBearing);
     setCameraElevation(trackElev);
     setTrackLost(false);
-  }, [track, track?.x, track?.y, track?.altitude_ft, track?.neutralized, gimbalMode]);
+  }, [track, track?.x, track?.y, track?.altitude_ft, track?.neutralized, gimbalMode, cameraX, cameraY]);
 
   // Detect when tracked target gets intercepted — trigger explosion
   useEffect(() => {
@@ -1603,14 +1663,14 @@ export default function CameraPanel({
   const handleCenter = useCallback(() => {
     if (track && !track.neutralized) {
       setGimbalMode("auto-track");
-      const trackBearing = calcBearing(track.x, track.y);
-      const trackRange = calcRange(track.x, track.y);
-      const trackElev = calcElevation(track.altitude_ft, trackRange);
+      const trackBearing = calcBearing(track.x, track.y, cameraX, cameraY);
+      const trackRange = calcRangeFromCamera(track.x, track.y, cameraX, cameraY);
+      const trackElev = calcElevation(track.altitude_ft, track.x, track.y, cameraX, cameraY);
       setCameraBearing(trackBearing);
       setCameraElevation(trackElev);
       setTrackLost(false);
     }
-  }, [track]);
+  }, [track, cameraX, cameraY]);
 
   // Zoom controls
   const handleZoomIn = useCallback(() => {
@@ -1651,9 +1711,9 @@ export default function CameraPanel({
       ? [track]
       : allTracks.filter((t) => !t.neutralized);
     for (const t of candidates) {
-      const tBearing = calcBearing(t.x, t.y);
-      const tRange = calcRange(t.x, t.y);
-      const tElev = calcElevation(t.altitude_ft, tRange);
+      const tBearing = calcBearing(t.x, t.y, cameraX, cameraY);
+      const tRange = calcRangeFromCamera(t.x, t.y, cameraX, cameraY);
+      const tElev = calcElevation(t.altitude_ft, t.x, t.y, cameraX, cameraY);
 
       const dBearing = angleDiff(tBearing, cameraBearing);
       const dElev = angleDiff(tElev, cameraElevation);
@@ -1665,7 +1725,7 @@ export default function CameraPanel({
       }
     }
     return null;
-  }, [track, allTracks, cameraBearing, cameraElevation, fovH, fovV, gimbalMode, trackLost]);
+  }, [track, allTracks, cameraBearing, cameraElevation, fovH, fovV, gimbalMode, trackLost, cameraX, cameraY]);
 
   // Camera only degraded if no EO/IR sensor equipped at all
   const isDegraded = useCallback(
@@ -1741,7 +1801,7 @@ export default function CameraPanel({
     } else if (visibleTarget) {
       // Draw the visible target
       const { track: vt, pixelOffsetX, pixelOffsetY } = visibleTarget;
-      const rangeKm = calcRange(vt.x, vt.y);
+      const rangeKm = calcRangeFromCamera(vt.x, vt.y, cameraX, cameraY);
       const noise = noiseFactor(rangeKm);
       const baseScale = silhouetteScale(rangeKm);
       const scale = baseScale * Math.sqrt(zoom); // Zoom magnifies the silhouette
@@ -1785,7 +1845,7 @@ export default function CameraPanel({
 
       // Use drone_type for silhouette (always available) — camera shows what it sees.
       // classification only matters for scoring; visuals use ground truth type.
-      const aspectInfo = calcAspectAngle(vt.x, vt.y, vt.heading_deg);
+      const aspectInfo = calcAspectAngle(vt.x, vt.y, vt.heading_deg, cameraX, cameraY);
       drawSilhouette(ctx, vt.drone_type ?? vt.classification, scale, mode, time, aspectInfo);
       ctx.restore();
 
@@ -1794,9 +1854,15 @@ export default function CameraPanel({
         (t) => t.is_interceptor && !t.neutralized && t.interceptor_target === vt.id
       );
       if (inboundJackal) {
-        const cBearing = calcBearing(inboundJackal.x, inboundJackal.y);
-        const cRange = calcRange(inboundJackal.x, inboundJackal.y);
-        const cElev = calcElevation(inboundJackal.altitude_ft, cRange);
+        const cBearing = calcBearing(inboundJackal.x, inboundJackal.y, cameraX, cameraY);
+        const cRange = calcRangeFromCamera(inboundJackal.x, inboundJackal.y, cameraX, cameraY);
+        const cElev = calcElevation(
+          inboundJackal.altitude_ft,
+          inboundJackal.x,
+          inboundJackal.y,
+          cameraX,
+          cameraY,
+        );
         const dBearing = angleDiff(cBearing, cameraBearing);
         const dElev = angleDiff(cElev, cameraElevation);
         if (Math.abs(dBearing) <= fovH / 2 && Math.abs(dElev) <= fovV / 2) {
@@ -1826,7 +1892,7 @@ export default function CameraPanel({
     }
 
     rafRef.current = requestAnimationFrame(draw);
-  }, [track, allTracks, mode, acquiring, hudColor, degraded, getVisibleTrack, isDegraded, gimbalMode, trackLost, zoom, cameraBearing, cameraElevation, fovH, fovV]);
+  }, [track, allTracks, mode, acquiring, hudColor, degraded, getVisibleTrack, isDegraded, gimbalMode, trackLost, zoom, cameraBearing, cameraElevation, fovH, fovV, cameraX, cameraY]);
 
   useEffect(() => {
     rafRef.current = requestAnimationFrame(draw);
@@ -1842,9 +1908,9 @@ export default function CameraPanel({
 
   // Target data for HUD (only in auto-track with a live track)
   const tgtRange = track && gimbalMode === "auto-track" && !trackLost
-    ? calcRange(track.x, track.y) : null;
+    ? calcRangeFromCamera(track.x, track.y, cameraX, cameraY) : null;
   const tgtBearing = track && gimbalMode === "auto-track" && !trackLost
-    ? calcBearing(track.x, track.y) : null;
+    ? calcBearing(track.x, track.y, cameraX, cameraY) : null;
 
   return (
     <div
@@ -2175,17 +2241,18 @@ export function isTrackInCameraFov(
   _bearingOffset: number,
   _elevationOffset: number,
   slewedTrack: TrackData | null,
+  cameraX = 0,
+  cameraY = 0,
 ): boolean {
   const effBearing = slewedTrack
-    ? calcBearing(slewedTrack.x, slewedTrack.y)
+    ? calcBearing(slewedTrack.x, slewedTrack.y, cameraX, cameraY)
     : cameraBearing;
   const effElev = slewedTrack
-    ? calcElevation(slewedTrack.altitude_ft, calcRange(slewedTrack.x, slewedTrack.y))
+    ? calcElevation(slewedTrack.altitude_ft, slewedTrack.x, slewedTrack.y, cameraX, cameraY)
     : cameraElevation;
 
-  const tBearing = calcBearing(t.x, t.y);
-  const tRange = calcRange(t.x, t.y);
-  const tElev = calcElevation(t.altitude_ft, tRange);
+  const tBearing = calcBearing(t.x, t.y, cameraX, cameraY);
+  const tElev = calcElevation(t.altitude_ft, t.x, t.y, cameraX, cameraY);
   const dBearing = angleDiff(tBearing, effBearing);
   const dElev = angleDiff(tElev, effElev);
   return Math.abs(dBearing) <= BASE_FOV_H / 2 && Math.abs(dElev) <= BASE_FOV_V / 2;

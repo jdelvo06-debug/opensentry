@@ -14,7 +14,7 @@ import LandingPage from "./components/LandingPage";
 import "./components/LandingPage.css";
 import LoadoutScreen from "./components/LoadoutScreen";
 import PlacementScreen from "./components/PlacementScreen";
-import CameraPanel from "./components/CameraPanel";
+import CameraPanel, { findBestCameraForTrack } from "./components/CameraPanel";
 import TutorialStepTracker from "./components/TutorialStepTracker";
 import { TutorialTourOverlay, TutorialPracticeOverlay, UI_TOUR_STEPS } from "./components/TutorialOverlay";
 import FeedbackModal from "./components/FeedbackModal";
@@ -194,6 +194,7 @@ export default function App() {
 
   // Camera panel
   const [cameraTrackId, setCameraTrackId] = useState<string | null>(null);
+  const [selectedCameraId, setSelectedCameraId] = useState<string | null>(null);
 
   // Track which tracks have already auto-opened the camera (so we only do it once)
   const autoOpenedCameraRef = useRef<Set<string>>(new Set());
@@ -702,9 +703,7 @@ export default function App() {
           // Slew camera to selected track (re-center)
           const tid = selectedTrackIdRef.current;
           if (tid) {
-            setCameraTrackId(tid);
-            soundEngine.play("camera_slew");
-            send({ type: "action", action: "slew_camera", target_id: tid });
+            handleSlewCamera(tid);
           }
           break;
         }
@@ -716,6 +715,7 @@ export default function App() {
         case "Digit4": {
           // Unslew camera (return to standby/free-look)
           setCameraTrackId(null);
+          setSelectedCameraId(null);
           break;
         }
         case "KeyM": {
@@ -844,6 +844,7 @@ export default function App() {
     setTimeRemaining(0);
     setThreatLevel("green");
     setCameraTrackId(null);
+    setSelectedCameraId(null);
     autoOpenedCameraRef.current.clear();
       detectionPingedRef.current.clear();
     setTutorialMessage(null);
@@ -880,6 +881,7 @@ export default function App() {
     setTimeRemaining(0);
     setThreatLevel("green");
     setCameraTrackId(null);
+    setSelectedCameraId(null);
     autoOpenedCameraRef.current.clear();
       detectionPingedRef.current.clear();
     setBaseBreached(false);
@@ -992,12 +994,15 @@ export default function App() {
     }
   };
 
-  const handleSlewCamera = (trackId: string) => {
+  const handleSlewCamera = useCallback((trackId: string) => {
+    const track = tracks.find((candidate) => candidate.id === trackId) ?? null;
+    const bestCamera = findBestCameraForTrack(track, sensorConfigs);
     setCameraTrackId(trackId);
+    setSelectedCameraId(bestCamera?.id ?? null);
     soundEngine.play("camera_slew");
     // Send slew_camera action to backend (needed for tutorial gating)
     send({ type: "action", action: "slew_camera", target_id: trackId });
-  };
+  }, [sensorConfigs, send, tracks]);
 
   const handleHoldFire = (trackId: string) => {
     send({ type: "action", action: "hold_fire", target_id: trackId });
@@ -1332,6 +1337,7 @@ export default function App() {
         setTimeRemaining(0);
         setThreatLevel("green");
         setCameraTrackId(null);
+        setSelectedCameraId(null);
         autoOpenedCameraRef.current.clear();
         detectionPingedRef.current.clear();
         setTutorialMessage(null);
@@ -1493,6 +1499,8 @@ export default function App() {
     tracks.find((t) => t.id === selectedTrackId) || null;
   const cameraTrack =
     cameraTrackId ? tracks.find((t) => t.id === cameraTrackId) || null : null;
+  const selectedCamera =
+    selectedCameraId ? sensorConfigs.find((sensor) => sensor.id === selectedCameraId) || null : null;
 
   return (
     <ErrorBoundary>
@@ -1728,6 +1736,7 @@ export default function App() {
             track={cameraTrack}
             allTracks={tracks}
             sensorConfigs={sensorConfigs}
+            selectedCamera={selectedCamera}
           />
         </div>
       </div>
