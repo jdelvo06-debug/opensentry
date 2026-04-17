@@ -2,6 +2,7 @@
 
 import pytest
 
+from app.helpers import effector_effectiveness
 from app.models import PlayerAction, PlacedEquipment, PlacementConfig
 from app.scoring import (
     _score_drone_components,
@@ -37,6 +38,22 @@ class TestGrading:
     def test_grade_f(self):
         assert _total_to_grade(49.9) == "F"
         assert _total_to_grade(0) == "F"
+
+
+# ===== Effectiveness matrix =====
+
+
+class TestEffectorEffectiveness:
+    """Lock in DE gameplay balance from the effectiveness matrix."""
+
+    def test_de_laser_is_poor_vs_swarm(self):
+        assert effector_effectiveness("de_laser", "swarm") == 0.4
+
+    def test_de_hpm_excels_vs_swarm(self):
+        assert effector_effectiveness("de_hpm", "swarm") == 0.9
+
+    def test_de_hpm_is_weaker_vs_fixed_wing(self):
+        assert effector_effectiveness("de_hpm", "fixed_wing") == 0.6
 
 
 # ===== Detection Response scoring =====

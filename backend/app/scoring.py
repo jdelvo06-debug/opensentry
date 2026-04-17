@@ -286,7 +286,10 @@ def _score_drone_components(
             effector_label = effector_used.replace("_", " ").title()
             details["defeat"] = f"{effector_label} was a poor choice"
 
-        # Collateral risk modifier: penalize high-collateral effectors near base
+        # Collateral risk modifier.
+        # HPM gets the largest penalty because broad EM effects can impact friendly
+        # systems in the beam path. Kinetic remains risky but more localized.
+        # Laser and electronic are treated as lower-collateral options here.
         collateral_map = {"de_hpm": 15, "kinetic": 10, "de_laser": 0, "electronic": 0, "shenobi_pm": 5}
         collateral_penalty = collateral_map.get(effector_used, 0)
         if collateral_penalty > 0:
