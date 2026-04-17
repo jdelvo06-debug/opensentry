@@ -53,7 +53,7 @@ const EFFECTOR_COLORS: Record<string, string> = {
   de_weapon: "#bc8cff",
   directed_energy: "#bc8cff",
   de_laser: "#bc8cff",
-  de_hpm: "#bc8cff",
+  de_hpm: "#00d4ff",
   shenobi_pm: "#a371f7",  // Purple for Shenobi
 };
 

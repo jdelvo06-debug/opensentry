@@ -453,12 +453,12 @@ export default function App() {
 
         // Track DE beam animation (laser / HPM)
         const effType = (msg as any).effector_type || "";
-        if (effType === "de_laser" || effType === "de_hpm" || effLower.includes("laser") || effLower.includes("hpm") || effLower.includes("de_laser") || effLower.includes("de_hpm")) {
+        if (effType === "de_laser" || effType === "de_hpm") {
           const effObj = effectors.find((e) => e.id === msg.effector) || effectorConfigs.find((e) => e.id === msg.effector);
           const target = tracks.find((t) => t.id === msg.target_id);
           if (effObj && target && effObj.x != null) {
             const beamId = `de-beam-${Date.now()}`;
-            const beamType: "laser" | "hpm" = effType === "de_hpm" || effLower.includes("hpm") || effLower.includes("de_hpm") ? "hpm" : "laser";
+            const beamType: "laser" | "hpm" = effType === "de_hpm" ? "hpm" : "laser";
             const duration = 2500; // 2.5s beam animation
             const newBeam: DEBeamAnimationData = {
               id: beamId,

@@ -132,7 +132,7 @@ def generate_ambient_object(
     amb_id = f"AMB-{ambient_counter:03d}"
 
     _ALL_ROE_VIOLATIONS = [
-        "electronic", "kinetic", "rf_jam", "directed_energy", "de_laser", "de_hpm", "net_interceptor"
+        "electronic", "kinetic", "rf_jam", "de_laser", "de_hpm", "net_interceptor"
     ]
 
     if obj_type == "commercial_aircraft":

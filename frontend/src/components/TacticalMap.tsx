@@ -108,6 +108,8 @@ function getRingStyleByName(name?: string, type?: string): { color: string; dash
   if (n.includes("shenobi") || type === "shenobi_pm") return { color: "#a371f7", dashArray: "4,4" };  // Purple for Shenobi
   if (n.includes("jammer") || type === "electronic") return { color: "#e3b341", dashArray: "8,4" };
   if (n.includes("jackal") || type === "kinetic") return { color: "#f85149", dashArray: "8,4" };
+  if (type === "de_laser" || n.includes("de-laser") || n.includes("de_laser")) return { color: "#ff6a00", dashArray: "4,4" };
+  if (type === "de_hpm" || n.includes("de-hpm") || n.includes("de_hpm")) return { color: "#00d4ff", dashArray: "4,4" };
   if (type === "rf" && n.includes("shenobi")) return { color: "#a371f7", dashArray: "4,4" };
   if (type === "radar") return { color: "#58a6ff", dashArray: "6,4" };
   return { color: "#8b949e", dashArray: "6,4" };

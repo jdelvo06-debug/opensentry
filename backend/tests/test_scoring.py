@@ -204,7 +204,7 @@ class TestDefeatMethod:
             correct_class="commercial_quad",
             correct_affil="hostile",
             optimal_effectors=["rf_jam"],
-            acceptable_effectors=["rf_jam", "kinetic"],
+            acceptable_effectors=["rf_jam", "kinetic", "de_laser", "de_hpm"],
             roe_violations=[],
             should_engage=should_engage,
             actions=actions or [],
@@ -223,10 +223,20 @@ class TestDefeatMethod:
         assert self._score("rf_jam") == 100.0
 
     def test_acceptable_effector(self):
-        assert self._score("kinetic") == 70.0
+        # kinetic is acceptable (70) with 10-point collateral penalty = 60
+        assert self._score("kinetic") == 60.0
 
     def test_poor_effector_choice(self):
         assert self._score("directed_energy") == 30.0
+
+    def test_de_laser_acceptable_effector(self):
+        """de_laser in acceptable list (not optimal) scores 70."""
+        assert self._score("de_laser") == 70.0
+
+    def test_de_hpm_collateral_penalty(self):
+        """de_hpm is acceptable (70 base) with 15-point collateral penalty = 55."""
+        # de_hpm is not in self scenario's optimal list, only acceptable
+        assert self._score("de_hpm") == 55.0
 
     def test_no_engagement_base_compromised(self):
         assert self._score(None, drone_reached_base=True) == 0.0
