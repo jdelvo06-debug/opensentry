@@ -285,6 +285,13 @@ def _score_drone_components(
             scores["defeat"] = 30.0
             effector_label = effector_used.replace("_", " ").title()
             details["defeat"] = f"{effector_label} was a poor choice"
+
+        # Collateral risk modifier: penalize high-collateral effectors near base
+        collateral_map = {"de_hpm": 15, "kinetic": 10, "de_laser": 0, "electronic": 0, "shenobi_pm": 5}
+        collateral_penalty = collateral_map.get(effector_used, 0)
+        if collateral_penalty > 0:
+            scores["defeat"] = max(0, scores["defeat"] - collateral_penalty)
+            details["defeat"] += f" (collateral risk: -{collateral_penalty})"
     else:
         if drone_reached_base:
             scores["defeat"] = 0.0
