@@ -37,11 +37,17 @@ _EFFECTIVENESS_MATRIX: dict[str, dict[str, float]] = {
         "micro": 0.9,
         "swarm": 0.4,
     },
-    "directed_energy": {
+    "de_laser": {
         "commercial_quad": 0.9,
-        "fixed_wing": 0.9,
+        "fixed_wing": 0.85,
         "micro": 0.95,
-        "swarm": 0.8,
+        "swarm": 0.4,   # Single-target beam — poor vs swarms
+    },
+    "de_hpm": {
+        "commercial_quad": 0.7,   # Disrupts, may not destroy
+        "fixed_wing": 0.6,   # Hardened avionics
+        "micro": 0.85,
+        "swarm": 0.9,   # Area effect excels vs swarms
     },
     "nexus_pm": {
         "commercial_quad": 0.95,

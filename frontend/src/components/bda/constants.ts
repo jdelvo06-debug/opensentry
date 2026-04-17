@@ -26,6 +26,8 @@ export const TYPE_COLORS: Record<string, string> = {
   rf: "#bc8cff",
   shenobi_pm: "#bc8cff",
   directed_energy: "#ff6a00",
+  de_laser: "#ff6a00",
+  de_hpm: "#ff6a00",
 };
 
 export interface AltitudeBand {

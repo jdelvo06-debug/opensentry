@@ -86,7 +86,7 @@
     {
       "catalog_id": "de_laser_3k",
       "name": "DE-LASER-3K (High-Energy Laser)",
-      "type": "directed_energy",
+      "type": "de_laser",
       "range_km": 3.0,
       "fov_deg": 10,
       "recharge_seconds": 15,
@@ -112,7 +112,7 @@
     {
       "catalog_id": "de_hpm_3k",
       "name": "DE-HPM-3K (High-Power Microwave)",
-      "type": "directed_energy",
+      "type": "de_hpm",
       "range_km": 3.0,
       "fov_deg": 60,
       "recharge_seconds": 30,

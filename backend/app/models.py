@@ -56,7 +56,9 @@ class EffectorType(str, Enum):
     ELECTRONIC = "electronic"
     KINETIC = "kinetic"
     NET_INTERCEPTOR = "net_interceptor"
-    DIRECTED_ENERGY = "directed_energy"
+    DE_LASER = "de_laser"
+    DE_HPM = "de_hpm"
+    DIRECTED_ENERGY = "directed_energy"  # Legacy fallback
     NEXUS_PM = "nexus_pm"  # NEXUS Protocol Manipulation
 
 

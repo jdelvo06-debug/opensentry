@@ -470,7 +470,7 @@ export default function App() {
           soundEngine.play("engagement_kinetic");
         } else if (eff.includes("jammer") || eff.includes("rf")) {
           soundEngine.play("engagement_electronic");
-        } else if (eff.includes("directed") || eff.includes("energy") || eff.includes("laser")) {
+        } else if (eff.includes("directed") || eff.includes("energy") || eff.includes("laser") || eff.includes("de_laser") || eff.includes("de_hpm") || eff.includes("hpm")) {
           soundEngine.play("engagement_directed_energy");
         } else {
           soundEngine.play("engagement_electronic");

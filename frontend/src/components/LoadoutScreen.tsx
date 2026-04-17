@@ -34,6 +34,8 @@ const TYPE_COLORS: Record<string, string> = {
   kinetic: COLORS.red,
   interceptor: COLORS.blue,
   directed_energy: COLORS.yellow,
+  de_laser: COLORS.yellow,
+  de_hpm: COLORS.yellow,
 };
 
 const COLLATERAL_COLORS: Record<string, string> = {
