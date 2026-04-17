@@ -18,6 +18,7 @@ from app.helpers import (
     effector_effectiveness,
     find_effector_config,
 )
+from app.detection import _los_blocked
 from app.jamming import apply_pnt_jamming, pick_jam_behavior
 from app.nexus import is_nexus_vulnerable, pick_nexus_cm_effectiveness, DRONE_FREQUENCY_MAP
 from app.models import (
@@ -200,6 +201,15 @@ def handle_engage(
             msgs.append(_event(elapsed,
                 f"ENGAGEMENT: {eff_state['name']} — Target out of range"))
             break
+
+        # LOS check for directed energy weapons (laser, etc.)
+        if eff_state.get("requires_los") and not is_jammer and not is_nexus:
+            ex = eff_state.get("x", 0.0)
+            ey = eff_state.get("y", 0.0)
+            if gs.terrain and _los_blocked(ex, ey, d.x, d.y, gs.terrain):
+                msgs.append(_event(elapsed,
+                    f"ENGAGEMENT: {eff_state['name']} — NO LINE OF SIGHT (terrain blocked)"))
+                break
 
         # JACKAL requires Ku-Band FCS
         if (eff_state.get("ammo_count") is not None
@@ -400,6 +410,8 @@ def _engage_jammer(
             "type": "engagement_result",
             "target_id": target_id, "effector": effector_id,
             "effective": False, "effectiveness": 0.0,
+            "effector_type": eff_state["type"],
+            "effector_name": eff_state["name"],
         })
     else:
         update_fields: dict = {}
@@ -407,6 +419,8 @@ def _engage_jammer(
             "type": "engagement_result",
             "target_id": target_id, "effector": effector_id,
             "effective": True, "effectiveness": round(effectiveness, 2),
+            "effector_type": eff_state["type"],
+            "effector_name": eff_state["name"],
         }
 
         if jam_behavior is not None:
@@ -517,6 +531,8 @@ def _engage_direct(
         "type": "engagement_result",
         "target_id": target_id, "effector": effector_id,
         "effective": neutralized, "effectiveness": round(effectiveness, 2),
+        "effector_type": eff_state["type"],
+        "effector_name": eff_state["name"],
     })
     result_str = "NEUTRALIZED" if neutralized else "INEFFECTIVE"
     msgs.append(_event(elapsed,
@@ -558,6 +574,8 @@ def _engage_nexus(
             "type": "engagement_result",
             "target_id": target_id, "effector": effector_id,
             "effective": False, "effectiveness": 0.0,
+            "effector_type": eff_state["type"],
+            "effector_name": eff_state["name"],
         })
         return msgs
 
@@ -571,6 +589,8 @@ def _engage_nexus(
             "target_id": target_id, "effector": effector_id,
             "effective": False, "effectiveness": 0.0,
             "nexus_cm": cm_type,
+            "effector_type": eff_state["type"],
+            "effector_name": eff_state["name"],
         })
         return msgs
 
@@ -601,6 +621,8 @@ def _engage_nexus(
         "target_id": target_id, "effector": effector_id,
         "effective": True, "effectiveness": round(effectiveness, 2),
         "nexus_cm": cm_type, "nexus_cm_state": "pending",
+        "effector_type": eff_state["type"],
+        "effector_name": eff_state["name"],
     })
     return msgs
 

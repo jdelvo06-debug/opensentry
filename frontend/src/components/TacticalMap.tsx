@@ -47,6 +47,7 @@ interface Props {
   baseBoundary?: number[][];
   activeJammers?: Record<string, number>;
   activeIntercepts?: InterceptAnimationData[];
+  activeDEBeams?: DEBeamAnimationData[];
   onJammerToggle?: (effectorId: string) => void;
   baseBreached?: boolean;
 }
@@ -60,6 +61,20 @@ export interface InterceptAnimationData {
   targetX: number;
   targetY: number;
   effective: boolean;
+  startTime: number;
+  duration: number;
+}
+
+export interface DEBeamAnimationData {
+  id: string;
+  effectorId: string;
+  targetId: string;
+  startX: number;
+  startY: number;
+  targetX: number;
+  targetY: number;
+  effective: boolean;
+  beamType: "laser" | "hpm";
   startTime: number;
   duration: number;
 }
@@ -717,6 +732,226 @@ function JackalInterceptOverlay({
   return null;
 }
 
+function DEBeamOverlay({
+  startXY,
+  targetXY,
+  effective,
+  beamType,
+  startTime,
+  duration,
+  baseLat,
+  baseLng,
+}: {
+  startXY: [number, number];
+  targetXY: [number, number];
+  effective: boolean;
+  beamType: "laser" | "hpm";
+  startTime: number;
+  duration: number;
+  baseLat: number;
+  baseLng: number;
+}) {
+  const map = useMap();
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const animRef = useRef<number>(0);
+
+  useEffect(() => {
+    const container = map.getContainer();
+    let canvas = canvasRef.current;
+    if (!canvas) {
+      canvas = document.createElement("canvas");
+      canvas.style.position = "absolute";
+      canvas.style.top = "0";
+      canvas.style.left = "0";
+      canvas.style.pointerEvents = "none";
+      canvas.style.zIndex = "460";
+      container.appendChild(canvas);
+      canvasRef.current = canvas;
+    }
+
+    const draw = () => {
+      if (!canvas) return;
+      const size = map.getSize();
+      canvas.width = size.x;
+      canvas.height = size.y;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const elapsed = Date.now() - startTime;
+      const t = Math.min(elapsed / duration, 1);
+
+      const startLL = gameXYToLatLng(startXY[0], startXY[1], baseLat, baseLng);
+      const targetLL = gameXYToLatLng(targetXY[0], targetXY[1], baseLat, baseLng);
+      const sp = map.latLngToContainerPoint(L.latLng(startLL[0], startLL[1]));
+      const tp = map.latLngToContainerPoint(L.latLng(targetLL[0], targetLL[1]));
+
+      const dx = tp.x - sp.x;
+      const dy = tp.y - sp.y;
+      const len = Math.hypot(dx, dy) || 1;
+      // Perpendicular unit vector
+      const perpX = -dy / len;
+      const perpY = dx / len;
+
+      // Beam extends from effector to target over first 30% of duration
+      const beamT = Math.min(t / 0.3, 1);
+      const beamEndX = sp.x + dx * beamT;
+      const beamEndY = sp.y + dy * beamT;
+
+      if (beamType === "laser") {
+        // --- LASER: tight bright beam with glow ---
+        const pulseFlicker = 0.8 + 0.2 * Math.sin(elapsed * 0.02); // subtle flicker
+
+        // Outer glow (wide, faint red)
+        ctx.beginPath();
+        ctx.moveTo(sp.x, sp.y);
+        ctx.lineTo(beamEndX, beamEndY);
+        ctx.strokeStyle = `rgba(255, 80, 40, ${0.15 * pulseFlicker * (1 - t)})`;
+        ctx.lineWidth = 12;
+        ctx.stroke();
+
+        // Mid glow
+        ctx.beginPath();
+        ctx.moveTo(sp.x, sp.y);
+        ctx.lineTo(beamEndX, beamEndY);
+        ctx.strokeStyle = `rgba(255, 120, 60, ${0.4 * pulseFlicker * (1 - t)})`;
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Core beam (bright white-orange, thin)
+        ctx.beginPath();
+        ctx.moveTo(sp.x, sp.y);
+        ctx.lineTo(beamEndX, beamEndY);
+        ctx.strokeStyle = `rgba(255, 220, 180, ${0.9 * pulseFlicker * (1 - t)})`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Impact flash at target when beam arrives
+        if (t >= 0.3 && t < 0.8) {
+          const impactT = (t - 0.3) / 0.5;
+          const flashR = 8 + impactT * 15;
+          const flashOp = (1 - impactT) * pulseFlicker;
+          ctx.beginPath();
+          ctx.arc(tp.x, tp.y, flashR, 0, Math.PI * 2);
+          ctx.fillStyle = effective
+            ? `rgba(255, 200, 100, ${flashOp * 0.6})`
+            : `rgba(255, 100, 50, ${flashOp * 0.4})`;
+          ctx.fill();
+        }
+      } else {
+        // --- HPM: wide pulse cone expanding toward target ---
+        const coneWidth = 20 + t * 15; // cone widens as it propagates
+
+        // Draw cone shape from effector to beam front
+        ctx.beginPath();
+        ctx.moveTo(sp.x + perpX * 3, sp.y + perpY * 3); // narrow at source
+        ctx.lineTo(sp.x - perpX * 3, sp.y - perpY * 3);
+        ctx.lineTo(beamEndX - perpX * coneWidth, beamEndY - perpY * coneWidth);
+        ctx.lineTo(beamEndX + perpX * coneWidth, beamEndY + perpY * coneWidth);
+        ctx.closePath();
+
+        // Pulsing EM fill
+        const emPulse = 0.5 + 0.5 * Math.sin(elapsed * 0.015);
+        const coneGrad = ctx.createLinearGradient(sp.x, sp.y, beamEndX, beamEndY);
+        coneGrad.addColorStop(0, `rgba(0, 200, 255, ${0.05 * (1 - t) * emPulse})`);
+        coneGrad.addColorStop(0.7, `rgba(0, 180, 255, ${0.2 * (1 - t) * emPulse})`);
+        coneGrad.addColorStop(1, `rgba(0, 150, 255, ${0.35 * (1 - t) * emPulse})`);
+        ctx.fillStyle = coneGrad;
+        ctx.fill();
+
+        // Cone edges
+        ctx.strokeStyle = `rgba(0, 200, 255, ${0.4 * (1 - t) * emPulse})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(sp.x, sp.y);
+        ctx.lineTo(beamEndX + perpX * coneWidth, beamEndY + perpY * coneWidth);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(sp.x, sp.y);
+        ctx.lineTo(beamEndX - perpX * coneWidth, beamEndY - perpY * coneWidth);
+        ctx.stroke();
+
+        // Wavefront ring at beam front
+        if (t < 0.9) {
+          ctx.beginPath();
+          ctx.arc(beamEndX, beamEndY, coneWidth * 0.8, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(0, 220, 255, ${0.5 * (1 - t) * emPulse})`;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
+        // Impact ripple at target
+        if (t >= 0.3 && t < 0.8) {
+          const rippleT = (t - 0.3) / 0.5;
+          const rippleR = 15 + rippleT * 40;
+          const rippleOp = (1 - rippleT) * 0.6;
+          ctx.beginPath();
+          ctx.arc(tp.x, tp.y, rippleR, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(0, 200, 255, ${rippleOp})`;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          // Inner ripple
+          if (rippleT < 0.5) {
+            ctx.beginPath();
+            ctx.arc(tp.x, tp.y, rippleR * 0.5, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(0, 255, 255, ${rippleOp * 0.5})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Effective/ineffective marker after beam phase
+      if (t >= 0.8 && t < 1) {
+        const resultT = (t - 0.8) / 0.2;
+        const markerOp = 1 - resultT;
+        if (effective) {
+          // Green ring expanding
+          ctx.beginPath();
+          ctx.arc(tp.x, tp.y, 10 + resultT * 20, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(0, 255, 100, ${markerOp})`;
+          ctx.lineWidth = 3;
+          ctx.stroke();
+        } else {
+          // Red X fading
+          const xSz = 10;
+          ctx.strokeStyle = `rgba(255, 80, 60, ${markerOp})`;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(tp.x - xSz, tp.y - xSz);
+          ctx.lineTo(tp.x + xSz, tp.y + xSz);
+          ctx.moveTo(tp.x + xSz, tp.y - xSz);
+          ctx.lineTo(tp.x - xSz, tp.y + xSz);
+          ctx.stroke();
+        }
+      }
+
+      animRef.current = requestAnimationFrame(draw);
+    };
+
+    animRef.current = requestAnimationFrame(draw);
+
+    const redraw = () => {
+      cancelAnimationFrame(animRef.current);
+      animRef.current = requestAnimationFrame(draw);
+    };
+    map.on("move", redraw);
+    map.on("zoom", redraw);
+
+    return () => {
+      cancelAnimationFrame(animRef.current);
+      map.off("move", redraw);
+      map.off("zoom", redraw);
+      if (canvas && canvas.parentNode) {
+        canvas.parentNode.removeChild(canvas);
+      }
+      canvasRef.current = null;
+    };
+  }, [map, startXY, targetXY, effective, beamType, startTime, duration, baseLat, baseLng]);
+
+  return null;
+}
+
 const DTID_PHASE_LETTER: Record<string, string> = {
   detected: "D",
   tracked: "T",
@@ -866,6 +1101,7 @@ export default function TacticalMap({
   baseBoundary,
   activeJammers = {},
   activeIntercepts = [],
+  activeDEBeams = [],
   onJammerToggle,
   baseBreached = false,
 }: Props) {
@@ -1379,6 +1615,21 @@ export default function TacticalMap({
             effective={intercept.effective}
             startTime={intercept.startTime}
             duration={intercept.duration}
+            baseLat={baseLat}
+            baseLng={baseLng}
+          />
+        ))}
+
+        {/* Directed Energy beam animations */}
+        {activeDEBeams.map((beam) => (
+          <DEBeamOverlay
+            key={beam.id}
+            startXY={[beam.startX, beam.startY]}
+            targetXY={[beam.targetX, beam.targetY]}
+            effective={beam.effective}
+            beamType={beam.beamType}
+            startTime={beam.startTime}
+            duration={beam.duration}
             baseLat={baseLat}
             baseLng={baseLng}
           />

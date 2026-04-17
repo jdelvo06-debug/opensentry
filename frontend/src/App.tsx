@@ -4,7 +4,7 @@ import SensorPanel from "./components/SensorPanel";
 import EffectorPanel from "./components/EffectorPanel";
 import TrackList from "./components/TrackList";
 import TacticalMap from "./components/TacticalMap";
-import type { InterceptAnimationData } from "./components/TacticalMap";
+import type { InterceptAnimationData, DEBeamAnimationData } from "./components/TacticalMap";
 import TrackDetailPanel from "./components/TrackDetailPanel";
 import EngagementPanel from "./components/EngagementPanel";
 import EventLog from "./components/EventLog";
@@ -229,6 +229,8 @@ export default function App() {
 
   // Active JACKAL intercept animations
   const [activeIntercepts, setActiveIntercepts] = useState<InterceptAnimationData[]>([]);
+  // Active DE beam animations
+  const [activeDEBeams, setActiveDEBeams] = useState<DEBeamAnimationData[]>([]);
 
   // Alert system state
   const [alertCount, setAlertCount] = useState(0);
@@ -446,6 +448,35 @@ export default function App() {
             setTimeout(() => {
               setActiveIntercepts((prev) => prev.filter((a) => a.id !== interceptId));
             }, duration + 1500);
+          }
+        }
+
+        // Track DE beam animation (laser / HPM)
+        const effType = (msg as any).effector_type || "";
+        if (effType === "de_laser" || effType === "de_hpm" || effLower.includes("laser") || effLower.includes("hpm") || effLower.includes("de_laser") || effLower.includes("de_hpm")) {
+          const effObj = effectors.find((e) => e.id === msg.effector) || effectorConfigs.find((e) => e.id === msg.effector);
+          const target = tracks.find((t) => t.id === msg.target_id);
+          if (effObj && target && effObj.x != null) {
+            const beamId = `de-beam-${Date.now()}`;
+            const beamType: "laser" | "hpm" = effType === "de_hpm" || effLower.includes("hpm") || effLower.includes("de_hpm") ? "hpm" : "laser";
+            const duration = 2500; // 2.5s beam animation
+            const newBeam: DEBeamAnimationData = {
+              id: beamId,
+              effectorId: msg.effector,
+              targetId: msg.target_id,
+              startX: effObj.x ?? 0,
+              startY: effObj.y ?? 0,
+              targetX: target.x,
+              targetY: target.y,
+              effective: msg.effective,
+              beamType,
+              startTime: Date.now(),
+              duration,
+            };
+            setActiveDEBeams((prev) => [...prev, newBeam]);
+            setTimeout(() => {
+              setActiveDEBeams((prev) => prev.filter((b) => b.id !== beamId));
+            }, duration + 500);
           }
         }
 
@@ -1605,6 +1636,7 @@ export default function App() {
           baseBoundary={placementConfig?.boundary ?? baseTemplate?.boundary}
           activeJammers={activeJammers}
           activeIntercepts={activeIntercepts}
+          activeDEBeams={activeDEBeams}
           onJammerToggle={handleJammerToggle}
           baseBreached={baseBreached}
         />
