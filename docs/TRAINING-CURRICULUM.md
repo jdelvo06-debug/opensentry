@@ -48,8 +48,8 @@ Upon completion, the operator will be able to:
 2. **Demonstrate** use of the L-Band surveillance radar to detect an inbound UAS contact
 3. **Confirm** a track using the track confirmation function and explain why track correlation is required before engagement
 4. **Slew** the EO/IR camera to a detected track and classify the threat type using visual silhouette identification
-5. **Select** the appropriate countermeasure (RF/PNT Jammer) and engage a commercial quad-type UAS
-6. **State** the primary limitation of RF/PNT jamming (ineffective against autonomous/INS-navigated threats)
+5. **Select** an appropriate low-collateral effector (`RF/PNT Jammer` or `DE-LASER-3km`) and engage a commercial quad-type UAS
+6. **State** the primary limitation of RF/PNT jamming (ineffective against autonomous/INS-navigated threats) and the primary limitation of `DE-LASER-3km` (line of sight required)
 
 ### Performance Standards (GO/NO GO)
 | Task | GO Criteria |
@@ -57,13 +57,14 @@ Upon completion, the operator will be able to:
 | Radar detection | Contact detected within 10s of drone entering radar range |
 | Track confirmation | Track confirmed before engagement — no unconfirmed engagements |
 | Camera slew & ID | Correct threat classification (hostile commercial quad) before defeat action |
-| Effector selection | RF Jammer selected (not JACKAL) for commercial quad — optimal choice |
+| Effector selection | RF/PNT Jammer or DE-LASER-3km selected (not JACKAL) for commercial quad — acceptable low-collateral choice |
 | Engagement | Drone neutralized before reaching protected area |
 
 ### Key Concepts Introduced
 - Sensor vs. effector roles
 - Why you identify before you engage (ROE implications)
 - EO/IR camera thermal vs. daylight mode
+- DE-LASER-3km as a precision alternative to jamming
 - Jam resistance concept (introduced, not tested here)
 
 ---
@@ -139,7 +140,7 @@ Upon completion, the operator will be able to:
 2. **Manage** effector economy — conserve JACKAL rounds, sequence jammer recharges, avoid simultaneous dry periods
 3. **Recognize** and correctly respond to a Shahed-style autonomous threat (jam-immune, kinetic defeat only)
 4. **Operate** under active jammer interference — adapt tactics when enemy EW affects friendly sensors
-5. **Coordinate** simultaneous engagements using multiple effector types on different targets
+5. **Coordinate** simultaneous engagements using multiple effector types on different targets, including `DE-HPM-3km` for clustered drones and `DE-LASER-3km` for precision follow-up
 6. **Maintain** awareness of all 5 tracks while actively engaging 2+ contacts
 
 ### Performance Standards (GO/NO GO)
@@ -147,6 +148,7 @@ Upon completion, the operator will be able to:
 |------|------------|
 | Shahed identification | Shahed-style threat correctly identified as jam-immune; JACKAL or kinetic used |
 | JACKAL economy | ≤ 2 JACKAL rounds wasted on jammable targets (jammer should handle those) |
+| DE employment | `DE-HPM-3km` used on clustered/swarm contacts; `DE-LASER-3km` reserved for isolated, line-of-sight targets |
 | Track management | No hostile track reaches the protected area unengaged |
 | Multi-effector coordination | At least 2 different effector types used simultaneously in correct application |
 | Threat prioritization | Closest/fastest tracks engaged first — documented in debrief event log |
@@ -154,6 +156,7 @@ Upon completion, the operator will be able to:
 ### Key Concepts Introduced
 - Autonomous/INS-navigated threat recognition (Shahed class)
 - Layered defense — kinetic as last resort, EW as first
+- Directed energy employment — HPM for swarms, laser for precision single-target defeat
 - Jammer mutual exclusion effects on friendly GPS
 - Swarm tactics and saturation risk
 

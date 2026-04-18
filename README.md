@@ -12,7 +12,7 @@
 
 > 🗺️ **Train at your actual base.** Drop a pin anywhere on Earth — real satellite imagery loads automatically. Set your perimeter, place your sensors, and run scenarios on terrain your operators actually defend. Not a demo airfield. Your location.
 
-**Version:** v1.9.0 | **Status:** Active development
+**Version:** v1.9.x | **Status:** Active development
 
 ---
 
@@ -52,6 +52,8 @@ All systems are fictional but specification-accurate — no real program of reco
 | System | Type | Range | Notes |
 |--------|------|-------|-------|
 | RF/PNT Jammer | Electronic warfare | 5 km | Disrupts RF command links + GPS/PNT nav; rechargeable |
+| DE-LASER-3km | Directed energy | 3 km | Precision single-target effector; LOS required; can pre-slew onto tracks before they enter range |
+| DE-HPM-3km | Directed energy | 3 km | Wide-area microwave pulse; no LOS required; best against clustered swarms |
 | JACKAL Pallet | Kinetic interceptor | 10 km | 4 interceptors; 10–15s spinup; requires Ku-Band FCS |
 | Shenobi | RF detect + Protocol Manipulation | 8km/6km | Downlink acquisition → uplink defeat (HOLD / LAND NOW / DEAFEN) |
 
@@ -103,6 +105,8 @@ UAS and drone contacts are never ATC-authorized — only manned aircraft can rec
 ## Features
 
 - **📍 Custom base location** — Before any scenario, drop a pin anywhere on Earth. Real satellite imagery loads for that location. Place your sensors, set your perimeter, and train on the terrain you actually defend. Your base. Your airspace.
+- **Directed energy split** — `DE-LASER-3km` for precision single-target kills and `DE-HPM-3km` for area effects against swarms. Each system has distinct visuals, recharge timing, and ROE tradeoffs.
+- **Weapon pre-slew / aim time** — Directed energy systems can orient onto a target before it enters range, then fire after a short slew/aim delay once commanded in-range.
 - **Real-world satellite maps** via Leaflet.js — OpenStreetMap + CartoDB imagery, global coverage
 - **Pre-mission ROE briefing** — review Rules of Engagement before each scenario
 - **ATC coordination mechanic** — UNKNOWN contacts require IFF clearance before engagement
@@ -208,6 +212,12 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 - [x] Per-system coverage toggle, enriched equipment cards, draggable boundary, map tile layers
 - [x] LOS corrections: Shenobi and RF Jammer now require line-of-sight
 - [x] Geo search on placement map, export preserves custom location coordinates
+
+### Completed (post-v1.9.0 mainline)
+- [x] Directed energy split — legacy DE weapon split into `DE-LASER-3km` and `DE-HPM-3km`
+- [x] Distinct DE gameplay — laser requires LOS and favors single drones; HPM ignores LOS and favors swarms
+- [x] DE visuals — persistent FOV wedges plus distinct laser beam and HPM pulse effects
+- [x] Directed energy slew model — DE systems can pre-slew onto out-of-range targets, then engage after an aim delay
 
 ### Backlog
 - [ ] Fix JACKAL trajectory + action wheel size (Issue #1)
