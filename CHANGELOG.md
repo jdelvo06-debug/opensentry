@@ -8,6 +8,23 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Directed energy split** — Legacy directed-energy effector split into two distinct systems: `DE-LASER-3km` and `DE-HPM-3km`.
+- **Directed energy pre-slew behavior** — Out-of-range DE engagement orders now pre-slew the effector onto the selected track instead of failing silently. Once on target, the system waits in `READY` until the operator fires in-range.
+- **Directed energy aim-time model** — DE engagements now include a short slew/aim delay that increases for larger angle changes and faster crossing targets.
+- **Persistent DE FOV wedges** — `DE-LASER-3km` and `DE-HPM-3km` render persistent, visually distinct cones on the tactical map.
+
+### Changed
+- **DE naming cleanup** — Shortened user-facing names to `DE-LASER-3km` and `DE-HPM-3km` across loadouts, scenarios, and engagement UI.
+- **DE gameplay differentiation** — `DE-LASER-3km` is now the precision LOS weapon for single drones, while `DE-HPM-3km` is the non-LOS area-effect option for swarms.
+
+### Fixed
+- **Static-site loadout parity** — GitHub Pages/browser path now exposes DE systems in preset scenario doctrine loadouts, matching the intended PR behavior.
+- **DE animation triggering** — Browser engagement animations now use current runtime state instead of stale closures, restoring laser/HPM visual effects.
+- **Engagement feedback** — Rejected or pending DE engagements no longer appear as no-ops; UI feedback now surfaces `SLEWING`, LOS, and range status clearly.
+- **Effector-facing state updates** — Runtime `facing_deg` now flows through browser state updates so DE cones visibly slew on the tactical map.
+- **ROE scoring normalization** — Placement-generated DE effector IDs now score correctly for collateral and ROE checks.
+
 ---
 
 ## [1.9.0] — 2026-04-09
