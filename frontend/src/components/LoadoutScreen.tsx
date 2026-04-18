@@ -21,6 +21,7 @@ const COLORS = {
   yellow: "#d29922",
   red: "#f85149",
   purple: "#bc8cff",
+  cyan: "#00d4ff",
   blueBg: "rgba(88, 166, 255, 0.08)",
   blueBorder: "rgba(88, 166, 255, 0.5)",
 };
@@ -34,6 +35,8 @@ const TYPE_COLORS: Record<string, string> = {
   kinetic: COLORS.red,
   interceptor: COLORS.blue,
   directed_energy: COLORS.yellow,
+  de_laser: COLORS.yellow,
+  de_hpm: COLORS.cyan,
 };
 
 const COLLATERAL_COLORS: Record<string, string> = {

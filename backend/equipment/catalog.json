@@ -18,7 +18,7 @@
         "Requires power generator",
         "Ground clutter in urban terrain"
       ],
-      "requires_los": false
+      "requires_los": true
     },
     {
       "catalog_id": "kufcs",
@@ -79,6 +79,58 @@
         "Limited range",
         "Ineffective vs autonomous UAS",
         "Can affect friendly GPS"
+      ],
+      "requires_los": true,
+      "collateral_risk": "medium"
+    },
+    {
+      "catalog_id": "de_laser_3k",
+      "name": "DE-LASER-3km",
+      "type": "de_laser",
+      "range_km": 3.0,
+      "fov_deg": 10,
+      "recharge_seconds": 15,
+      "single_use": false,
+      "description": "Generic high-energy laser weapon system. Precision beam destroys Group 1-3 UAS by burning through airframe or electronics. Requires line of sight and clear atmospheric conditions. Engages one target at a time with sustained beam.",
+      "pros": [
+        "Low cost per engagement",
+        "Unlimited magazine (power-limited)",
+        "Precision kill — minimal collateral",
+        "Quiet operation",
+        "Effective vs all UAS groups"
+      ],
+      "cons": [
+        "Line of sight required",
+        "Weather dependent (fog, dust, rain degrade beam)",
+        "Single target engagement",
+        "Atmospheric attenuation at range",
+        "Requires stable mounting platform"
+      ],
+      "requires_los": true,
+      "collateral_risk": "low"
+    },
+    {
+      "catalog_id": "de_hpm_3k",
+      "name": "DE-HPM-3km",
+      "type": "de_hpm",
+      "range_km": 3.0,
+      "fov_deg": 60,
+      "recharge_seconds": 30,
+      "single_use": false,
+      "description": "Generic high-power microwave weapon system. Emits wide-area microwave pulse that disrupts UAS electronics and navigation systems. Effective against drone swarms — can engage multiple targets simultaneously with a single burst.",
+      "pros": [
+        "Anti-swarm capability — area effect",
+        "Simultaneous multi-target engagement",
+        "Effective in all weather conditions",
+        "Disrupts electronics without physical destruction",
+        "Near-instantaneous engagement"
+      ],
+      "cons": [
+        "Friendly electronics in beam path at risk",
+        "Does not physically destroy — drones may recover",
+        "Longer recharge between pulses",
+        "Broad beam — less precise targeting",
+        "May trigger EMCON restrictions"
       ],
       "requires_los": false,
       "collateral_risk": "medium"

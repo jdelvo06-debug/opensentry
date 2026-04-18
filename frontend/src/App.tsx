@@ -4,7 +4,7 @@ import SensorPanel from "./components/SensorPanel";
 import EffectorPanel from "./components/EffectorPanel";
 import TrackList from "./components/TrackList";
 import TacticalMap from "./components/TacticalMap";
-import type { InterceptAnimationData } from "./components/TacticalMap";
+import type { InterceptAnimationData, DEBeamAnimationData } from "./components/TacticalMap";
 import TrackDetailPanel from "./components/TrackDetailPanel";
 import EngagementPanel from "./components/EngagementPanel";
 import EventLog from "./components/EventLog";
@@ -191,6 +191,12 @@ export default function App() {
   const [engagementZones, setEngagementZones] =
     useState<EngagementZones | null>(null);
   const [protectedArea, setProtectedArea] = useState<ProtectedAreaInfo | null>(null);
+  const tracksRef = useRef(tracks);
+  tracksRef.current = tracks;
+  const effectorsRef = useRef(effectors);
+  effectorsRef.current = effectors;
+  const effectorConfigsRef = useRef(effectorConfigs);
+  effectorConfigsRef.current = effectorConfigs;
 
   // Camera panel
   const [cameraTrackId, setCameraTrackId] = useState<string | null>(null);
@@ -229,6 +235,20 @@ export default function App() {
 
   // Active JACKAL intercept animations
   const [activeIntercepts, setActiveIntercepts] = useState<InterceptAnimationData[]>([]);
+  // Active DE beam animations
+  const [activeDEBeams, setActiveDEBeams] = useState<DEBeamAnimationData[]>([]);
+  const [engagementFeedback, setEngagementFeedback] = useState<{
+    trackId: string;
+    level: "info" | "warning" | "success";
+    message: string;
+  } | null>(null);
+  const engagementAttemptRef = useRef<{
+    trackId: string;
+    effectorId: string;
+    effectorName: string;
+    timestamp: number;
+  } | null>(null);
+  const engagementFeedbackTimerRef = useRef<number>(0);
 
   // Alert system state
   const [alertCount, setAlertCount] = useState(0);
@@ -394,6 +414,34 @@ export default function App() {
           ...prev,
           { timestamp: msg.timestamp, message: msg.message },
         ]);
+        const attempt = engagementAttemptRef.current;
+        if (
+          attempt
+          && Date.now() - attempt.timestamp < 4000
+          && msg.message.startsWith("ENGAGEMENT:")
+        ) {
+          const message = msg.message;
+          if (
+            message.includes("Target out of range")
+            || message.includes("NO LINE OF SIGHT")
+            || message.includes("NO Ku-FC TRACK")
+            || message.includes("BLOCKED")
+          ) {
+            const detail = message.replace(/^ENGAGEMENT:\s*/, "");
+            setEngagementFeedback({
+              trackId: attempt.trackId,
+              level: "warning",
+              message: detail,
+            });
+            window.clearTimeout(engagementFeedbackTimerRef.current);
+            engagementFeedbackTimerRef.current = window.setTimeout(() => {
+              setEngagementFeedback((current) => (
+                current?.trackId === attempt.trackId ? null : current
+              ));
+            }, 4500);
+            engagementAttemptRef.current = null;
+          }
+        }
         // Trigger sounds based on event message content
         const m = msg.message;
         if (m.includes("New contact detected") || m.includes("New contact emerging")) {
@@ -420,12 +468,30 @@ export default function App() {
             message: `ENGAGEMENT: ${msg.effector.toUpperCase()} → ${msg.target_id.toUpperCase()} — ${msg.effective ? "EFFECTIVE" : "INEFFECTIVE"} (${(msg.effectiveness * 100).toFixed(0)}%)`,
           },
         ]);
+        const attempt = engagementAttemptRef.current;
+        setEngagementFeedback({
+          trackId: msg.target_id,
+          level: msg.effective ? "success" : "warning",
+          message: msg.effective
+            ? `${(msg as any).effector_name || msg.effector} engaged successfully`
+            : `${(msg as any).effector_name || msg.effector} was ineffective on this target`,
+        });
+        window.clearTimeout(engagementFeedbackTimerRef.current);
+        engagementFeedbackTimerRef.current = window.setTimeout(() => {
+          setEngagementFeedback((current) => (
+            current?.trackId === msg.target_id ? null : current
+          ));
+        }, 4500);
+        if (attempt && attempt.trackId === msg.target_id) {
+          engagementAttemptRef.current = null;
+        }
         // Track JACKAL intercept animation
         const effLower = msg.effector.toLowerCase();
         if (effLower.includes("jackal") || effLower.includes("interceptor")) {
           // Find effector and target positions
-          const effObj = effectors.find((e) => e.id === msg.effector) || effectorConfigs.find((e) => e.id === msg.effector);
-          const target = tracks.find((t) => t.id === msg.target_id);
+          const effObj = effectorsRef.current.find((e) => e.id === msg.effector)
+            || effectorConfigsRef.current.find((e) => e.id === msg.effector);
+          const target = tracksRef.current.find((t) => t.id === msg.target_id);
           if (effObj && target && effObj.x != null) {
             const interceptId = `intercept-${Date.now()}`;
             const duration = 4000; // 4 seconds
@@ -446,6 +512,36 @@ export default function App() {
             setTimeout(() => {
               setActiveIntercepts((prev) => prev.filter((a) => a.id !== interceptId));
             }, duration + 1500);
+          }
+        }
+
+        // Track DE beam animation (laser / HPM)
+        const effType = (msg as any).effector_type || "";
+        if (effType === "de_laser" || effType === "de_hpm") {
+          const effObj = effectorsRef.current.find((e) => e.id === msg.effector)
+            || effectorConfigsRef.current.find((e) => e.id === msg.effector);
+          const target = tracksRef.current.find((t) => t.id === msg.target_id);
+          if (effObj && target && effObj.x != null) {
+            const beamId = `de-beam-${Date.now()}`;
+            const beamType: "laser" | "hpm" = effType === "de_hpm" ? "hpm" : "laser";
+            const duration = beamType === "hpm" ? 3200 : 2600;
+            const newBeam: DEBeamAnimationData = {
+              id: beamId,
+              effectorId: msg.effector,
+              targetId: msg.target_id,
+              startX: effObj.x ?? 0,
+              startY: effObj.y ?? 0,
+              targetX: target.x,
+              targetY: target.y,
+              effective: msg.effective,
+              beamType,
+              startTime: Date.now(),
+              duration,
+            };
+            setActiveDEBeams((prev) => [...prev, newBeam]);
+            setTimeout(() => {
+              setActiveDEBeams((prev) => prev.filter((b) => b.id !== beamId));
+            }, duration + 700);
           }
         }
 
@@ -470,7 +566,7 @@ export default function App() {
           soundEngine.play("engagement_kinetic");
         } else if (eff.includes("jammer") || eff.includes("rf")) {
           soundEngine.play("engagement_electronic");
-        } else if (eff.includes("directed") || eff.includes("energy") || eff.includes("laser")) {
+        } else if (eff.includes("directed") || eff.includes("energy") || eff.includes("laser") || eff.includes("de_laser") || eff.includes("de_hpm") || eff.includes("hpm")) {
           soundEngine.play("engagement_directed_energy");
         } else {
           soundEngine.play("engagement_electronic");
@@ -653,8 +749,6 @@ export default function App() {
   const droneReachedBaseRef = useRef(droneReachedBase);
   droneReachedBaseRef.current = droneReachedBase;
 
-  const tracksRef = useRef(tracks);
-  tracksRef.current = tracks;
   const selectedTrackIdRef = useRef(selectedTrackId);
   selectedTrackIdRef.current = selectedTrackId;
   const phaseRef = useRef(phase);
@@ -973,6 +1067,26 @@ export default function App() {
         { timestamp: elapsed, message: `BLUE-ON-BLUE: Engagement on unverified track ${label.toUpperCase()} — ATC not consulted! Score penalty applied.` },
       ]);
     }
+    const effector = effectorsRef.current.find((e) => e.id === effectorId)
+      || effectorConfigsRef.current.find((e) => e.id === effectorId);
+    const effectorName = effector?.name || effectorId;
+    engagementAttemptRef.current = {
+      trackId,
+      effectorId,
+      effectorName,
+      timestamp: Date.now(),
+    };
+    setEngagementFeedback({
+      trackId,
+      level: "info",
+      message: `Attempting ${effectorName}...`,
+    });
+    window.clearTimeout(engagementFeedbackTimerRef.current);
+    engagementFeedbackTimerRef.current = window.setTimeout(() => {
+      setEngagementFeedback((current) => (
+        current?.trackId === trackId && current.level === "info" ? null : current
+      ));
+    }, 2500);
     if (shenobiCm) {
       // Shenobi Protocol Manipulation — send specific CM action
       send({
@@ -1088,6 +1202,12 @@ export default function App() {
     send({ type: "action", action: "pause_mission" });
   };
 
+  useEffect(() => {
+    setEngagementFeedback((current) => (
+      current?.trackId === selectedTrackId ? current : null
+    ));
+  }, [selectedTrackId]);
+
   const handleResume = () => {
     send({ type: "action", action: "resume_mission" });
   };
@@ -1192,6 +1312,7 @@ export default function App() {
       ],
       effectors: [
         { catalog_id: "rf_jammer", x: 0.0, y: 0.05, facing_deg: 0 },
+        { catalog_id: "de_laser_3k", x: 0.12, y: 0.0, facing_deg: 45 },
       ],
       combined: [
         { catalog_id: "shenobi", x: 0.0, y: 0.0, facing_deg: 0 },
@@ -1209,6 +1330,7 @@ export default function App() {
         { catalog_id: "rf_jammer", x: 0.0, y: 0.05, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: 0.15, y: 0.0, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: -0.15, y: 0.0, facing_deg: 180 },
+        { catalog_id: "de_laser_3k", x: 0.0, y: -0.18, facing_deg: 0 },
       ],
       combined: [
         { catalog_id: "shenobi", x: 0.0, y: 0.0, facing_deg: 0 },
@@ -1228,6 +1350,8 @@ export default function App() {
         { catalog_id: "rf_jammer", x: -0.2, y: -0.1, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: 0.15, y: 0.0, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: -0.15, y: 0.0, facing_deg: 180 },
+        { catalog_id: "de_laser_3k", x: 0.22, y: -0.18, facing_deg: 315 },
+        { catalog_id: "de_hpm_3k", x: -0.22, y: -0.18, facing_deg: 45 },
       ],
       combined: [
         { catalog_id: "shenobi", x: 0.0, y: 0.0, facing_deg: 0 },
@@ -1246,6 +1370,8 @@ export default function App() {
       effectors: [
         { catalog_id: "rf_jammer", x: 0.0, y: 0.05, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: 0.1, y: 0.0, facing_deg: 0 },
+        { catalog_id: "de_laser_3k", x: 0.2, y: -0.12, facing_deg: 330 },
+        { catalog_id: "de_hpm_3k", x: -0.18, y: -0.12, facing_deg: 30 },
       ],
       combined: [
         { catalog_id: "shenobi", x: 0.0, y: 0.0, facing_deg: 0 },
@@ -1263,6 +1389,7 @@ export default function App() {
       effectors: [
         { catalog_id: "rf_jammer", x: 0.0, y: 0.05, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: 0.15, y: 0.0, facing_deg: 0 },
+        { catalog_id: "de_laser_3k", x: -0.18, y: -0.12, facing_deg: 30 },
       ],
       combined: [
         { catalog_id: "shenobi", x: 0.0, y: 0.0, facing_deg: 0 },
@@ -1283,6 +1410,8 @@ export default function App() {
         { catalog_id: "rf_jammer", x: -0.2, y: -0.1, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: 0.15, y: 0.0, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: -0.15, y: 0.0, facing_deg: 180 },
+        { catalog_id: "de_laser_3k", x: 0.22, y: -0.18, facing_deg: 315 },
+        { catalog_id: "de_hpm_3k", x: -0.22, y: -0.18, facing_deg: 45 },
       ],
       combined: [
         { catalog_id: "shenobi", x: 0.0, y: 0.0, facing_deg: 0 },
@@ -1605,6 +1734,7 @@ export default function App() {
           baseBoundary={placementConfig?.boundary ?? baseTemplate?.boundary}
           activeJammers={activeJammers}
           activeIntercepts={activeIntercepts}
+          activeDEBeams={activeDEBeams}
           onJammerToggle={handleJammerToggle}
           baseBreached={baseBreached}
         />
@@ -1717,7 +1847,14 @@ export default function App() {
             onSlewCamera={handleSlewCamera}
             onCallATC={callATC}
             onDeclareAffiliation={declareAffiliation}
-
+            engagementFeedback={
+              selectedTrack && engagementFeedback?.trackId === selectedTrack.id
+                ? {
+                    level: engagementFeedback.level,
+                    message: engagementFeedback.message,
+                  }
+                : null
+            }
             tutorialStep={isTutorial && !tutorialTourActive ? tutorialStep : undefined}
           />
           </div>

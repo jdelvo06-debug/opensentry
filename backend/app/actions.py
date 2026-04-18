@@ -18,6 +18,7 @@ from app.helpers import (
     effector_effectiveness,
     find_effector_config,
 )
+from app.detection import _los_blocked
 from app.jamming import apply_pnt_jamming, pick_jam_behavior
 from app.nexus import is_nexus_vulnerable, pick_nexus_cm_effectiveness, DRONE_FREQUENCY_MAP
 from app.models import (
@@ -32,6 +33,8 @@ from app.models import (
 
 if TYPE_CHECKING:
     from app.game_state import GameState
+
+HPM_SPLASH_RADIUS_KM = 0.75
 
 
 # ---------------------------------------------------------------------------
@@ -201,6 +204,15 @@ def handle_engage(
                 f"ENGAGEMENT: {eff_state['name']} — Target out of range"))
             break
 
+        # LOS check for directed energy weapons (laser, etc.)
+        if eff_state.get("requires_los") and not is_jammer and not is_nexus:
+            ex = eff_state.get("x", 0.0)
+            ey = eff_state.get("y", 0.0)
+            if gs.terrain and _los_blocked(ex, ey, d.x, d.y, gs.terrain):
+                msgs.append(_event(elapsed,
+                    f"ENGAGEMENT: {eff_state['name']} — NO LINE OF SIGHT (terrain blocked)"))
+                break
+
         # JACKAL requires Ku-Band FCS
         if (eff_state.get("ammo_count") is not None
                 and eff_state["type"] == "kinetic"):
@@ -218,6 +230,10 @@ def handle_engage(
             cm_type = nexus_cm or "nexus_hold"
             msgs += _engage_nexus(gs, j, d, eff_state, effector_id,
                                     target_id, cm_type, effectiveness, elapsed)
+        # --- DE-HPM pulse path ---
+        elif eff_state["type"] == "de_hpm":
+            msgs += _engage_hpm(gs, d, eff_state, effector_id,
+                                target_id, elapsed)
         # --- EW Jammer path ---
         elif is_jammer:
             msgs += _engage_jammer(gs, j, d, eff_state, effector_id,
@@ -400,6 +416,8 @@ def _engage_jammer(
             "type": "engagement_result",
             "target_id": target_id, "effector": effector_id,
             "effective": False, "effectiveness": 0.0,
+            "effector_type": eff_state["type"],
+            "effector_name": eff_state["name"],
         })
     else:
         update_fields: dict = {}
@@ -407,6 +425,8 @@ def _engage_jammer(
             "type": "engagement_result",
             "target_id": target_id, "effector": effector_id,
             "effective": True, "effectiveness": round(effectiveness, 2),
+            "effector_type": eff_state["type"],
+            "effector_name": eff_state["name"],
         }
 
         if jam_behavior is not None:
@@ -517,10 +537,68 @@ def _engage_direct(
         "type": "engagement_result",
         "target_id": target_id, "effector": effector_id,
         "effective": neutralized, "effectiveness": round(effectiveness, 2),
+        "effector_type": eff_state["type"],
+        "effector_name": eff_state["name"],
     })
     result_str = "NEUTRALIZED" if neutralized else "INEFFECTIVE"
     msgs.append(_event(elapsed,
         f"ENGAGEMENT: {eff_state['name']} vs {target_id.upper()} \u2014 {result_str}"))
+    return msgs
+
+
+def _engage_hpm(
+    gs: GameState,
+    target_drone: DroneState,
+    eff_state: dict,
+    effector_id: str,
+    target_id: str,
+    elapsed: float,
+) -> list[dict]:
+    msgs: list[dict] = []
+    impacted_count = 0
+    neutralized_count = 0
+
+    for i, candidate in enumerate(gs.drones):
+        if candidate.is_interceptor or candidate.neutralized:
+            continue
+
+        dist_from_aim = math.hypot(candidate.x - target_drone.x, candidate.y - target_drone.y)
+        if candidate.id != target_id and dist_from_aim > HPM_SPLASH_RADIUS_KM:
+            continue
+        if not check_effector_in_range(eff_state, candidate):
+            continue
+
+        effectiveness = effector_effectiveness(eff_state["type"], candidate.drone_type.value)
+        neutralized = effectiveness > 0.5
+        gs.drones[i] = candidate.model_copy(update={
+            "dtid_phase": DTIDPhase.DEFEATED,
+            "neutralized": neutralized,
+        })
+        gs.engage_times[candidate.id] = elapsed
+        gs.effector_used[candidate.id] = eff_state["type"]
+        gs.actions.append(PlayerAction(
+            action="engage", target_id=candidate.id,
+            effector=effector_id, timestamp=elapsed,
+        ))
+        impacted_count += 1
+        if neutralized:
+            neutralized_count += 1
+        msgs.append({
+            "type": "engagement_result",
+            "target_id": candidate.id, "effector": effector_id,
+            "effective": neutralized, "effectiveness": round(effectiveness, 2),
+            "effector_type": eff_state["type"],
+            "effector_name": eff_state["name"],
+        })
+
+    if impacted_count == 0:
+        msgs.append(_event(elapsed, f"ENGAGEMENT: {eff_state['name']} pulse dissipated without effect"))
+        return msgs
+
+    msgs.append(_event(
+        elapsed,
+        f"ENGAGEMENT: {eff_state['name']} pulse affected {impacted_count} track(s) — {neutralized_count} neutralized"
+    ))
     return msgs
 
 
@@ -558,6 +636,8 @@ def _engage_nexus(
             "type": "engagement_result",
             "target_id": target_id, "effector": effector_id,
             "effective": False, "effectiveness": 0.0,
+            "effector_type": eff_state["type"],
+            "effector_name": eff_state["name"],
         })
         return msgs
 
@@ -571,6 +651,8 @@ def _engage_nexus(
             "target_id": target_id, "effector": effector_id,
             "effective": False, "effectiveness": 0.0,
             "nexus_cm": cm_type,
+            "effector_type": eff_state["type"],
+            "effector_name": eff_state["name"],
         })
         return msgs
 
@@ -601,6 +683,8 @@ def _engage_nexus(
         "target_id": target_id, "effector": effector_id,
         "effective": True, "effectiveness": round(effectiveness, 2),
         "nexus_cm": cm_type, "nexus_cm_state": "pending",
+        "effector_type": eff_state["type"],
+        "effector_name": eff_state["name"],
     })
     return msgs
 

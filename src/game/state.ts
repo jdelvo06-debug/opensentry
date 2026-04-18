@@ -18,8 +18,16 @@ export type ThreatClassification =
   | 'jackal' | 'shahed' | 'military_jet';
 
 export type SensorType = 'radar' | 'rf' | 'eoir' | 'acoustic';
-export type EffectorType = 'rf_jam' | 'electronic' | 'kinetic' | 'net_interceptor' | 'directed_energy' | 'shenobi_pm';
-export type EffectorStatus = 'ready' | 'recharging' | 'offline' | 'depleted';
+export type EffectorType =
+  | 'rf_jam'
+  | 'electronic'
+  | 'kinetic'
+  | 'net_interceptor'
+  | 'directed_energy'
+  | 'de_laser'
+  | 'de_hpm'
+  | 'shenobi_pm';
+export type EffectorStatus = 'ready' | 'slewing' | 'recharging' | 'offline' | 'depleted';
 export type NexusCMType = 'shenobi_hold' | 'shenobi_land_now' | 'shenobi_deafen';
 export type NexusCMState = 'pending' | '1/2' | '2/2';
 export type GamePhase = 'waiting' | 'running' | 'debrief';
@@ -140,7 +148,7 @@ export interface EffectorConfig {
   name: string;
   type: EffectorType;
   range_km: number;
-  status: string;
+  status: EffectorStatus;
   recharge_seconds: number;
   x: number;
   y: number;
@@ -359,9 +367,9 @@ export interface PlacementConfig {
 export interface EffectorRuntimeState {
   id: string;
   name: string;
-  type: string;
+  type: EffectorType;
   range_km: number;
-  status: string;
+  status: EffectorStatus;
   recharge_seconds: number;
   recharge_remaining: number;
   x: number;
@@ -381,6 +389,15 @@ export interface SensorRuntimeState {
   detecting: string[];
 }
 
+export interface PendingDirectedEnergyEngagement {
+  effector_id: string;
+  target_id: string;
+  execute_at: number;
+  queued_at: number;
+  initial_facing_deg: number;
+  mode: 'slew' | 'engage';
+}
+
 // --- GameState (ported from game_state.py) ---
 
 export interface GameState {
@@ -394,6 +411,7 @@ export interface GameState {
   behaviors: Map<string, string>;
   drone_configs: Map<string, DroneStartConfig>;
   pending_spawns: DroneStartConfig[];
+  pending_directed_energy_engagements: PendingDirectedEnergyEngagement[];
 
   effector_states: EffectorRuntimeState[];
   sensor_runtime: SensorRuntimeState[];
@@ -481,6 +499,7 @@ export function createGameState(
     behaviors: new Map(),
     drone_configs: new Map(),
     pending_spawns: [],
+    pending_directed_energy_engagements: [],
     effector_states: [],
     sensor_runtime: [],
     terrain,

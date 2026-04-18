@@ -2,6 +2,7 @@
 
 import pytest
 
+from app.helpers import effector_effectiveness
 from app.models import PlayerAction, PlacedEquipment, PlacementConfig
 from app.scoring import (
     _score_drone_components,
@@ -37,6 +38,22 @@ class TestGrading:
     def test_grade_f(self):
         assert _total_to_grade(49.9) == "F"
         assert _total_to_grade(0) == "F"
+
+
+# ===== Effectiveness matrix =====
+
+
+class TestEffectorEffectiveness:
+    """Lock in DE gameplay balance from the effectiveness matrix."""
+
+    def test_de_laser_is_poor_vs_swarm(self):
+        assert effector_effectiveness("de_laser", "swarm") == 0.4
+
+    def test_de_hpm_excels_vs_swarm(self):
+        assert effector_effectiveness("de_hpm", "swarm") == 0.9
+
+    def test_de_hpm_is_weaker_vs_fixed_wing(self):
+        assert effector_effectiveness("de_hpm", "fixed_wing") == 0.6
 
 
 # ===== Detection Response scoring =====
@@ -204,7 +221,7 @@ class TestDefeatMethod:
             correct_class="commercial_quad",
             correct_affil="hostile",
             optimal_effectors=["rf_jam"],
-            acceptable_effectors=["rf_jam", "kinetic"],
+            acceptable_effectors=["rf_jam", "kinetic", "de_laser", "de_hpm"],
             roe_violations=[],
             should_engage=should_engage,
             actions=actions or [],
@@ -223,10 +240,20 @@ class TestDefeatMethod:
         assert self._score("rf_jam") == 100.0
 
     def test_acceptable_effector(self):
-        assert self._score("kinetic") == 70.0
+        # kinetic is acceptable (70) with 10-point collateral penalty = 60
+        assert self._score("kinetic") == 60.0
 
     def test_poor_effector_choice(self):
         assert self._score("directed_energy") == 30.0
+
+    def test_de_laser_acceptable_effector(self):
+        """de_laser in acceptable list (not optimal) scores 70."""
+        assert self._score("de_laser") == 70.0
+
+    def test_de_hpm_collateral_penalty(self):
+        """de_hpm is acceptable (70 base) with 15-point collateral penalty = 55."""
+        # de_hpm is not in self scenario's optimal list, only acceptable
+        assert self._score("de_hpm") == 55.0
 
     def test_no_engagement_base_compromised(self):
         assert self._score(None, drone_reached_base=True) == 0.0
@@ -279,6 +306,12 @@ class TestROECompliance:
         score, detail = self._score(actions, roe_violations=["kinetic"])
         assert score == 0.0
         assert "kinetic" in detail.lower()
+
+    def test_placement_effector_id_normalizes_to_de_type(self):
+        actions = [PlayerAction(action="engage", target_id="X", effector="effector_0_de_hpm_3k", timestamp=15.0)]
+        score, detail = self._score(actions, roe_violations=["de_hpm"])
+        assert score == 0.0
+        assert "de_hpm" in detail.lower()
 
     def test_engaging_non_threat_is_violation(self):
         actions = [PlayerAction(action="engage", target_id="X", effector="rf_jam", timestamp=15.0)]

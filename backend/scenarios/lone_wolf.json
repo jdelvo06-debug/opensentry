@@ -53,17 +53,29 @@
       "single_use": true,
       "ammo_count": 4,
       "ammo_remaining": 4
+    },
+    {
+      "id": "de_laser",
+      "name": "DE-LASER-3km",
+      "type": "de_laser",
+      "range_km": 3.0,
+      "fov_deg": 10,
+      "status": "ready",
+      "recharge_seconds": 15,
+      "requires_los": true,
+      "single_use": false
     }
   ],
   "correct_classification": "commercial_quad",
   "correct_affiliation": "hostile",
   "optimal_effectors": [
+    "de_laser",
     "electronic"
   ],
   "acceptable_effectors": [
     "electronic",
     "kinetic",
-    "shenobi_pm"
+    "de_laser"
   ],
   "roe_violations": [],
   "drones": [
@@ -76,7 +88,16 @@
       "speed": 35,
       "heading": 225,
       "behavior": "direct_approach",
-      "rf_emitting": true
+      "rf_emitting": true,
+      "optimal_effectors": [
+        "de_laser",
+        "electronic"
+      ],
+      "acceptable_effectors": [
+        "electronic",
+        "kinetic",
+        "de_laser"
+      ]
     }
   ]
 }

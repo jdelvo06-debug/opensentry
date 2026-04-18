@@ -4,7 +4,10 @@
 
 import type { DroneState, GameState, PlayerAction, EffectorRuntimeState } from './state.js';
 import {
+  bearingToTargetDegrees,
+  calculateDirectedEnergySlewSeconds,
   checkEffectorInRange,
+  checkEffectorRangeOnly,
   checkKuFcsTracking,
   checkNexusRfTracking,
   effectorEffectiveness,
@@ -16,6 +19,8 @@ import { isShenobiVulnerable, pickShenobiCmEffectiveness, DRONE_FREQUENCY_MAP } 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+const HPM_SPLASH_RADIUS_KM = 0.75;
 
 function _event(elapsed: number, message: string): Record<string, unknown> {
   return { type: 'event', timestamp: Math.round(elapsed * 10) / 10, message };
@@ -38,6 +43,40 @@ function _recordFirstClick(gs: GameState, targetId: string, elapsed: number): vo
   if (!gs.first_click_times.has(targetId)) {
     gs.first_click_times.set(targetId, elapsed);
   }
+}
+
+function _segmentsIntersect(
+  ax: number, ay: number, bx: number, by: number,
+  cx: number, cy: number, dx: number, dy: number,
+): boolean {
+  function cross(ox: number, oy: number, ax2: number, ay2: number, bx2: number, by2: number): number {
+    return (ax2 - ox) * (by2 - oy) - (ay2 - oy) * (bx2 - ox);
+  }
+
+  const d1 = cross(cx, cy, dx, dy, ax, ay);
+  const d2 = cross(cx, cy, dx, dy, bx, by);
+  const d3 = cross(ax, ay, bx, by, cx, cy);
+  const d4 = cross(ax, ay, bx, by, dx, dy);
+
+  return (
+    ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
+    ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))
+  );
+}
+
+function _losBlocked(gs: GameState, sx: number, sy: number, tx: number, ty: number): boolean {
+  for (const feature of gs.terrain) {
+    if (!feature.blocks_los) continue;
+    const poly = feature.polygon;
+    for (let i = 0; i < poly.length; i++) {
+      const [px1, py1] = poly[i];
+      const [px2, py2] = poly[(i + 1) % poly.length];
+      if (_segmentsIntersect(sx, sy, tx, ty, px1, py1, px2, py2)) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -191,11 +230,29 @@ export function handleEngage(
 
     const isJammer = effState.type === 'rf_jam' || effState.type === 'electronic';
     const isShenobi = effState.type === 'shenobi_pm';
+    const isDirectedEnergy = effState.type === 'de_laser' || effState.type === 'de_hpm';
 
     // Range check
-    if (!isJammer && !isShenobi && !checkEffectorInRange(effState, d)) {
+    const inWeaponEnvelope = isDirectedEnergy
+      ? checkEffectorRangeOnly(effState, d)
+      : checkEffectorInRange(effState, d);
+    if (isDirectedEnergy && !inWeaponEnvelope) {
+      msgs.push(..._queueDirectedEnergyEngagement(gs, d, effState, effectorId, targetId, elapsed, 'slew'));
+      break;
+    }
+
+    if (!isJammer && !isShenobi && !inWeaponEnvelope) {
       msgs.push(_event(elapsed, `ENGAGEMENT: ${effState.name} \u2014 Target out of range`));
       break;
+    }
+
+    if (effState.requires_los && !isJammer && !isShenobi) {
+      const ex = effState.x ?? 0;
+      const ey = effState.y ?? 0;
+      if (gs.terrain.length > 0 && _losBlocked(gs, ex, ey, d.x, d.y)) {
+        msgs.push(_event(elapsed, `ENGAGEMENT: ${effState.name} — NO LINE OF SIGHT (terrain blocked)`));
+        break;
+      }
     }
 
     // JACKAL requires Ku-Band FCS
@@ -211,6 +268,8 @@ export function handleEngage(
     // Dispatch by explicit effector type to avoid ordering ambiguity
     if (effState.type === 'kinetic') {
       msgs.push(..._engageJackal(gs, d, effState, effectorId, targetId, elapsed));
+    } else if (effState.type === 'de_laser' || effState.type === 'de_hpm') {
+      msgs.push(..._queueDirectedEnergyEngagement(gs, d, effState, effectorId, targetId, elapsed, 'engage'));
     } else if (isShenobi) {
       const cmType = shenobiCm || 'shenobi_hold';
       msgs.push(..._engageNexus(gs, j, d, effState, effectorId, targetId, cmType, effectiveness, elapsed));
@@ -220,7 +279,9 @@ export function handleEngage(
       msgs.push(..._engageDirect(gs, j, d, effState, effectorId, targetId, effectiveness, elapsed));
     }
 
-    _updateEffectorStatus(effState);
+    if (!isDirectedEnergy) {
+      _updateEffectorStatus(effState);
+    }
     break;
   }
 
@@ -351,7 +412,15 @@ function _engageJammer(
     if (d.last_jam_attempt_ts === undefined || (elapsed - d.last_jam_attempt_ts) > 30) {
       gs.drones[droneIdx] = { ...d, last_jam_attempt_ts: elapsed };
       msgs.push(_event(elapsed, `EW: ${(d.display_label || d.id).toUpperCase()} \u2014 FREQUENCY HOP DETECTED, JAM INEFFECTIVE \u2014 FHSS ACTIVE`));
-      msgs.push({ type: 'engagement_result', target_id: targetId, effector: effectorId, effective: false, effectiveness: 0 });
+      msgs.push({
+        type: 'engagement_result',
+        target_id: targetId,
+        effector: effectorId,
+        effective: false,
+        effectiveness: 0,
+        effector_type: effState.type,
+        effector_name: effState.name,
+      });
       return msgs;
     }
   }
@@ -362,12 +431,22 @@ function _engageJammer(
 
   if (jamBehavior === null && !pntEffective) {
     msgs.push(_event(elapsed, `JAM INEFFECTIVE \u2014 AUTONOMOUS NAVIGATION (${(d.display_label || d.id).toUpperCase()})`));
-    msgs.push({ type: 'engagement_result', target_id: targetId, effector: effectorId, effective: false, effectiveness: 0 });
+    msgs.push({
+      type: 'engagement_result',
+      target_id: targetId,
+      effector: effectorId,
+      effective: false,
+      effectiveness: 0,
+      effector_type: effState.type,
+      effector_name: effState.name,
+    });
   } else {
     const updateFields: Partial<DroneState> = {};
     const engagementResult: Record<string, unknown> = {
       type: 'engagement_result', target_id: targetId, effector: effectorId,
       effective: true, effectiveness: Math.round(effectiveness * 100) / 100,
+      effector_type: effState.type,
+      effector_name: effState.name,
     };
 
     if (jamBehavior !== null) {
@@ -479,9 +558,141 @@ function _engageDirect(
   msgs.push({
     type: 'engagement_result', target_id: targetId, effector: effectorId,
     effective: neutralized, effectiveness: Math.round(effectiveness * 100) / 100,
+    effector_type: effState.type,
+    effector_name: effState.name,
   });
   const resultStr = neutralized ? 'NEUTRALIZED' : 'INEFFECTIVE';
   msgs.push(_event(elapsed, `ENGAGEMENT: ${effState.name} vs ${_label(gs, targetId).toUpperCase()} \u2014 ${resultStr}`));
+  return msgs;
+}
+
+function _queueDirectedEnergyEngagement(
+  gs: GameState,
+  d: DroneState,
+  effState: EffectorRuntimeState,
+  effectorId: string,
+  targetId: string,
+  elapsed: number,
+  mode: 'slew' | 'engage',
+): Record<string, unknown>[] {
+  const ex = effState.x ?? 0;
+  const ey = effState.y ?? 0;
+  const targetBearing = bearingToTargetDegrees(ex, ey, d.x, d.y);
+  const slewSeconds = calculateDirectedEnergySlewSeconds(effState, d);
+  const initialFacing = effState.facing_deg ?? targetBearing;
+
+  effState.status = 'slewing';
+  effState.recharge_remaining = slewSeconds;
+  gs.pending_directed_energy_engagements.push({
+    effector_id: effectorId,
+    target_id: targetId,
+    execute_at: elapsed + slewSeconds,
+    queued_at: elapsed,
+    initial_facing_deg: initialFacing,
+    mode,
+  });
+
+  return [
+    _event(
+      elapsed,
+      mode === 'engage'
+        ? `ENGAGEMENT: ${effState.name} SLEWING \u2014 ${(d.display_label || d.id).toUpperCase()} (${slewSeconds.toFixed(1)}s aim time)`
+        : `ENGAGEMENT: ${effState.name} SLEWING \u2014 ${(d.display_label || d.id).toUpperCase()} (${slewSeconds.toFixed(1)}s to orient, target out of range)`,
+    ),
+  ];
+}
+
+export function handleDirectedEnergyResolution(
+  gs: GameState,
+  targetId: string,
+  effectorId: string,
+  elapsed: number,
+  mode: 'slew' | 'engage' = 'engage',
+): Record<string, unknown>[] {
+  const effState = findEffectorConfig(gs.effector_states, effectorId);
+  if (!effState) return [];
+
+  const droneIdx = gs.drones.findIndex((d) => d.id === targetId);
+  if (droneIdx === -1) {
+    effState.status = 'ready';
+    effState.recharge_remaining = 0;
+    return [_event(elapsed, `ENGAGEMENT: ${effState.name} — target lost during slew`)];
+  }
+
+  const targetDrone = gs.drones[droneIdx];
+  if (targetDrone.neutralized) {
+    effState.status = 'ready';
+    effState.recharge_remaining = 0;
+    return [_event(elapsed, `ENGAGEMENT: ${effState.name} — ${(targetDrone.display_label || targetDrone.id).toUpperCase()} already neutralized`)];
+  }
+
+  if (mode === 'slew') {
+    effState.status = 'ready';
+    effState.recharge_remaining = 0;
+    return [_event(elapsed, `ENGAGEMENT: ${effState.name} on target \u2014 awaiting range on ${(targetDrone.display_label || targetDrone.id).toUpperCase()}`)];
+  }
+
+  if (!checkEffectorRangeOnly(effState, targetDrone)) {
+    effState.status = 'ready';
+    effState.recharge_remaining = 0;
+    return [_event(elapsed, `ENGAGEMENT: ${effState.name} — Target moved out of range during slew`)];
+  }
+
+  const effectiveness = effectorEffectiveness(effState.type, targetDrone.drone_type);
+  const msgs = effState.type === 'de_hpm'
+    ? _engageHpm(gs, targetDrone, effState, effectorId, targetId, elapsed)
+    : _engageDirect(gs, droneIdx, targetDrone, effState, effectorId, targetId, effectiveness, elapsed);
+
+  _updateEffectorStatus(effState);
+  return msgs;
+}
+
+function _engageHpm(
+  gs: GameState, targetDrone: DroneState, effState: EffectorRuntimeState,
+  effectorId: string, targetId: string, elapsed: number,
+): Record<string, unknown>[] {
+  const msgs: Record<string, unknown>[] = [];
+  const impactedIds: string[] = [];
+  let neutralizedCount = 0;
+
+  for (let i = 0; i < gs.drones.length; i++) {
+    const candidate = gs.drones[i];
+    if (candidate.is_interceptor || candidate.neutralized) continue;
+
+    const distFromAimPoint = Math.hypot(candidate.x - targetDrone.x, candidate.y - targetDrone.y);
+    if (candidate.id !== targetId && distFromAimPoint > HPM_SPLASH_RADIUS_KM) continue;
+    if (!checkEffectorRangeOnly(effState, candidate)) continue;
+
+    const effectiveness = effectorEffectiveness(effState.type, candidate.drone_type);
+    const neutralized = effectiveness > 0.5;
+    gs.drones[i] = { ...candidate, dtid_phase: 'defeated', neutralized };
+    gs.engage_times.set(candidate.id, elapsed);
+    gs.effector_used.set(candidate.id, effState.type);
+    gs.actions.push({ action: 'engage', target_id: candidate.id, effector: effectorId, timestamp: elapsed });
+    impactedIds.push(candidate.display_label || candidate.id);
+    if (neutralized) neutralizedCount++;
+    msgs.push({
+      type: 'engagement_result',
+      target_id: candidate.id,
+      effector: effectorId,
+      effective: neutralized,
+      effectiveness: Math.round(effectiveness * 100) / 100,
+      effector_type: effState.type,
+      effector_name: effState.name,
+    });
+  }
+
+  if (impactedIds.length === 0) {
+    msgs.push(_event(elapsed, `ENGAGEMENT: ${effState.name} pulse dissipated without effect`));
+    return msgs;
+  }
+
+  msgs.push(
+    _event(
+      elapsed,
+      `ENGAGEMENT: ${effState.name} pulse affected ${impactedIds.length} track(s) — ${neutralizedCount} neutralized`,
+    ),
+  );
   return msgs;
 }
 
@@ -503,14 +714,31 @@ function _engageNexus(
 
   if (!isShenobiVulnerable(d)) {
     msgs.push(_event(elapsed, `Shenobi: ${_label(gs, targetId).toUpperCase()} \u2014 NO PROTOCOL MATCH (not in library)`));
-    msgs.push({ type: 'engagement_result', target_id: targetId, effector: effectorId, effective: false, effectiveness: 0 });
+    msgs.push({
+      type: 'engagement_result',
+      target_id: targetId,
+      effector: effectorId,
+      effective: false,
+      effectiveness: 0,
+      effector_type: effState.type,
+      effector_name: effState.name,
+    });
     return msgs;
   }
 
   if (!pickShenobiCmEffectiveness(d, cmType)) {
     const cmLabel = cmType.replace('shenobi_', '').toUpperCase();
     msgs.push(_event(elapsed, `Shenobi: ${cmLabel} INEFFECTIVE \u2014 autonomous navigation (${_label(gs, targetId).toUpperCase()})`));
-    msgs.push({ type: 'engagement_result', target_id: targetId, effector: effectorId, effective: false, effectiveness: 0, shenobi_cm: cmType });
+    msgs.push({
+      type: 'engagement_result',
+      target_id: targetId,
+      effector: effectorId,
+      effective: false,
+      effectiveness: 0,
+      shenobi_cm: cmType,
+      effector_type: effState.type,
+      effector_name: effState.name,
+    });
     return msgs;
   }
 
@@ -537,6 +765,8 @@ function _engageNexus(
     type: 'engagement_result', target_id: targetId, effector: effectorId,
     effective: true, effectiveness: Math.round(effectiveness * 100) / 100,
     shenobi_cm: cmType, shenobi_cm_state: 'pending',
+    effector_type: effState.type,
+    effector_name: effState.name,
   });
   return msgs;
 }

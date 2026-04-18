@@ -21,13 +21,21 @@ function pointInPolygon(x: number, y: number, polygon: [number, number][]): bool
 import type {
   DroneState, GameState, DroneStartConfig, ScenarioConfig,
   SensorConfig, EffectorConfig, PlacementConfig, BaseTemplate,
-  TerrainFeature, EquipmentCatalog, PlayerAction,
+  TerrainFeature, EquipmentCatalog, PlayerAction, EffectorStatus,
 } from './state.js';
 import { createGameState } from './state.js';
-import { KTS_TO_KMS, threatLevel } from './helpers.js';
+import {
+  KTS_TO_KMS,
+  threatLevel,
+  findEffectorConfig,
+  bearingToTargetDegrees,
+  normalizeDegrees,
+  signedAngleDifferenceDegrees,
+} from './helpers.js';
 import { createDroneFromConfig, moveDrone, distanceToBase } from './drone.js';
 import { updateJammedDrone, updatePntJammedDrone, pickJamBehavior, applyPntJamming } from './jamming.js';
 import { updateShenobiDrone } from './shenobi.js';
+import { handleDirectedEnergyResolution } from './actions.js';
 import { updateJackal } from './jackal.js';
 import { updateSensors, calculateConfidence } from './detection.js';
 import type { RfReading, SensorReading } from './detection.js';
@@ -103,7 +111,7 @@ export function initGameState(
     const isJammer = eff.type === 'rf_jam' || eff.type === 'electronic';
     gs.effector_states.push({
       id: eff.id, name: eff.name, type: eff.type,
-      range_km: eff.range_km, status: eff.status,
+      range_km: eff.range_km, status: eff.status as EffectorStatus,
       recharge_seconds: eff.recharge_seconds, recharge_remaining: 0,
       x: eff.x, y: eff.y, fov_deg: eff.fov_deg,
       facing_deg: eff.facing_deg, requires_los: eff.requires_los,
@@ -293,13 +301,13 @@ const _FREE_PLAY_TEMPLATES: Record<string, Omit<DroneStartConfig, 'id' | 'start_
     drone_type: 'bird', altitude: 150, speed: 30, behavior: 'evasive',
     rf_emitting: false, should_engage: false,
     correct_classification: 'bird', correct_affiliation: 'neutral',
-    optimal_effectors: [], acceptable_effectors: [], roe_violations: ['electronic', 'kinetic', 'rf_jam', 'directed_energy', 'net_interceptor'],
+    optimal_effectors: [], acceptable_effectors: [], roe_violations: ['electronic', 'kinetic', 'rf_jam', 'de_laser', 'de_hpm', 'net_interceptor'],
   },
   balloon: {
     drone_type: 'weather_balloon', altitude: 800, speed: 3, behavior: 'waypoint_path',
     rf_emitting: false, should_engage: false,
     correct_classification: 'weather_balloon', correct_affiliation: 'neutral',
-    optimal_effectors: [], acceptable_effectors: [], roe_violations: ['electronic', 'kinetic', 'rf_jam', 'directed_energy', 'net_interceptor'],
+    optimal_effectors: [], acceptable_effectors: [], roe_violations: ['electronic', 'kinetic', 'rf_jam', 'de_laser', 'de_hpm', 'net_interceptor'],
   },
 };
 
@@ -410,18 +418,55 @@ export function tickEffectorRecharge(gs: GameState, elapsed: number): Msg[] {
   const events: Msg[] = [];
   for (const effState of gs.effector_states) {
     if (effState.type === 'rf_jam' || effState.type === 'electronic') continue;
-    if (effState.status === 'recharging') {
+    if (effState.status === 'recharging' || effState.status === 'slewing') {
       effState.recharge_remaining -= gs.tick_rate;
       if (effState.recharge_remaining <= 0) {
-        effState.status = 'ready';
         effState.recharge_remaining = 0;
-        events.push({
-          type: 'event', timestamp: Math.round(elapsed * 10) / 10,
-          message: `${effState.name}: Ready`,
-        });
+        if (effState.status === 'recharging') {
+          effState.status = 'ready';
+          events.push({
+            type: 'event', timestamp: Math.round(elapsed * 10) / 10,
+            message: `${effState.name}: Ready`,
+          });
+        }
       }
     }
   }
+  return events;
+}
+
+export function tickPendingDirectedEnergyEngagements(gs: GameState, elapsed: number): Msg[] {
+  const events: Msg[] = [];
+  const remaining = [];
+  for (const pending of gs.pending_directed_energy_engagements) {
+    const effState = findEffectorConfig(gs.effector_states, pending.effector_id);
+    if (!effState || effState.status !== 'slewing') continue;
+
+    const targetDrone = gs.drones.find((d) => d.id === pending.target_id);
+    if (targetDrone && !targetDrone.neutralized) {
+      const effX = effState.x ?? 0;
+      const effY = effState.y ?? 0;
+      const targetBearing = bearingToTargetDegrees(effX, effY, targetDrone.x, targetDrone.y);
+      const currentFacing = effState.facing_deg ?? pending.initial_facing_deg;
+      const remainingTime = Math.max(pending.execute_at - elapsed, gs.tick_rate);
+      const turnFraction = Math.min(1, gs.tick_rate / remainingTime);
+      const signedDiff = signedAngleDifferenceDegrees(currentFacing, targetBearing);
+      effState.facing_deg = normalizeDegrees(currentFacing + signedDiff * turnFraction);
+    }
+
+    if (elapsed < pending.execute_at) {
+      remaining.push(pending);
+      continue;
+    }
+
+    if (targetDrone && !targetDrone.neutralized) {
+      const effX = effState.x ?? 0;
+      const effY = effState.y ?? 0;
+      effState.facing_deg = bearingToTargetDegrees(effX, effY, targetDrone.x, targetDrone.y);
+    }
+    events.push(...handleDirectedEnergyResolution(gs, pending.target_id, pending.effector_id, elapsed, pending.mode));
+  }
+  gs.pending_directed_energy_engagements = remaining;
   return events;
 }
 
@@ -843,6 +888,12 @@ export function buildStateMsg(gs: GameState, elapsed: number, timeRemaining: num
     effectors: gs.effector_states.map(es => ({
       id: es.id, name: es.name ?? '', type: es.type ?? '',
       status: es.status,
+      range_km: es.range_km,
+      recharge_seconds: es.recharge_seconds,
+      x: es.x,
+      y: es.y,
+      fov_deg: es.fov_deg,
+      facing_deg: Math.round((es.facing_deg ?? 0) * 10) / 10,
       ...(es.ammo_count !== null ? { ammo_count: es.ammo_count } : {}),
       ...(es.ammo_remaining !== null ? { ammo_remaining: es.ammo_remaining } : {}),
       ...(es.jammer_active !== undefined ? { jammer_active: es.jammer_active } : {}),

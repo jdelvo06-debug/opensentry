@@ -17,6 +17,7 @@ interface Props {
   onDeclareAffiliation?: (trackId: string, affiliation: string) => void;
   atcMessages?: AtcMessage[];
   tutorialStep?: number;
+  engagementFeedback?: { level: "info" | "warning" | "success"; message: string } | null;
 }
 
 const CLASSIFICATIONS = [
@@ -41,6 +42,8 @@ const EFFECTOR_COLORS: Record<string, string> = {
   net_interceptor: "#3fb950",
   de_weapon: "#bc8cff",
   directed_energy: "#bc8cff",
+  de_laser: "#bc8cff",
+  de_hpm: "#00d4ff",
   shenobi_pm: "#a371f7",
 };
 
@@ -68,6 +71,7 @@ export default function EngagementPanel({
   onDeclareAffiliation,
   atcMessages = [],
   tutorialStep,
+  engagementFeedback,
 }: Props) {
   const [shenobiSubMenu, setNexusSubMenu] = useState<string | null>(null);
 
@@ -493,6 +497,40 @@ export default function EngagementPanel({
               <div style={{ fontSize: 11, color: "#8b949e", marginBottom: 8 }}>
                 Select effector to engage
               </div>
+              {engagementFeedback && (
+                <div
+                  style={{
+                    marginBottom: 8,
+                    padding: "8px 10px",
+                    borderRadius: 5,
+                    border: `1px solid ${
+                      engagementFeedback.level === "success"
+                        ? "#3fb95066"
+                        : engagementFeedback.level === "warning"
+                          ? "#d2992266"
+                          : "#58a6ff55"
+                    }`,
+                    background:
+                      engagementFeedback.level === "success"
+                        ? "#3fb95014"
+                        : engagementFeedback.level === "warning"
+                          ? "#d2992214"
+                          : "#58a6ff14",
+                    color:
+                      engagementFeedback.level === "success"
+                        ? "#3fb950"
+                        : engagementFeedback.level === "warning"
+                          ? "#d29922"
+                          : "#58a6ff",
+                    fontSize: 10,
+                    fontWeight: 600,
+                    lineHeight: 1.45,
+                    letterSpacing: 0.4,
+                  }}
+                >
+                  {engagementFeedback.message}
+                </div>
+              )}
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 {effectors.map((eff) => {
                   const isShenobi = eff.type === "shenobi_pm";

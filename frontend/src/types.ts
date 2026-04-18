@@ -180,6 +180,8 @@ export interface EngagementResultMsg {
   effector: string;
   effective: boolean;
   effectiveness: number;
+  effector_type?: string;
+  effector_name?: string;
   jammed?: boolean;
   jammed_behavior?: JammedBehavior;
   pnt_jammed?: boolean;
