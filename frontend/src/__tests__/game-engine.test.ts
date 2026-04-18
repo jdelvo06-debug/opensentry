@@ -9,10 +9,12 @@ import {
   segmentsIntersect,
 } from '@opensentry/game/detection';
 import { createDefaultDrone, createGameState } from '@opensentry/game/state';
-import type { DroneState, SensorConfig, ScenarioConfig } from '@opensentry/game/state';
+import type { DroneState, EffectorConfig, SensorConfig, ScenarioConfig } from '@opensentry/game/state';
 import { createDroneFromConfig, moveDrone, distanceToBase } from '@opensentry/game/drone';
 import { pickJamBehavior, updatePntJammedDrone } from '@opensentry/game/jamming';
 import { KTS_TO_KMS } from '@opensentry/game/helpers';
+import { handleEngage } from '@opensentry/game/actions';
+import { calculateScore } from '@opensentry/game/scoring';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -45,6 +47,34 @@ function makeDrone(overrides: Partial<DroneState> = {}): DroneState {
     heading: 180,
     ...overrides,
   });
+}
+
+function makeScenario(overrides: Partial<ScenarioConfig> = {}): ScenarioConfig {
+  return {
+    id: 'test',
+    name: 'Test',
+    description: 'Test scenario',
+    difficulty: 'easy',
+    duration_seconds: 300,
+    drones: [],
+    base_radius_km: 1,
+    engagement_zones: {
+      detection_range_km: 10,
+      identification_range_km: 5,
+      engagement_range_km: 3,
+    },
+    sensors: [],
+    effectors: [],
+    correct_classification: 'commercial_quad',
+    correct_affiliation: 'hostile',
+    optimal_effectors: [],
+    acceptable_effectors: [],
+    roe_violations: [],
+    tutorial: false,
+    tutorial_prompts: null,
+    no_ambient: false,
+    ...overrides,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -296,9 +326,14 @@ describe('moveDrone', () => {
 
 describe('pickJamBehavior', () => {
   it('returns a valid behavior string', () => {
-    const behavior = pickJamBehavior('commercial_quad');
     const validBehaviors = ['loss_of_control', 'rth', 'forced_landing', 'atti_mode', 'gps_spoof'];
-    expect(validBehaviors).toContain(behavior);
+    const seen = new Set<string | null>();
+    for (let i = 0; i < 200; i++) {
+      seen.add(pickJamBehavior('commercial_quad'));
+    }
+    const nonNullBehaviors = [...seen].filter((behavior): behavior is string => behavior !== null);
+    expect(nonNullBehaviors.length).toBeGreaterThan(0);
+    expect(nonNullBehaviors.every((behavior) => validBehaviors.includes(behavior))).toBe(true);
   });
 
   it('returns null for RF-immune types', () => {
@@ -378,5 +413,155 @@ describe('createGameState', () => {
     expect(gs.current_wave).toBe(1);
     expect(gs.paused).toBe(false);
     expect(gs.max_duration).toBe(300);
+  });
+});
+
+describe('directed energy engagements', () => {
+  it('blocks DE-LASER when terrain blocks line of sight', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'de_laser',
+      name: 'DE-LASER-3K',
+      type: 'de_laser',
+      range_km: 5,
+      status: 'ready',
+      recharge_seconds: 15,
+      x: 0,
+      y: 0,
+      fov_deg: 360,
+      facing_deg: 0,
+      requires_los: true,
+      single_use: false,
+      ammo_count: null,
+      ammo_remaining: null,
+    }];
+    const terrain = [{
+      id: 'wall',
+      type: 'building',
+      name: 'Wall',
+      polygon: [[1, -1], [1, 1], [1.1, 1], [1.1, -1]],
+      blocks_los: true,
+      height_m: 50,
+    }];
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, terrain);
+    gs.effector_states.push({
+      ...effectors[0],
+      recharge_remaining: 0,
+    });
+    gs.drones.push(makeDrone({
+      id: 'bogey-1',
+      display_label: 'TRN-001',
+      x: 3,
+      y: 0,
+      dtid_phase: 'identified',
+      classification: 'commercial_quad',
+      classified: true,
+      affiliation: 'hostile',
+    }));
+
+    const msgs = handleEngage(gs, 'bogey-1', 'de_laser', 10);
+
+    expect(msgs.some((msg) => String(msg.message ?? '').includes('NO LINE OF SIGHT'))).toBe(true);
+    expect(gs.drones[0].neutralized).toBe(false);
+    expect(gs.effector_states[0].status).toBe('ready');
+  });
+
+  it('applies DE-HPM to clustered drones and emits effector metadata', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'de_hpm',
+      name: 'DE-HPM-3K',
+      type: 'de_hpm',
+      range_km: 5,
+      status: 'ready',
+      recharge_seconds: 30,
+      x: 0,
+      y: 0,
+      fov_deg: 360,
+      facing_deg: 0,
+      requires_los: false,
+      single_use: false,
+      ammo_count: null,
+      ammo_remaining: null,
+    }];
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
+    gs.effector_states.push({
+      ...effectors[0],
+      recharge_remaining: 0,
+    });
+    gs.drones.push(
+      makeDrone({
+        id: 'bogey-1',
+        display_label: 'TRN-001',
+        x: 1.0,
+        y: 0.0,
+        drone_type: 'micro',
+        dtid_phase: 'identified',
+        classification: 'micro',
+        classified: true,
+        affiliation: 'hostile',
+      }),
+      makeDrone({
+        id: 'bogey-2',
+        display_label: 'TRN-002',
+        x: 1.35,
+        y: 0.2,
+        drone_type: 'commercial_quad',
+        dtid_phase: 'identified',
+        classification: 'commercial_quad',
+        classified: true,
+        affiliation: 'hostile',
+      }),
+      makeDrone({
+        id: 'bogey-3',
+        display_label: 'TRN-003',
+        x: 3.0,
+        y: 0.0,
+        drone_type: 'commercial_quad',
+        dtid_phase: 'identified',
+        classification: 'commercial_quad',
+        classified: true,
+        affiliation: 'hostile',
+      }),
+    );
+
+    const msgs = handleEngage(gs, 'bogey-1', 'de_hpm', 10);
+    const results = msgs.filter((msg) => msg.type === 'engagement_result');
+
+    expect(results).toHaveLength(2);
+    expect(results.every((msg) => msg.effector_type === 'de_hpm')).toBe(true);
+    expect(results.every((msg) => msg.effector_name === 'DE-HPM-3K')).toBe(true);
+    expect(gs.drones[0].neutralized).toBe(true);
+    expect(gs.drones[1].neutralized).toBe(true);
+    expect(gs.drones[2].neutralized).toBe(false);
+    expect(gs.effector_states[0].status).toBe('recharging');
+  });
+});
+
+describe('directed energy scoring', () => {
+  it('normalizes placement effector ids for ROE scoring', () => {
+    const scenario = makeScenario({
+      correct_classification: 'commercial_quad',
+      correct_affiliation: 'hostile',
+      acceptable_effectors: ['de_hpm'],
+      roe_violations: ['de_hpm'],
+    });
+    const score = calculateScore(
+      scenario,
+      [{ action: 'engage', target_id: 'bogey-1', effector: 'effector_0_de_hpm_3k', timestamp: 12 }],
+      0,
+      4,
+      8,
+      12,
+      'commercial_quad',
+      'hostile',
+      'de_hpm',
+      false,
+      0.9,
+      2,
+      20,
+    );
+
+    expect(score.roe_score).toBe(0);
+    expect(score.details.roe).toContain('de_hpm');
+    expect(score.details.defeat).toContain('collateral risk');
   });
 });

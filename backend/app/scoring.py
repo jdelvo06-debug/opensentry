@@ -14,6 +14,24 @@ from app.models import (
 )
 
 
+def _normalize_effector_for_scoring(effector: str | None) -> str | None:
+    if not effector:
+        return None
+
+    lower = effector.lower()
+    if lower == "rf_jam" or "rf_jammer" in lower or "jammer" in lower:
+        return "electronic"
+    if lower == "kinetic" or "jackal" in lower:
+        return "kinetic"
+    if lower == "de_laser" or "de_laser" in lower or "de-laser" in lower:
+        return "de_laser"
+    if lower == "de_hpm" or "de_hpm" in lower or "de-hpm" in lower or "hpm" in lower:
+        return "de_hpm"
+    if lower == "shenobi_pm" or "shenobi" in lower:
+        return "shenobi_pm"
+    return effector
+
+
 def calculate_score(
     scenario: ScenarioConfig,
     actions: list[PlayerAction],
@@ -307,8 +325,9 @@ def _score_drone_components(
     engage_actions = [a for a in actions if a.action == "engage"]
     roe_violations_found = []
     for a in engage_actions:
-        if a.effector and a.effector in roe_violations:
-            roe_violations_found.append(a.effector)
+        normalized_effector = _normalize_effector_for_scoring(a.effector)
+        if normalized_effector and normalized_effector in roe_violations:
+            roe_violations_found.append(normalized_effector)
     if not should_engage and engage_actions:
         roe_violations_found.append("engaged_non_threat")
 

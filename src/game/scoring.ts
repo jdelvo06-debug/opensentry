@@ -36,6 +36,17 @@ function _totalToGrade(total: number): string {
   return 'F';
 }
 
+function _normalizeEffectorForScoring(effector: string | null | undefined): string | null {
+  if (!effector) return null;
+  const lower = effector.toLowerCase();
+  if (lower === 'rf_jam' || lower.includes('rf_jammer') || lower.includes('jammer')) return 'electronic';
+  if (lower === 'kinetic' || lower.includes('jackal')) return 'kinetic';
+  if (lower === 'de_laser' || lower.includes('de_laser') || lower.includes('de-laser')) return 'de_laser';
+  if (lower === 'de_hpm' || lower.includes('de_hpm') || lower.includes('de-hpm') || lower.includes('hpm')) return 'de_hpm';
+  if (lower === 'shenobi_pm' || lower.includes('shenobi')) return 'shenobi_pm';
+  return effector;
+}
+
 // ---------------------------------------------------------------------------
 // Internal: score individual components for a single drone
 // ---------------------------------------------------------------------------
@@ -195,6 +206,19 @@ function _scoreDroneComponents(
       scores['defeat'] = 30;
       details['defeat'] = `${effectorLabel} was a poor choice`;
     }
+
+    const collateralPenaltyMap: Record<string, number> = {
+      de_hpm: 15,
+      kinetic: 10,
+      de_laser: 0,
+      electronic: 0,
+      shenobi_pm: 5,
+    };
+    const collateralPenalty = collateralPenaltyMap[effectorUsed] ?? 0;
+    if (collateralPenalty > 0) {
+      scores['defeat'] = Math.max(0, scores['defeat'] - collateralPenalty);
+      details['defeat'] += ` (collateral risk: -${collateralPenalty})`;
+    }
   } else {
     if (droneReachedBase) {
       scores['defeat'] = 0;
@@ -209,8 +233,9 @@ function _scoreDroneComponents(
   const engageActions = actions.filter((a) => a.action === 'engage');
   const roeViolationsFound: string[] = [];
   for (const a of engageActions) {
-    if (a.effector && roeViolations.includes(a.effector)) {
-      roeViolationsFound.push(a.effector);
+    const normalizedEffector = _normalizeEffectorForScoring(a.effector);
+    if (normalizedEffector && roeViolations.includes(normalizedEffector)) {
+      roeViolationsFound.push(normalizedEffector);
     }
   }
   if (!shouldEngage && engageActions.length > 0) {

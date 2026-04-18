@@ -191,6 +191,12 @@ export default function App() {
   const [engagementZones, setEngagementZones] =
     useState<EngagementZones | null>(null);
   const [protectedArea, setProtectedArea] = useState<ProtectedAreaInfo | null>(null);
+  const tracksRef = useRef(tracks);
+  tracksRef.current = tracks;
+  const effectorsRef = useRef(effectors);
+  effectorsRef.current = effectors;
+  const effectorConfigsRef = useRef(effectorConfigs);
+  effectorConfigsRef.current = effectorConfigs;
 
   // Camera panel
   const [cameraTrackId, setCameraTrackId] = useState<string | null>(null);
@@ -426,8 +432,9 @@ export default function App() {
         const effLower = msg.effector.toLowerCase();
         if (effLower.includes("jackal") || effLower.includes("interceptor")) {
           // Find effector and target positions
-          const effObj = effectors.find((e) => e.id === msg.effector) || effectorConfigs.find((e) => e.id === msg.effector);
-          const target = tracks.find((t) => t.id === msg.target_id);
+          const effObj = effectorsRef.current.find((e) => e.id === msg.effector)
+            || effectorConfigsRef.current.find((e) => e.id === msg.effector);
+          const target = tracksRef.current.find((t) => t.id === msg.target_id);
           if (effObj && target && effObj.x != null) {
             const interceptId = `intercept-${Date.now()}`;
             const duration = 4000; // 4 seconds
@@ -454,12 +461,13 @@ export default function App() {
         // Track DE beam animation (laser / HPM)
         const effType = (msg as any).effector_type || "";
         if (effType === "de_laser" || effType === "de_hpm") {
-          const effObj = effectors.find((e) => e.id === msg.effector) || effectorConfigs.find((e) => e.id === msg.effector);
-          const target = tracks.find((t) => t.id === msg.target_id);
+          const effObj = effectorsRef.current.find((e) => e.id === msg.effector)
+            || effectorConfigsRef.current.find((e) => e.id === msg.effector);
+          const target = tracksRef.current.find((t) => t.id === msg.target_id);
           if (effObj && target && effObj.x != null) {
             const beamId = `de-beam-${Date.now()}`;
             const beamType: "laser" | "hpm" = effType === "de_hpm" ? "hpm" : "laser";
-            const duration = 2500; // 2.5s beam animation
+            const duration = beamType === "hpm" ? 3200 : 2600;
             const newBeam: DEBeamAnimationData = {
               id: beamId,
               effectorId: msg.effector,
@@ -476,7 +484,7 @@ export default function App() {
             setActiveDEBeams((prev) => [...prev, newBeam]);
             setTimeout(() => {
               setActiveDEBeams((prev) => prev.filter((b) => b.id !== beamId));
-            }, duration + 500);
+            }, duration + 700);
           }
         }
 
@@ -684,8 +692,6 @@ export default function App() {
   const droneReachedBaseRef = useRef(droneReachedBase);
   droneReachedBaseRef.current = droneReachedBase;
 
-  const tracksRef = useRef(tracks);
-  tracksRef.current = tracks;
   const selectedTrackIdRef = useRef(selectedTrackId);
   selectedTrackIdRef.current = selectedTrackId;
   const phaseRef = useRef(phase);
@@ -1223,6 +1229,7 @@ export default function App() {
       ],
       effectors: [
         { catalog_id: "rf_jammer", x: 0.0, y: 0.05, facing_deg: 0 },
+        { catalog_id: "de_laser_3k", x: 0.12, y: 0.0, facing_deg: 45 },
       ],
       combined: [
         { catalog_id: "shenobi", x: 0.0, y: 0.0, facing_deg: 0 },
@@ -1240,6 +1247,7 @@ export default function App() {
         { catalog_id: "rf_jammer", x: 0.0, y: 0.05, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: 0.15, y: 0.0, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: -0.15, y: 0.0, facing_deg: 180 },
+        { catalog_id: "de_laser_3k", x: 0.0, y: -0.18, facing_deg: 0 },
       ],
       combined: [
         { catalog_id: "shenobi", x: 0.0, y: 0.0, facing_deg: 0 },
@@ -1259,6 +1267,8 @@ export default function App() {
         { catalog_id: "rf_jammer", x: -0.2, y: -0.1, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: 0.15, y: 0.0, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: -0.15, y: 0.0, facing_deg: 180 },
+        { catalog_id: "de_laser_3k", x: 0.22, y: -0.18, facing_deg: 315 },
+        { catalog_id: "de_hpm_3k", x: -0.22, y: -0.18, facing_deg: 45 },
       ],
       combined: [
         { catalog_id: "shenobi", x: 0.0, y: 0.0, facing_deg: 0 },
@@ -1277,6 +1287,8 @@ export default function App() {
       effectors: [
         { catalog_id: "rf_jammer", x: 0.0, y: 0.05, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: 0.1, y: 0.0, facing_deg: 0 },
+        { catalog_id: "de_laser_3k", x: 0.2, y: -0.12, facing_deg: 330 },
+        { catalog_id: "de_hpm_3k", x: -0.18, y: -0.12, facing_deg: 30 },
       ],
       combined: [
         { catalog_id: "shenobi", x: 0.0, y: 0.0, facing_deg: 0 },
@@ -1294,6 +1306,7 @@ export default function App() {
       effectors: [
         { catalog_id: "rf_jammer", x: 0.0, y: 0.05, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: 0.15, y: 0.0, facing_deg: 0 },
+        { catalog_id: "de_laser_3k", x: -0.18, y: -0.12, facing_deg: 30 },
       ],
       combined: [
         { catalog_id: "shenobi", x: 0.0, y: 0.0, facing_deg: 0 },
@@ -1314,6 +1327,8 @@ export default function App() {
         { catalog_id: "rf_jammer", x: -0.2, y: -0.1, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: 0.15, y: 0.0, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: -0.15, y: 0.0, facing_deg: 180 },
+        { catalog_id: "de_laser_3k", x: 0.22, y: -0.18, facing_deg: 315 },
+        { catalog_id: "de_hpm_3k", x: -0.22, y: -0.18, facing_deg: 45 },
       ],
       combined: [
         { catalog_id: "shenobi", x: 0.0, y: 0.0, facing_deg: 0 },

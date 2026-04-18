@@ -307,6 +307,12 @@ class TestROECompliance:
         assert score == 0.0
         assert "kinetic" in detail.lower()
 
+    def test_placement_effector_id_normalizes_to_de_type(self):
+        actions = [PlayerAction(action="engage", target_id="X", effector="effector_0_de_hpm_3k", timestamp=15.0)]
+        score, detail = self._score(actions, roe_violations=["de_hpm"])
+        assert score == 0.0
+        assert "de_hpm" in detail.lower()
+
     def test_engaging_non_threat_is_violation(self):
         actions = [PlayerAction(action="engage", target_id="X", effector="rf_jam", timestamp=15.0)]
         score, detail = self._score(actions, should_engage=False)

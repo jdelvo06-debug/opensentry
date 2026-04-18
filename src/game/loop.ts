@@ -293,13 +293,13 @@ const _FREE_PLAY_TEMPLATES: Record<string, Omit<DroneStartConfig, 'id' | 'start_
     drone_type: 'bird', altitude: 150, speed: 30, behavior: 'evasive',
     rf_emitting: false, should_engage: false,
     correct_classification: 'bird', correct_affiliation: 'neutral',
-    optimal_effectors: [], acceptable_effectors: [], roe_violations: ['electronic', 'kinetic', 'rf_jam', 'directed_energy', 'net_interceptor'],
+    optimal_effectors: [], acceptable_effectors: [], roe_violations: ['electronic', 'kinetic', 'rf_jam', 'de_laser', 'de_hpm', 'net_interceptor'],
   },
   balloon: {
     drone_type: 'weather_balloon', altitude: 800, speed: 3, behavior: 'waypoint_path',
     rf_emitting: false, should_engage: false,
     correct_classification: 'weather_balloon', correct_affiliation: 'neutral',
-    optimal_effectors: [], acceptable_effectors: [], roe_violations: ['electronic', 'kinetic', 'rf_jam', 'directed_energy', 'net_interceptor'],
+    optimal_effectors: [], acceptable_effectors: [], roe_violations: ['electronic', 'kinetic', 'rf_jam', 'de_laser', 'de_hpm', 'net_interceptor'],
   },
 };
 

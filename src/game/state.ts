@@ -18,7 +18,15 @@ export type ThreatClassification =
   | 'jackal' | 'shahed' | 'military_jet';
 
 export type SensorType = 'radar' | 'rf' | 'eoir' | 'acoustic';
-export type EffectorType = 'rf_jam' | 'electronic' | 'kinetic' | 'net_interceptor' | 'directed_energy' | 'shenobi_pm';
+export type EffectorType =
+  | 'rf_jam'
+  | 'electronic'
+  | 'kinetic'
+  | 'net_interceptor'
+  | 'directed_energy'
+  | 'de_laser'
+  | 'de_hpm'
+  | 'shenobi_pm';
 export type EffectorStatus = 'ready' | 'recharging' | 'offline' | 'depleted';
 export type NexusCMType = 'shenobi_hold' | 'shenobi_land_now' | 'shenobi_deafen';
 export type NexusCMState = 'pending' | '1/2' | '2/2';

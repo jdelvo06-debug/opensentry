@@ -803,29 +803,38 @@ function DEBeamOverlay({
       if (beamType === "laser") {
         // --- LASER: tight bright beam with glow ---
         const pulseFlicker = 0.8 + 0.2 * Math.sin(elapsed * 0.02); // subtle flicker
+        const sourceGlow = ctx.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, 24);
+        sourceGlow.addColorStop(0, `rgba(255, 225, 160, ${0.9 * (1 - t)})`);
+        sourceGlow.addColorStop(0.4, `rgba(255, 140, 60, ${0.35 * (1 - t)})`);
+        sourceGlow.addColorStop(1, "rgba(255, 120, 60, 0)");
+
+        ctx.beginPath();
+        ctx.arc(sp.x, sp.y, 24, 0, Math.PI * 2);
+        ctx.fillStyle = sourceGlow;
+        ctx.fill();
 
         // Outer glow (wide, faint red)
         ctx.beginPath();
         ctx.moveTo(sp.x, sp.y);
         ctx.lineTo(beamEndX, beamEndY);
-        ctx.strokeStyle = `rgba(255, 80, 40, ${0.15 * pulseFlicker * (1 - t)})`;
-        ctx.lineWidth = 12;
+        ctx.strokeStyle = `rgba(255, 80, 40, ${0.28 * pulseFlicker * (1 - t)})`;
+        ctx.lineWidth = 16;
         ctx.stroke();
 
         // Mid glow
         ctx.beginPath();
         ctx.moveTo(sp.x, sp.y);
         ctx.lineTo(beamEndX, beamEndY);
-        ctx.strokeStyle = `rgba(255, 120, 60, ${0.4 * pulseFlicker * (1 - t)})`;
-        ctx.lineWidth = 4;
+        ctx.strokeStyle = `rgba(255, 140, 60, ${0.58 * pulseFlicker * (1 - t)})`;
+        ctx.lineWidth = 6;
         ctx.stroke();
 
         // Core beam (bright white-orange, thin)
         ctx.beginPath();
         ctx.moveTo(sp.x, sp.y);
         ctx.lineTo(beamEndX, beamEndY);
-        ctx.strokeStyle = `rgba(255, 220, 180, ${0.9 * pulseFlicker * (1 - t)})`;
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = `rgba(255, 235, 210, ${pulseFlicker * (1 - t)})`;
+        ctx.lineWidth = 2.5;
         ctx.stroke();
 
         // Impact flash at target when beam arrives
@@ -833,6 +842,20 @@ function DEBeamOverlay({
           const impactT = (t - 0.3) / 0.5;
           const flashR = 8 + impactT * 15;
           const flashOp = (1 - impactT) * pulseFlicker;
+          const impactGlow = ctx.createRadialGradient(tp.x, tp.y, 0, tp.x, tp.y, flashR * 1.5);
+          impactGlow.addColorStop(0, effective
+            ? `rgba(255, 245, 180, ${flashOp})`
+            : `rgba(255, 140, 70, ${flashOp * 0.9})`);
+          impactGlow.addColorStop(0.5, effective
+            ? `rgba(255, 170, 70, ${flashOp * 0.55})`
+            : `rgba(255, 90, 50, ${flashOp * 0.4})`);
+          impactGlow.addColorStop(1, "rgba(255, 120, 60, 0)");
+
+          ctx.beginPath();
+          ctx.arc(tp.x, tp.y, flashR * 1.5, 0, Math.PI * 2);
+          ctx.fillStyle = impactGlow;
+          ctx.fill();
+
           ctx.beginPath();
           ctx.arc(tp.x, tp.y, flashR, 0, Math.PI * 2);
           ctx.fillStyle = effective
@@ -842,28 +865,50 @@ function DEBeamOverlay({
         }
       } else {
         // --- HPM: wide pulse cone expanding toward target ---
-        const coneWidth = 20 + t * 15; // cone widens as it propagates
+        const coneWidth = 34 + beamT * 52;
+        const secondaryWidth = coneWidth * 0.62;
+        const emPulse = 0.65 + 0.35 * Math.sin(elapsed * 0.015);
+        const frontRingR = 18 + beamT * 34;
+        const sustainedBeamOpacity = Math.max(0.24, 0.72 - t * 0.42);
+
+        const sourceGlow = ctx.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, 34);
+        sourceGlow.addColorStop(0, `rgba(120, 255, 255, ${0.95 * sustainedBeamOpacity})`);
+        sourceGlow.addColorStop(0.45, `rgba(0, 210, 255, ${0.38 * sustainedBeamOpacity})`);
+        sourceGlow.addColorStop(1, "rgba(0, 180, 255, 0)");
+        ctx.beginPath();
+        ctx.arc(sp.x, sp.y, 34, 0, Math.PI * 2);
+        ctx.fillStyle = sourceGlow;
+        ctx.fill();
 
         // Draw cone shape from effector to beam front
         ctx.beginPath();
-        ctx.moveTo(sp.x + perpX * 3, sp.y + perpY * 3); // narrow at source
-        ctx.lineTo(sp.x - perpX * 3, sp.y - perpY * 3);
+        ctx.moveTo(sp.x + perpX * 6, sp.y + perpY * 6);
+        ctx.lineTo(sp.x - perpX * 6, sp.y - perpY * 6);
         ctx.lineTo(beamEndX - perpX * coneWidth, beamEndY - perpY * coneWidth);
         ctx.lineTo(beamEndX + perpX * coneWidth, beamEndY + perpY * coneWidth);
         ctx.closePath();
 
         // Pulsing EM fill
-        const emPulse = 0.5 + 0.5 * Math.sin(elapsed * 0.015);
         const coneGrad = ctx.createLinearGradient(sp.x, sp.y, beamEndX, beamEndY);
-        coneGrad.addColorStop(0, `rgba(0, 200, 255, ${0.05 * (1 - t) * emPulse})`);
-        coneGrad.addColorStop(0.7, `rgba(0, 180, 255, ${0.2 * (1 - t) * emPulse})`);
-        coneGrad.addColorStop(1, `rgba(0, 150, 255, ${0.35 * (1 - t) * emPulse})`);
+        coneGrad.addColorStop(0, `rgba(40, 255, 255, ${0.18 * sustainedBeamOpacity * emPulse})`);
+        coneGrad.addColorStop(0.45, `rgba(0, 220, 255, ${0.34 * sustainedBeamOpacity * emPulse})`);
+        coneGrad.addColorStop(1, `rgba(0, 160, 255, ${0.58 * sustainedBeamOpacity * emPulse})`);
         ctx.fillStyle = coneGrad;
         ctx.fill();
 
+        // Inner cone gives the pulse a more obvious core on satellite imagery
+        ctx.beginPath();
+        ctx.moveTo(sp.x + perpX * 3, sp.y + perpY * 3);
+        ctx.lineTo(sp.x - perpX * 3, sp.y - perpY * 3);
+        ctx.lineTo(beamEndX - perpX * secondaryWidth, beamEndY - perpY * secondaryWidth);
+        ctx.lineTo(beamEndX + perpX * secondaryWidth, beamEndY + perpY * secondaryWidth);
+        ctx.closePath();
+        ctx.fillStyle = `rgba(150, 255, 255, ${0.18 * sustainedBeamOpacity * emPulse})`;
+        ctx.fill();
+
         // Cone edges
-        ctx.strokeStyle = `rgba(0, 200, 255, ${0.4 * (1 - t) * emPulse})`;
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = `rgba(80, 245, 255, ${0.78 * sustainedBeamOpacity * emPulse})`;
+        ctx.lineWidth = 2.4;
         ctx.beginPath();
         ctx.moveTo(sp.x, sp.y);
         ctx.lineTo(beamEndX + perpX * coneWidth, beamEndY + perpY * coneWidth);
@@ -873,33 +918,77 @@ function DEBeamOverlay({
         ctx.lineTo(beamEndX - perpX * coneWidth, beamEndY - perpY * coneWidth);
         ctx.stroke();
 
+        // Core spine
+        ctx.beginPath();
+        ctx.moveTo(sp.x, sp.y);
+        ctx.lineTo(beamEndX, beamEndY);
+        ctx.strokeStyle = `rgba(210, 255, 255, ${0.85 * sustainedBeamOpacity})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
         // Wavefront ring at beam front
-        if (t < 0.9) {
+        if (t < 0.95) {
           ctx.beginPath();
-          ctx.arc(beamEndX, beamEndY, coneWidth * 0.8, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(0, 220, 255, ${0.5 * (1 - t) * emPulse})`;
-          ctx.lineWidth = 2;
+          ctx.arc(beamEndX, beamEndY, frontRingR, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(90, 255, 255, ${0.82 * sustainedBeamOpacity * emPulse})`;
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(beamEndX, beamEndY, frontRingR * 0.58, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(180, 255, 255, ${0.48 * sustainedBeamOpacity * emPulse})`;
+          ctx.lineWidth = 1.5;
           ctx.stroke();
         }
 
         // Impact ripple at target
-        if (t >= 0.3 && t < 0.8) {
-          const rippleT = (t - 0.3) / 0.5;
-          const rippleR = 15 + rippleT * 40;
-          const rippleOp = (1 - rippleT) * 0.6;
+        if (t >= 0.25 && t < 0.95) {
+          const rippleT = (t - 0.25) / 0.7;
+          const rippleR = 28 + rippleT * 68;
+          const rippleOp = (1 - rippleT) * 0.85;
+          const rippleGlow = ctx.createRadialGradient(tp.x, tp.y, 0, tp.x, tp.y, rippleR * 1.1);
+          rippleGlow.addColorStop(0, `rgba(140, 255, 255, ${rippleOp * 0.35})`);
+          rippleGlow.addColorStop(0.45, `rgba(0, 220, 255, ${rippleOp * 0.2})`);
+          rippleGlow.addColorStop(1, "rgba(0, 200, 255, 0)");
+
+          ctx.beginPath();
+          ctx.arc(tp.x, tp.y, rippleR * 1.1, 0, Math.PI * 2);
+          ctx.fillStyle = rippleGlow;
+          ctx.fill();
+
           ctx.beginPath();
           ctx.arc(tp.x, tp.y, rippleR, 0, Math.PI * 2);
           ctx.strokeStyle = `rgba(0, 200, 255, ${rippleOp})`;
-          ctx.lineWidth = 2;
+          ctx.lineWidth = 3;
           ctx.stroke();
-          // Inner ripple
-          if (rippleT < 0.5) {
+
+          for (let ring = 0; ring < 3; ring++) {
+            const ringRadius = rippleR * (0.35 + ring * 0.22);
             ctx.beginPath();
-            ctx.arc(tp.x, tp.y, rippleR * 0.5, 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(0, 255, 255, ${rippleOp * 0.5})`;
-            ctx.lineWidth = 1;
+            ctx.arc(tp.x, tp.y, ringRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(180, 255, 255, ${rippleOp * (0.45 - ring * 0.1)})`;
+            ctx.lineWidth = 1.4;
             ctx.stroke();
           }
+
+          for (let spoke = 0; spoke < 8; spoke++) {
+            const angle = (Math.PI * 2 * spoke) / 8 + elapsed * 0.0025;
+            const inner = rippleR * 0.25;
+            const outer = rippleR * 0.95;
+            ctx.beginPath();
+            ctx.moveTo(tp.x + Math.cos(angle) * inner, tp.y + Math.sin(angle) * inner);
+            ctx.lineTo(tp.x + Math.cos(angle) * outer, tp.y + Math.sin(angle) * outer);
+            ctx.strokeStyle = `rgba(160, 255, 255, ${rippleOp * 0.38})`;
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+          }
+
+          ctx.beginPath();
+          ctx.arc(tp.x, tp.y, 10 + rippleT * 10, 0, Math.PI * 2);
+          ctx.fillStyle = effective
+            ? `rgba(150, 255, 255, ${rippleOp * 0.35})`
+            : `rgba(255, 120, 120, ${rippleOp * 0.18})`;
+          ctx.fill();
         }
       }
 

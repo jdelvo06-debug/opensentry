@@ -60,16 +60,41 @@
       "single_use": true,
       "ammo_count": 4,
       "ammo_remaining": 4
+    },
+    {
+      "id": "de_laser",
+      "name": "DE-LASER-3K",
+      "type": "de_laser",
+      "range_km": 3.0,
+      "fov_deg": 10,
+      "status": "ready",
+      "recharge_seconds": 15,
+      "requires_los": true,
+      "single_use": false
+    },
+    {
+      "id": "de_hpm",
+      "name": "DE-HPM-3K",
+      "type": "de_hpm",
+      "range_km": 3.0,
+      "fov_deg": 60,
+      "status": "ready",
+      "recharge_seconds": 30,
+      "requires_los": false,
+      "single_use": false
     }
   ],
   "correct_classification": "commercial_quad",
   "correct_affiliation": "hostile",
   "optimal_effectors": [
-    "electronic"
+    "electronic",
+    "de_laser"
   ],
   "acceptable_effectors": [
     "electronic",
     "kinetic",
+    "de_laser",
+    "de_hpm",
     "shenobi_pm"
   ],
   "roe_violations": [],
@@ -88,11 +113,14 @@
       "correct_classification": "commercial_quad",
       "correct_affiliation": "hostile",
       "optimal_effectors": [
-        "electronic"
+        "electronic",
+        "de_laser"
       ],
       "acceptable_effectors": [
         "electronic",
         "kinetic",
+        "de_laser",
+        "de_hpm",
         "shenobi_pm"
       ],
       "roe_violations": [],
@@ -124,11 +152,14 @@
       "correct_classification": "commercial_quad",
       "correct_affiliation": "hostile",
       "optimal_effectors": [
-        "electronic"
+        "electronic",
+        "de_laser"
       ],
       "acceptable_effectors": [
         "electronic",
         "kinetic",
+        "de_laser",
+        "de_hpm",
         "shenobi_pm"
       ],
       "roe_violations": [],
@@ -160,11 +191,13 @@
       "correct_classification": "fixed_wing",
       "correct_affiliation": "hostile",
       "optimal_effectors": [
-        "kinetic"
+        "kinetic",
+        "de_laser"
       ],
       "acceptable_effectors": [
         "kinetic",
-        "electronic"
+        "electronic",
+        "de_laser"
       ],
       "roe_violations": [],
       "should_engage": true,
@@ -196,11 +229,13 @@
       "correct_affiliation": "hostile",
       "optimal_effectors": [
         "electronic",
-        "kinetic"
+        "de_hpm"
       ],
       "acceptable_effectors": [
         "electronic",
         "kinetic",
+        "de_hpm",
+        "de_laser",
         "shenobi_pm"
       ],
       "roe_violations": [],
@@ -232,10 +267,12 @@
       "correct_classification": "shahed",
       "correct_affiliation": "hostile",
       "optimal_effectors": [
-        "kinetic"
+        "kinetic",
+        "de_laser"
       ],
       "acceptable_effectors": [
-        "kinetic"
+        "kinetic",
+        "de_laser"
       ],
       "roe_violations": [],
       "should_engage": true,
@@ -283,7 +320,9 @@
       "acceptable_effectors": [],
       "roe_violations": [
         "electronic",
-        "kinetic"
+        "kinetic",
+        "de_laser",
+        "de_hpm"
       ],
       "should_engage": false,
       "spawn_variance": {

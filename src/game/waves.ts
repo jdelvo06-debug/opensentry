@@ -158,7 +158,7 @@ export function initialAmbientSchedule(): Record<string, number> {
   return schedule;
 }
 
-const _ALL_ROE_VIOLATIONS = ['electronic', 'kinetic', 'rf_jam', 'directed_energy', 'net_interceptor'];
+const _ALL_ROE_VIOLATIONS = ['electronic', 'kinetic', 'rf_jam', 'de_laser', 'de_hpm', 'net_interceptor'];
 
 /**
  * Generate a single ambient object of the given type.
