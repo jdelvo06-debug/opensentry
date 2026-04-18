@@ -4,6 +4,7 @@ import {
   calcElevation,
   calcRangeFromCamera,
   findBestCameraForTrack,
+  getCameraDisplayLabel,
 } from "../components/CameraPanel";
 import type { SensorStatus, TrackData } from "../types";
 
@@ -55,12 +56,39 @@ describe("CameraPanel helpers", () => {
     expect(bestCamera?.id).toBe("camera-near");
   });
 
+  it("ignores inactive EO/IR cameras when selecting the closest camera", () => {
+    const track = makeTrack({ x: 10, y: 0 });
+    const sensors = [
+      makeSensor({ id: "camera-inactive-near", x: 9.5, y: 0, status: "offline" }),
+      makeSensor({ id: "camera-active-farther", x: 7, y: 0, status: "active" }),
+    ];
+
+    const bestCamera = findBestCameraForTrack(track, sensors);
+
+    expect(bestCamera?.id).toBe("camera-active-farther");
+  });
+
   it("returns null when no EO/IR camera is available", () => {
     const bestCamera = findBestCameraForTrack(makeTrack(), [
       makeSensor({ id: "radar-1", type: "radar" }),
     ]);
 
     expect(bestCamera).toBeNull();
+  });
+
+  it("labels duplicate EO/IR sensors with an instance number", () => {
+    const sensors = [
+      makeSensor({ id: "camera-1", name: "EO/IR Camera" }),
+      makeSensor({ id: "camera-2", name: "EO/IR Camera" }),
+    ];
+
+    expect(getCameraDisplayLabel(sensors[1], sensors)).toBe("EO/IR Camera #2");
+  });
+
+  it("keeps the original name when there is only one EO/IR sensor", () => {
+    const sensor = makeSensor({ id: "camera-1", name: "EO/IR Camera" });
+
+    expect(getCameraDisplayLabel(sensor, [sensor])).toBe("EO/IR Camera");
   });
 
   it("calculates bearing and range relative to the selected camera position", () => {

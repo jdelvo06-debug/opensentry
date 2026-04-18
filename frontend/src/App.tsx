@@ -1605,6 +1605,7 @@ export default function App() {
           onCallATC={callATC}
           onDeclareAffiliation={declareAffiliation}
           cameraTrackId={cameraTrackId}
+          selectedCameraId={selectedCameraId}
           sensorConfigs={sensorConfigs}
           protectedArea={protectedArea}
           trackBlinkStates={trackBlinkStates}

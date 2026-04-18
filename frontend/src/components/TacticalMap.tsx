@@ -16,6 +16,7 @@ import { gameXYToLatLng } from "../utils/coordinates";
 import RadialActionWheel from "./RadialActionWheel";
 import DeviceWheel from "./DeviceWheel";
 import SelectionList, { findNearbySelectables } from "./SelectionList";
+import { getActiveCameraSensor, getSensorDisplayLabel } from "./tactical-map-sensors";
 
 // Import leaflet CSS
 import "leaflet/dist/leaflet.css";
@@ -39,6 +40,7 @@ interface Props {
   onCallATC?: (trackId: string) => void;
   onDeclareAffiliation?: (trackId: string, affiliation: string) => void;
   cameraTrackId?: string | null;
+  selectedCameraId?: string | null;
   sensorConfigs?: SensorStatus[];
   protectedArea?: ProtectedAreaInfo | null;
   trackBlinkStates?: Record<string, string>;
@@ -301,12 +303,23 @@ function createBaseIcon(): L.DivIcon {
   });
 }
 
-function createSensorIcon(name: string): L.DivIcon {
-  const label = (name || "SENSOR").toUpperCase().slice(0, 8);
+function formatSensorMarkerLabel(name: string): string {
+  const numberedCameraMatch = name.match(/^EO\/IR CAMERA\s+#(\d+)$/i);
+  if (numberedCameraMatch) {
+    return `EO/IR #${numberedCameraMatch[1]}`;
+  }
+  return (name || "SENSOR").toUpperCase().slice(0, 8);
+}
+
+function createSensorIcon(name: string, isSelected = false): L.DivIcon {
+  const label = formatSensorMarkerLabel(name);
+  const stroke = isSelected ? "#d29922" : "#58a6ff";
+  const fill = isSelected ? "rgba(210,153,34,0.22)" : "rgba(88,166,255,0.15)";
   const svg = `<svg width="34" height="34" viewBox="0 0 34 34" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="17" cy="17" r="10" fill="rgba(88,166,255,0.15)" stroke="#58a6ff" stroke-width="1.5"/>
-    <circle cx="17" cy="17" r="2.5" fill="#58a6ff"/>
-    <text x="17" y="33" text-anchor="middle" fill="#58a6ff" font-size="7" font-weight="600" font-family="monospace">${label}</text>
+    <circle cx="17" cy="17" r="10" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>
+    <circle cx="17" cy="17" r="2.5" fill="${stroke}"/>
+    ${isSelected ? `<circle cx="17" cy="17" r="14" fill="none" stroke="#d29922" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.95"/>` : ""}
+    <text x="17" y="33" text-anchor="middle" fill="${stroke}" font-size="7" font-weight="600" font-family="monospace">${label}</text>
   </svg>`;
   return L.divIcon({ html: svg, className: "", iconSize: [34, 34], iconAnchor: [17, 17] });
 }
@@ -858,6 +871,7 @@ export default function TacticalMap({
   onCallATC,
   onDeclareAffiliation,
   cameraTrackId,
+  selectedCameraId,
   sensorConfigs = [],
   protectedArea,
   trackBlinkStates = {},
@@ -1396,11 +1410,12 @@ export default function TacticalMap({
         {sensorConfigs.map((sensor) => {
           if (sensor.x == null && sensor.x !== 0) return null;
           const sPos = gameXYToLatLng(sensor.x ?? 0, sensor.y ?? 0, baseLat, baseLng);
+          const sensorLabel = getSensorDisplayLabel(sensor, sensorConfigs);
           return (
             <Marker
               key={`sensor-marker-${sensor.id}`}
               position={sPos}
-              icon={createSensorIcon(sensor.name || sensor.id)}
+              icon={createSensorIcon(sensorLabel, sensor.id === selectedCameraId)}
               eventHandlers={{
                 contextmenu: (e) => {
                   L.DomEvent.stopPropagation(e.originalEvent);
@@ -1450,9 +1465,7 @@ export default function TacticalMap({
           const cameraTarget = tracks.find((t) => t.id === cameraTrackId && !t.neutralized);
           if (!cameraTarget) return null;
 
-          const cameraSensor = sensorConfigs.find(
-            (s) => s.type === "eoir" || s.name?.toLowerCase().includes("camera") || s.name?.toLowerCase().includes("eo"),
-          );
+          const cameraSensor = getActiveCameraSensor(sensorConfigs, selectedCameraId);
           if (!cameraSensor) return null;
 
           const camX = cameraSensor.x ?? 0;

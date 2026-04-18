@@ -72,7 +72,9 @@ export function findBestCameraForTrack(
 ): SensorStatus | null {
   if (!track) return null;
 
-  const eoirSensors = sensorConfigs.filter((sensor) => sensor.type === "eoir");
+  const eoirSensors = sensorConfigs.filter(
+    (sensor) => sensor.type === "eoir" && sensor.status === "active",
+  );
   if (eoirSensors.length === 0) return null;
 
   return eoirSensors.reduce<SensorStatus | null>((closest, sensor) => {
@@ -91,6 +93,23 @@ export function findBestCameraForTrack(
 
     return distance < closestDistance ? sensor : closest;
   }, null);
+}
+
+export function getCameraDisplayLabel(
+  selectedCamera: SensorStatus | null,
+  sensorConfigs: SensorStatus[],
+): string | null {
+  if (!selectedCamera) return null;
+
+  const eoirSensors = sensorConfigs.filter((sensor) => sensor.type === "eoir");
+  const instanceIndex = eoirSensors.findIndex((sensor) => sensor.id === selectedCamera.id);
+  if (instanceIndex === -1) return selectedCamera.name;
+
+  if (eoirSensors.length <= 1 || /#\d+\b/.test(selectedCamera.name)) {
+    return selectedCamera.name;
+  }
+
+  return `${selectedCamera.name} #${instanceIndex + 1}`;
 }
 
 function noiseFactor(rangeKm: number): number {
@@ -1901,6 +1920,7 @@ export default function CameraPanel({
 
   const visibleTarget = getVisibleTrack();
   const displayTrackId = track?.id ?? visibleTarget?.track?.id ?? null;
+  const cameraLabel = getCameraDisplayLabel(selectedCamera, sensorConfigs);
 
   // Gimbal mode color and label
   const gimbalModeLabel = trackLost ? "TRACK LOST" : gimbalMode === "auto-track" ? "AUTO-TRACK" : gimbalMode === "manual" ? "MANUAL" : "STANDBY";
@@ -1947,6 +1967,21 @@ export default function CameraPanel({
         >
           EO/IR — {displayTrackId ? displayTrackId.toUpperCase() : "NO TARGET"}
         </span>
+
+        {cameraLabel && (
+          <span
+            style={{
+              fontFamily: "monospace",
+              fontSize: 9,
+              color: "#8b949e",
+              letterSpacing: 0.8,
+              whiteSpace: "nowrap",
+              marginLeft: "auto",
+            }}
+          >
+            CAM: {cameraLabel.toUpperCase()}
+          </span>
+        )}
 
         {/* Thermal / Daylight toggle */}
         <div style={{ display: "flex", gap: 3 }}>
