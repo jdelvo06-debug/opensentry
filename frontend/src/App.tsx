@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import HeaderBar from "./components/HeaderBar";
-import SensorPanel from "./components/SensorPanel";
-import EffectorPanel from "./components/EffectorPanel";
+import SystemsPanel from "./components/SystemsPanel";
 import TrackList from "./components/TrackList";
 import TacticalMap from "./components/TacticalMap";
 import type { InterceptAnimationData, DEBeamAnimationData } from "./components/TacticalMap";
@@ -1686,8 +1685,7 @@ export default function App() {
         {isTutorial && !tutorialTourActive && (
           <TutorialStepTracker tutorialStep={tutorialStep} />
         )}
-        <div data-tutorial-id="tutorial-sensors"><SensorPanel sensors={sensors} /></div>
-        <div data-tutorial-id="tutorial-effectors"><EffectorPanel effectors={effectors} activeJammers={activeJammers} /></div>
+        <div data-tutorial-id="tutorial-sensors"><SystemsPanel sensors={sensors} effectors={effectors} activeJammers={activeJammers} /></div>
         <div data-tutorial-id="tutorial-tracklist" style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
         <TrackList
           tracks={tracks.filter((t) => !t.neutralized && !t.is_interceptor)}
