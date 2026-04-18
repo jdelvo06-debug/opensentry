@@ -101,15 +101,18 @@ export function getCameraDisplayLabel(
 ): string | null {
   if (!selectedCamera) return null;
 
+  const cameraName = selectedCamera.name ?? selectedCamera.id ?? null;
+  if (!cameraName) return null;
+
   const eoirSensors = sensorConfigs.filter((sensor) => sensor.type === "eoir");
   const instanceIndex = eoirSensors.findIndex((sensor) => sensor.id === selectedCamera.id);
-  if (instanceIndex === -1) return selectedCamera.name;
+  if (instanceIndex === -1) return cameraName;
 
-  if (eoirSensors.length <= 1 || /#\d+\b/.test(selectedCamera.name)) {
-    return selectedCamera.name;
+  if (eoirSensors.length <= 1 || /#\d+\b/.test(cameraName)) {
+    return cameraName;
   }
 
-  return `${selectedCamera.name} #${instanceIndex + 1}`;
+  return `${cameraName} #${instanceIndex + 1}`;
 }
 
 function noiseFactor(rangeKm: number): number {

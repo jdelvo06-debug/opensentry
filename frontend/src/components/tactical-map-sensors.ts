@@ -1,13 +1,14 @@
 import type { SensorStatus } from "../types";
 
 export function getSensorDisplayLabel(sensor: SensorStatus, sensorConfigs: SensorStatus[]): string {
-  const matchingSensors = sensorConfigs.filter((candidate) => candidate.name === sensor.name);
-  if (matchingSensors.length <= 1 || /#\d+\b/.test(sensor.name)) {
-    return sensor.name || sensor.id;
+  const sensorName = sensor.name ?? sensor.id ?? "SENSOR";
+  const matchingSensors = sensorConfigs.filter((candidate) => (candidate.name ?? candidate.id ?? "SENSOR") === sensorName);
+  if (matchingSensors.length <= 1 || /#\d+\b/.test(sensorName)) {
+    return sensorName;
   }
 
   const instanceIndex = matchingSensors.findIndex((candidate) => candidate.id === sensor.id);
-  return instanceIndex === -1 ? (sensor.name || sensor.id) : `${sensor.name} #${instanceIndex + 1}`;
+  return instanceIndex === -1 ? sensorName : `${sensorName} #${instanceIndex + 1}`;
 }
 
 export function getActiveCameraSensor(
