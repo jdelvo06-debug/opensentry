@@ -27,11 +27,11 @@
     },
     {
       "trigger": "identified",
-      "message": "Threat identified! Now select an effector to engage. You have several options: RF/PNT Jammer (low collateral, rechargeable), DE-LASER-3K (high precision, requires line of sight), or JACKAL (kinetic, limited ammo). The Jammer or DE Laser are optimal for this target."
+      "message": "Threat identified! Now select an effector to engage. You have several options: RF/PNT Jammer (low collateral, rechargeable), DE-LASER-3km (high precision, requires line of sight), or JACKAL (kinetic, limited ammo). The Jammer or DE Laser are optimal for this target."
     },
     {
       "trigger": "defeated",
-      "message": "Target neutralized! Well done. You completed the DTID kill chain: Detect, Track, Identify, Defeat. The DE-LASER-3K you used is a precision weapon \u2014 high kill probability against individual drones with low collateral risk. In harder scenarios, you'll also have access to DE-HPM-3K, a wide-area pulse weapon that dominates swarm attacks. Review your debrief score."
+      "message": "Target neutralized! Well done. You completed the DTID kill chain: Detect, Track, Identify, Defeat. The DE-LASER-3km you used is a precision weapon \u2014 high kill probability against individual drones with low collateral risk. In harder scenarios, you'll also have access to DE-HPM-3km, a wide-area pulse weapon that dominates swarm attacks. Review your debrief score."
     }
   ],
   "roe_briefing": [
@@ -92,7 +92,7 @@
     },
     {
       "id": "de_laser",
-      "name": "DE-LASER-3K",
+      "name": "DE-LASER-3km",
       "type": "de_laser",
       "range_km": 3.0,
       "fov_deg": 10,

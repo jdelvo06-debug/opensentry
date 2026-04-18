@@ -9,12 +9,13 @@ import {
   segmentsIntersect,
 } from '@opensentry/game/detection';
 import { createDefaultDrone, createGameState } from '@opensentry/game/state';
-import type { DroneState, EffectorConfig, SensorConfig, ScenarioConfig } from '@opensentry/game/state';
+import type { DroneState, EffectorConfig, EffectorRuntimeState, SensorConfig, ScenarioConfig } from '@opensentry/game/state';
 import { createDroneFromConfig, moveDrone, distanceToBase } from '@opensentry/game/drone';
 import { pickJamBehavior, updatePntJammedDrone } from '@opensentry/game/jamming';
-import { KTS_TO_KMS } from '@opensentry/game/helpers';
+import { KTS_TO_KMS, calculateDirectedEnergySlewSeconds } from '@opensentry/game/helpers';
 import { handleEngage } from '@opensentry/game/actions';
 import { calculateScore } from '@opensentry/game/scoring';
+import { tickPendingDirectedEnergyEngagements } from '@opensentry/game/loop';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -420,7 +421,7 @@ describe('directed energy engagements', () => {
   it('blocks DE-LASER when terrain blocks line of sight', () => {
     const effectors: EffectorConfig[] = [{
       id: 'de_laser',
-      name: 'DE-LASER-3K',
+      name: 'DE-LASER-3km',
       type: 'de_laser',
       range_km: 5,
       status: 'ready',
@@ -468,7 +469,7 @@ describe('directed energy engagements', () => {
   it('applies DE-HPM to clustered drones and emits effector metadata', () => {
     const effectors: EffectorConfig[] = [{
       id: 'de_hpm',
-      name: 'DE-HPM-3K',
+      name: 'DE-HPM-3km',
       type: 'de_hpm',
       range_km: 5,
       status: 'ready',
@@ -524,15 +525,264 @@ describe('directed energy engagements', () => {
     );
 
     const msgs = handleEngage(gs, 'bogey-1', 'de_hpm', 10);
-    const results = msgs.filter((msg) => msg.type === 'engagement_result');
+    expect(msgs.some((msg) => String(msg.message ?? '').includes('SLEWING'))).toBe(true);
+
+    const fireMsgs = tickPendingDirectedEnergyEngagements(gs, 20);
+    const results = fireMsgs.filter((msg) => msg.type === 'engagement_result');
 
     expect(results).toHaveLength(2);
     expect(results.every((msg) => msg.effector_type === 'de_hpm')).toBe(true);
-    expect(results.every((msg) => msg.effector_name === 'DE-HPM-3K')).toBe(true);
+    expect(results.every((msg) => msg.effector_name === 'DE-HPM-3km')).toBe(true);
     expect(gs.drones[0].neutralized).toBe(true);
     expect(gs.drones[1].neutralized).toBe(true);
     expect(gs.drones[2].neutralized).toBe(false);
     expect(gs.effector_states[0].status).toBe('recharging');
+  });
+
+  it('queues DE-LASER slew when target is outside current FOV but in range', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'de_laser',
+      name: 'DE-LASER-3km',
+      type: 'de_laser',
+      range_km: 5,
+      status: 'ready',
+      recharge_seconds: 15,
+      x: 0,
+      y: 0,
+      fov_deg: 10,
+      facing_deg: 180,
+      requires_los: true,
+      single_use: false,
+      ammo_count: null,
+      ammo_remaining: null,
+    }];
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
+    gs.effector_states.push({
+      ...effectors[0],
+      recharge_remaining: 0,
+    });
+    gs.drones.push(makeDrone({
+      id: 'bogey-1',
+      display_label: 'TRN-001',
+      x: 2.5,
+      y: 0,
+      dtid_phase: 'identified',
+      classification: 'commercial_quad',
+      classified: true,
+      affiliation: 'hostile',
+    }));
+
+    const msgs = handleEngage(gs, 'bogey-1', 'de_laser', 10);
+
+    expect(msgs.some((msg) => String(msg.message ?? '').includes('SLEWING'))).toBe(true);
+    expect(gs.effector_states[0].status).toBe('slewing');
+    expect(gs.effector_states[0].facing_deg).toBe(180);
+    expect(gs.drones[0].neutralized).toBe(false);
+    expect(gs.pending_directed_energy_engagements).toHaveLength(1);
+    expect(gs.pending_directed_energy_engagements[0].mode).toBe('engage');
+  });
+
+  it('pre-slews DE-LASER when target is outside range', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'de_laser',
+      name: 'DE-LASER-3km',
+      type: 'de_laser',
+      range_km: 3,
+      status: 'ready',
+      recharge_seconds: 15,
+      x: 0,
+      y: 0,
+      fov_deg: 10,
+      facing_deg: 180,
+      requires_los: true,
+      single_use: false,
+      ammo_count: null,
+      ammo_remaining: null,
+    }];
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
+    gs.effector_states.push({
+      ...effectors[0],
+      recharge_remaining: 0,
+    });
+    gs.drones.push(makeDrone({
+      id: 'bogey-1',
+      display_label: 'TRN-001',
+      x: 4.0,
+      y: 0,
+      dtid_phase: 'identified',
+      classification: 'commercial_quad',
+      classified: true,
+      affiliation: 'hostile',
+    }));
+
+    const msgs = handleEngage(gs, 'bogey-1', 'de_laser', 10);
+
+    expect(msgs.some((msg) => String(msg.message ?? '').includes('target out of range'))).toBe(true);
+    expect(gs.effector_states[0].status).toBe('slewing');
+    expect(gs.pending_directed_energy_engagements).toHaveLength(1);
+    expect(gs.pending_directed_energy_engagements[0].mode).toBe('slew');
+  });
+
+  it('progressively slews DE-LASER cone before firing', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'de_laser',
+      name: 'DE-LASER-3km',
+      type: 'de_laser',
+      range_km: 5,
+      status: 'ready',
+      recharge_seconds: 15,
+      x: 0,
+      y: 0,
+      fov_deg: 10,
+      facing_deg: 180,
+      requires_los: true,
+      single_use: false,
+      ammo_count: null,
+      ammo_remaining: null,
+    }];
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
+    gs.effector_states.push({
+      ...effectors[0],
+      recharge_remaining: 0,
+    });
+    gs.drones.push(makeDrone({
+      id: 'bogey-1',
+      display_label: 'TRN-001',
+      x: 2.5,
+      y: 0,
+      dtid_phase: 'identified',
+      classification: 'commercial_quad',
+      classified: true,
+      affiliation: 'hostile',
+    }));
+
+    handleEngage(gs, 'bogey-1', 'de_laser', 10);
+    tickPendingDirectedEnergyEngagements(gs, 10.5);
+
+    expect(gs.effector_states[0].status).toBe('slewing');
+    expect(gs.effector_states[0].facing_deg).toBeGreaterThan(90);
+    expect(gs.effector_states[0].facing_deg).toBeLessThan(180);
+  });
+
+  it('fires queued DE-LASER after slew time elapses', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'de_laser',
+      name: 'DE-LASER-3km',
+      type: 'de_laser',
+      range_km: 5,
+      status: 'ready',
+      recharge_seconds: 15,
+      x: 0,
+      y: 0,
+      fov_deg: 10,
+      facing_deg: 180,
+      requires_los: true,
+      single_use: false,
+      ammo_count: null,
+      ammo_remaining: null,
+    }];
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
+    gs.effector_states.push({
+      ...effectors[0],
+      recharge_remaining: 0,
+    });
+    gs.drones.push(makeDrone({
+      id: 'bogey-1',
+      display_label: 'TRN-001',
+      x: 2.5,
+      y: 0,
+      drone_type: 'commercial_quad',
+      dtid_phase: 'identified',
+      classification: 'commercial_quad',
+      classified: true,
+      affiliation: 'hostile',
+    }));
+
+    handleEngage(gs, 'bogey-1', 'de_laser', 10);
+    const fireMsgs = tickPendingDirectedEnergyEngagements(gs, 20);
+
+    expect(fireMsgs.some((msg) => msg.type === 'engagement_result')).toBe(true);
+    expect(gs.effector_states[0].status).toBe('recharging');
+    expect(gs.drones[0].neutralized).toBe(true);
+    expect(gs.pending_directed_energy_engagements).toHaveLength(0);
+  });
+
+  it('returns DE-LASER to ready after an out-of-range pre-slew completes', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'de_laser',
+      name: 'DE-LASER-3km',
+      type: 'de_laser',
+      range_km: 3,
+      status: 'ready',
+      recharge_seconds: 15,
+      x: 0,
+      y: 0,
+      fov_deg: 10,
+      facing_deg: 180,
+      requires_los: true,
+      single_use: false,
+      ammo_count: null,
+      ammo_remaining: null,
+    }];
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
+    gs.effector_states.push({
+      ...effectors[0],
+      recharge_remaining: 0,
+    });
+    gs.drones.push(makeDrone({
+      id: 'bogey-1',
+      display_label: 'TRN-001',
+      x: 4.0,
+      y: 0,
+      dtid_phase: 'identified',
+      classification: 'commercial_quad',
+      classified: true,
+      affiliation: 'hostile',
+    }));
+
+    handleEngage(gs, 'bogey-1', 'de_laser', 10);
+    const slewMsgs = tickPendingDirectedEnergyEngagements(gs, 20);
+
+    expect(slewMsgs.some((msg) => String(msg.message ?? '').includes('awaiting range'))).toBe(true);
+    expect(slewMsgs.some((msg) => msg.type === 'engagement_result')).toBe(false);
+    expect(gs.effector_states[0].status).toBe('ready');
+    expect(gs.effector_states[0].facing_deg).toBe(90);
+    expect(gs.drones[0].neutralized).toBe(false);
+    expect(gs.pending_directed_energy_engagements).toHaveLength(0);
+  });
+});
+
+describe('calculateDirectedEnergySlewSeconds', () => {
+  it('increases slew time for larger angle changes and crossing targets', () => {
+    const baseEffector: EffectorRuntimeState = {
+      id: 'de_laser',
+      name: 'DE-LASER-3km',
+      type: 'de_laser',
+      range_km: 3,
+      status: 'ready',
+      recharge_seconds: 15,
+      recharge_remaining: 0,
+      x: 0,
+      y: 0,
+      fov_deg: 10,
+      facing_deg: 0,
+      requires_los: true,
+      single_use: false,
+      ammo_count: null,
+      ammo_remaining: null,
+    };
+
+    const lowSlew = calculateDirectedEnergySlewSeconds(
+      baseEffector,
+      makeDrone({ x: 0, y: 2, heading: 180, speed: 15 }),
+    );
+    const highSlew = calculateDirectedEnergySlewSeconds(
+      baseEffector,
+      makeDrone({ x: 2, y: 0, heading: 0, speed: 80 }),
+    );
+
+    expect(highSlew).toBeGreaterThan(lowSlew);
+    expect(lowSlew).toBeGreaterThan(0);
   });
 });
 

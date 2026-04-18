@@ -1652,6 +1652,48 @@ export default function TacticalMap({
           const style = getRingStyleByName(eff.name, eff.type);
           const ePos = gameXYToLatLng(eff.x ?? 0, eff.y ?? 0, baseLat, baseLng);
           const rangeKm = eff.range_km;
+          const fov = eff.fov_deg ?? 360;
+          const facing = eff.facing_deg ?? 0;
+
+          if (fov < 360) {
+            const steps = 32;
+            const facingRad = ((90 - facing) * Math.PI) / 180;
+            const halfFov = ((fov / 2) * Math.PI) / 180;
+            const points: [number, number][] = [ePos];
+            for (let i = 0; i <= steps; i++) {
+              const angle = facingRad - halfFov + (2 * halfFov * i) / steps;
+              const px = (eff.x ?? 0) + Math.cos(angle) * rangeKm;
+              const py = (eff.y ?? 0) + Math.sin(angle) * rangeKm;
+              points.push(gameXYToLatLng(px, py, baseLat, baseLng));
+            }
+
+            const labelX = (eff.x ?? 0) + Math.cos(facingRad) * rangeKm;
+            const labelY = (eff.y ?? 0) + Math.sin(facingRad) * rangeKm;
+            const labelPos = gameXYToLatLng(labelX, labelY, baseLat, baseLng);
+            const fillOpacity = eff.type === "de_hpm" ? 0.08 : 0.04;
+
+            return (
+              <span key={`effector-ring-${eff.id}`}>
+                <Polygon
+                  positions={points}
+                  pathOptions={{
+                    color: style.color,
+                    weight: 2,
+                    opacity: 0.9,
+                    dashArray: style.dashArray,
+                    fillColor: style.color,
+                    fillOpacity,
+                  }}
+                />
+                <Marker
+                  position={labelPos}
+                  icon={createRingLabel(eff.name || eff.id, rangeKm, style.color)}
+                  interactive={false}
+                />
+              </span>
+            );
+          }
+
           const labelPos = gameXYToLatLng(eff.x ?? 0, (eff.y ?? 0) + rangeKm, baseLat, baseLng);
           return (
             <span key={`effector-ring-${eff.id}`}>

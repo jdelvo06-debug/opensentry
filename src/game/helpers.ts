@@ -145,6 +145,38 @@ export function findEffectorConfig(
   return null;
 }
 
+export function bearingToTargetDegrees(
+  ex: number,
+  ey: number,
+  tx: number,
+  ty: number,
+): number {
+  return ((Math.atan2(tx - ex, ty - ey) * 180) / Math.PI + 360) % 360;
+}
+
+export function angleDifferenceDegrees(a: number, b: number): number {
+  return Math.abs(((a - b + 180) % 360 + 360) % 360 - 180);
+}
+
+export function signedAngleDifferenceDegrees(from: number, to: number): number {
+  return ((to - from + 540) % 360) - 180;
+}
+
+export function normalizeDegrees(angle: number): number {
+  return ((angle % 360) + 360) % 360;
+}
+
+/** Check if drone is within effector range only. */
+export function checkEffectorRangeOnly(
+  effState: EffectorRuntimeState,
+  drone: DroneState,
+): boolean {
+  const ex = effState.x ?? 0.0;
+  const ey = effState.y ?? 0.0;
+  const dist = Math.sqrt((drone.x - ex) ** 2 + (drone.y - ey) ** 2);
+  return dist <= (effState.range_km ?? 999);
+}
+
 /** Check if drone is within effector range and FOV. */
 export function checkEffectorInRange(
   effState: EffectorRuntimeState,
@@ -152,19 +184,43 @@ export function checkEffectorInRange(
 ): boolean {
   const ex = effState.x ?? 0.0;
   const ey = effState.y ?? 0.0;
-  const dist = Math.sqrt((drone.x - ex) ** 2 + (drone.y - ey) ** 2);
-  if (dist > (effState.range_km ?? 999)) return false;
-
+  if (!checkEffectorRangeOnly(effState, drone)) return false;
   const fov = effState.fov_deg ?? 360;
   if (fov < 360) {
-    const dx = drone.x - ex;
-    const dy = drone.y - ey;
-    const bearing = ((Math.atan2(dx, dy) * 180) / Math.PI + 360) % 360;
+    const bearing = bearingToTargetDegrees(ex, ey, drone.x, drone.y);
     const facing = effState.facing_deg ?? 0;
-    const diff = Math.abs(((bearing - facing + 180) % 360 + 360) % 360 - 180);
+    const diff = angleDifferenceDegrees(bearing, facing);
     if (diff > fov / 2) return false;
   }
   return true;
+}
+
+export function calculateDirectedEnergySlewSeconds(
+  effState: EffectorRuntimeState,
+  drone: DroneState,
+): number {
+  const ex = effState.x ?? 0.0;
+  const ey = effState.y ?? 0.0;
+  const targetBearing = bearingToTargetDegrees(ex, ey, drone.x, drone.y);
+  const currentFacing = effState.facing_deg ?? targetBearing;
+  const angleDelta = angleDifferenceDegrees(targetBearing, currentFacing);
+
+  const headingRad = ((drone.heading - 90) * Math.PI) / 180;
+  const velocityX = Math.cos(headingRad) * drone.speed * KTS_TO_KMS;
+  const velocityY = Math.sin(headingRad) * drone.speed * KTS_TO_KMS;
+  const relX = drone.x - ex;
+  const relY = drone.y - ey;
+  const relDist = Math.hypot(relX, relY) || 1;
+  const radialX = relX / relDist;
+  const radialY = relY / relDist;
+  const closingSpeed = velocityX * radialX + velocityY * radialY;
+  const crossingSpeed = Math.sqrt(Math.max(0, (velocityX ** 2 + velocityY ** 2) - (closingSpeed ** 2)));
+
+  const baseSlew = effState.type === 'de_hpm' ? 0.45 : 0.75;
+  const anglePenalty = angleDelta / 180;
+  const crossingPenalty = Math.min(crossingSpeed / 0.025, 1.0);
+  const slew = baseSlew + anglePenalty * 1.35 + crossingPenalty * 0.85;
+  return Math.round(Math.min(3.5, Math.max(baseSlew, slew)) * 10) / 10;
 }
 
 /** Check if any Ku-Band FCS radar has the drone in range. */

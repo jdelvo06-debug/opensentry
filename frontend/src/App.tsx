@@ -237,6 +237,18 @@ export default function App() {
   const [activeIntercepts, setActiveIntercepts] = useState<InterceptAnimationData[]>([]);
   // Active DE beam animations
   const [activeDEBeams, setActiveDEBeams] = useState<DEBeamAnimationData[]>([]);
+  const [engagementFeedback, setEngagementFeedback] = useState<{
+    trackId: string;
+    level: "info" | "warning" | "success";
+    message: string;
+  } | null>(null);
+  const engagementAttemptRef = useRef<{
+    trackId: string;
+    effectorId: string;
+    effectorName: string;
+    timestamp: number;
+  } | null>(null);
+  const engagementFeedbackTimerRef = useRef<number>(0);
 
   // Alert system state
   const [alertCount, setAlertCount] = useState(0);
@@ -402,6 +414,34 @@ export default function App() {
           ...prev,
           { timestamp: msg.timestamp, message: msg.message },
         ]);
+        const attempt = engagementAttemptRef.current;
+        if (
+          attempt
+          && Date.now() - attempt.timestamp < 4000
+          && msg.message.startsWith("ENGAGEMENT:")
+        ) {
+          const message = msg.message;
+          if (
+            message.includes("Target out of range")
+            || message.includes("NO LINE OF SIGHT")
+            || message.includes("NO Ku-FC TRACK")
+            || message.includes("BLOCKED")
+          ) {
+            const detail = message.replace(/^ENGAGEMENT:\s*/, "");
+            setEngagementFeedback({
+              trackId: attempt.trackId,
+              level: "warning",
+              message: detail,
+            });
+            window.clearTimeout(engagementFeedbackTimerRef.current);
+            engagementFeedbackTimerRef.current = window.setTimeout(() => {
+              setEngagementFeedback((current) => (
+                current?.trackId === attempt.trackId ? null : current
+              ));
+            }, 4500);
+            engagementAttemptRef.current = null;
+          }
+        }
         // Trigger sounds based on event message content
         const m = msg.message;
         if (m.includes("New contact detected") || m.includes("New contact emerging")) {
@@ -428,6 +468,23 @@ export default function App() {
             message: `ENGAGEMENT: ${msg.effector.toUpperCase()} → ${msg.target_id.toUpperCase()} — ${msg.effective ? "EFFECTIVE" : "INEFFECTIVE"} (${(msg.effectiveness * 100).toFixed(0)}%)`,
           },
         ]);
+        const attempt = engagementAttemptRef.current;
+        setEngagementFeedback({
+          trackId: msg.target_id,
+          level: msg.effective ? "success" : "warning",
+          message: msg.effective
+            ? `${(msg as any).effector_name || msg.effector} engaged successfully`
+            : `${(msg as any).effector_name || msg.effector} was ineffective on this target`,
+        });
+        window.clearTimeout(engagementFeedbackTimerRef.current);
+        engagementFeedbackTimerRef.current = window.setTimeout(() => {
+          setEngagementFeedback((current) => (
+            current?.trackId === msg.target_id ? null : current
+          ));
+        }, 4500);
+        if (attempt && attempt.trackId === msg.target_id) {
+          engagementAttemptRef.current = null;
+        }
         // Track JACKAL intercept animation
         const effLower = msg.effector.toLowerCase();
         if (effLower.includes("jackal") || effLower.includes("interceptor")) {
@@ -1010,6 +1067,26 @@ export default function App() {
         { timestamp: elapsed, message: `BLUE-ON-BLUE: Engagement on unverified track ${label.toUpperCase()} — ATC not consulted! Score penalty applied.` },
       ]);
     }
+    const effector = effectorsRef.current.find((e) => e.id === effectorId)
+      || effectorConfigsRef.current.find((e) => e.id === effectorId);
+    const effectorName = effector?.name || effectorId;
+    engagementAttemptRef.current = {
+      trackId,
+      effectorId,
+      effectorName,
+      timestamp: Date.now(),
+    };
+    setEngagementFeedback({
+      trackId,
+      level: "info",
+      message: `Attempting ${effectorName}...`,
+    });
+    window.clearTimeout(engagementFeedbackTimerRef.current);
+    engagementFeedbackTimerRef.current = window.setTimeout(() => {
+      setEngagementFeedback((current) => (
+        current?.trackId === trackId && current.level === "info" ? null : current
+      ));
+    }, 2500);
     if (shenobiCm) {
       // Shenobi Protocol Manipulation — send specific CM action
       send({
@@ -1124,6 +1201,12 @@ export default function App() {
   const handlePause = () => {
     send({ type: "action", action: "pause_mission" });
   };
+
+  useEffect(() => {
+    setEngagementFeedback((current) => (
+      current?.trackId === selectedTrackId ? current : null
+    ));
+  }, [selectedTrackId]);
 
   const handleResume = () => {
     send({ type: "action", action: "resume_mission" });
@@ -1764,7 +1847,14 @@ export default function App() {
             onSlewCamera={handleSlewCamera}
             onCallATC={callATC}
             onDeclareAffiliation={declareAffiliation}
-
+            engagementFeedback={
+              selectedTrack && engagementFeedback?.trackId === selectedTrack.id
+                ? {
+                    level: engagementFeedback.level,
+                    message: engagementFeedback.message,
+                  }
+                : null
+            }
             tutorialStep={isTutorial && !tutorialTourActive ? tutorialStep : undefined}
           />
           </div>

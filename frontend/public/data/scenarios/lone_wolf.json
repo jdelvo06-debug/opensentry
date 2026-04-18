@@ -63,7 +63,7 @@
     },
     {
       "id": "de_laser",
-      "name": "DE-LASER-3K",
+      "name": "DE-LASER-3km",
       "type": "de_laser",
       "range_km": 3.0,
       "fov_deg": 10,

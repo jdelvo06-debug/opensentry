@@ -85,7 +85,7 @@
     },
     {
       "catalog_id": "de_laser_3k",
-      "name": "DE-LASER-3K (High-Energy Laser)",
+      "name": "DE-LASER-3km",
       "type": "de_laser",
       "range_km": 3.0,
       "fov_deg": 10,
@@ -111,7 +111,7 @@
     },
     {
       "catalog_id": "de_hpm_3k",
-      "name": "DE-HPM-3K (High-Power Microwave)",
+      "name": "DE-HPM-3km",
       "type": "de_hpm",
       "range_km": 3.0,
       "fov_deg": 60,
@@ -132,7 +132,7 @@
         "Broad beam — less precise targeting",
         "May trigger EMCON restrictions"
       ],
-      "requires_los": true,
+      "requires_los": false,
       "collateral_risk": "medium"
     },
     {

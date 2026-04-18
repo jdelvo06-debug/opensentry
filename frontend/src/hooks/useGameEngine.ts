@@ -23,6 +23,7 @@ import {
   tickSpawns,
   tickWaves,
   tickFreePlaySpawns,
+  tickPendingDirectedEnergyEngagements,
   tickEffectorRecharge,
   tickPassiveJamming,
   tickDrones,
@@ -259,6 +260,7 @@ export function useGameEngine(onMessage: MessageHandler) {
           dispatchAll(tickSpawns(g, elapsed));
           dispatchAll(tickWaves(g, elapsed));
           if (isFreePlay) dispatchAll(tickFreePlaySpawns(g, elapsed));
+          dispatchAll(tickPendingDirectedEnergyEngagements(g, elapsed));
           dispatchAll(tickEffectorRecharge(g, elapsed));
           dispatchAll(tickPassiveJamming(g, elapsed));
           dispatchAll(tickDrones(g, elapsed));

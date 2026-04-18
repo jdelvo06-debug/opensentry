@@ -4,7 +4,10 @@
 
 import type { DroneState, GameState, PlayerAction, EffectorRuntimeState } from './state.js';
 import {
+  bearingToTargetDegrees,
+  calculateDirectedEnergySlewSeconds,
   checkEffectorInRange,
+  checkEffectorRangeOnly,
   checkKuFcsTracking,
   checkNexusRfTracking,
   effectorEffectiveness,
@@ -227,9 +230,18 @@ export function handleEngage(
 
     const isJammer = effState.type === 'rf_jam' || effState.type === 'electronic';
     const isShenobi = effState.type === 'shenobi_pm';
+    const isDirectedEnergy = effState.type === 'de_laser' || effState.type === 'de_hpm';
 
     // Range check
-    if (!isJammer && !isShenobi && !checkEffectorInRange(effState, d)) {
+    const inWeaponEnvelope = isDirectedEnergy
+      ? checkEffectorRangeOnly(effState, d)
+      : checkEffectorInRange(effState, d);
+    if (isDirectedEnergy && !inWeaponEnvelope) {
+      msgs.push(..._queueDirectedEnergyEngagement(gs, d, effState, effectorId, targetId, elapsed, 'slew'));
+      break;
+    }
+
+    if (!isJammer && !isShenobi && !inWeaponEnvelope) {
       msgs.push(_event(elapsed, `ENGAGEMENT: ${effState.name} \u2014 Target out of range`));
       break;
     }
@@ -256,8 +268,8 @@ export function handleEngage(
     // Dispatch by explicit effector type to avoid ordering ambiguity
     if (effState.type === 'kinetic') {
       msgs.push(..._engageJackal(gs, d, effState, effectorId, targetId, elapsed));
-    } else if (effState.type === 'de_hpm') {
-      msgs.push(..._engageHpm(gs, d, effState, effectorId, targetId, elapsed));
+    } else if (effState.type === 'de_laser' || effState.type === 'de_hpm') {
+      msgs.push(..._queueDirectedEnergyEngagement(gs, d, effState, effectorId, targetId, elapsed, 'engage'));
     } else if (isShenobi) {
       const cmType = shenobiCm || 'shenobi_hold';
       msgs.push(..._engageNexus(gs, j, d, effState, effectorId, targetId, cmType, effectiveness, elapsed));
@@ -267,7 +279,9 @@ export function handleEngage(
       msgs.push(..._engageDirect(gs, j, d, effState, effectorId, targetId, effectiveness, elapsed));
     }
 
-    _updateEffectorStatus(effState);
+    if (!isDirectedEnergy) {
+      _updateEffectorStatus(effState);
+    }
     break;
   }
 
@@ -552,6 +566,87 @@ function _engageDirect(
   return msgs;
 }
 
+function _queueDirectedEnergyEngagement(
+  gs: GameState,
+  d: DroneState,
+  effState: EffectorRuntimeState,
+  effectorId: string,
+  targetId: string,
+  elapsed: number,
+  mode: 'slew' | 'engage',
+): Record<string, unknown>[] {
+  const ex = effState.x ?? 0;
+  const ey = effState.y ?? 0;
+  const targetBearing = bearingToTargetDegrees(ex, ey, d.x, d.y);
+  const slewSeconds = calculateDirectedEnergySlewSeconds(effState, d);
+  const initialFacing = effState.facing_deg ?? targetBearing;
+
+  effState.status = 'slewing';
+  effState.recharge_remaining = slewSeconds;
+  gs.pending_directed_energy_engagements.push({
+    effector_id: effectorId,
+    target_id: targetId,
+    execute_at: elapsed + slewSeconds,
+    queued_at: elapsed,
+    initial_facing_deg: initialFacing,
+    mode,
+  });
+
+  return [
+    _event(
+      elapsed,
+      mode === 'engage'
+        ? `ENGAGEMENT: ${effState.name} SLEWING \u2014 ${(d.display_label || d.id).toUpperCase()} (${slewSeconds.toFixed(1)}s aim time)`
+        : `ENGAGEMENT: ${effState.name} SLEWING \u2014 ${(d.display_label || d.id).toUpperCase()} (${slewSeconds.toFixed(1)}s to orient, target out of range)`,
+    ),
+  ];
+}
+
+export function handleDirectedEnergyResolution(
+  gs: GameState,
+  targetId: string,
+  effectorId: string,
+  elapsed: number,
+  mode: 'slew' | 'engage' = 'engage',
+): Record<string, unknown>[] {
+  const effState = findEffectorConfig(gs.effector_states, effectorId);
+  if (!effState) return [];
+
+  const droneIdx = gs.drones.findIndex((d) => d.id === targetId);
+  if (droneIdx === -1) {
+    effState.status = 'ready';
+    effState.recharge_remaining = 0;
+    return [_event(elapsed, `ENGAGEMENT: ${effState.name} — target lost during slew`)];
+  }
+
+  const targetDrone = gs.drones[droneIdx];
+  if (targetDrone.neutralized) {
+    effState.status = 'ready';
+    effState.recharge_remaining = 0;
+    return [_event(elapsed, `ENGAGEMENT: ${effState.name} — ${(targetDrone.display_label || targetDrone.id).toUpperCase()} already neutralized`)];
+  }
+
+  if (mode === 'slew') {
+    effState.status = 'ready';
+    effState.recharge_remaining = 0;
+    return [_event(elapsed, `ENGAGEMENT: ${effState.name} on target \u2014 awaiting range on ${(targetDrone.display_label || targetDrone.id).toUpperCase()}`)];
+  }
+
+  if (!checkEffectorRangeOnly(effState, targetDrone)) {
+    effState.status = 'ready';
+    effState.recharge_remaining = 0;
+    return [_event(elapsed, `ENGAGEMENT: ${effState.name} — Target moved out of range during slew`)];
+  }
+
+  const effectiveness = effectorEffectiveness(effState.type, targetDrone.drone_type);
+  const msgs = effState.type === 'de_hpm'
+    ? _engageHpm(gs, targetDrone, effState, effectorId, targetId, elapsed)
+    : _engageDirect(gs, droneIdx, targetDrone, effState, effectorId, targetId, effectiveness, elapsed);
+
+  _updateEffectorStatus(effState);
+  return msgs;
+}
+
 function _engageHpm(
   gs: GameState, targetDrone: DroneState, effState: EffectorRuntimeState,
   effectorId: string, targetId: string, elapsed: number,
@@ -566,7 +661,7 @@ function _engageHpm(
 
     const distFromAimPoint = Math.hypot(candidate.x - targetDrone.x, candidate.y - targetDrone.y);
     if (candidate.id !== targetId && distFromAimPoint > HPM_SPLASH_RADIUS_KM) continue;
-    if (!checkEffectorInRange(effState, candidate)) continue;
+    if (!checkEffectorRangeOnly(effState, candidate)) continue;
 
     const effectiveness = effectorEffectiveness(effState.type, candidate.drone_type);
     const neutralized = effectiveness > 0.5;
