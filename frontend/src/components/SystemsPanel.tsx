@@ -140,12 +140,29 @@ function EffectorRow({ eff, activeJammers }: { eff: EffectorStatus; activeJammer
   );
 }
 
+function SectionLabel({ label }: { label: string }) {
+  return (
+    <div
+      style={{
+        fontSize: 8,
+        fontWeight: 700,
+        color: "#6e7681",
+        letterSpacing: 1,
+        margin: "4px 2px 3px",
+      }}
+    >
+      {label}
+    </div>
+  );
+}
+
 export default function SystemsPanel({ sensors, effectors, activeJammers = {} }: Props) {
   const standaloneSensors = sensors.filter((s) => !s.id.startsWith("combined_sensor_"));
+  const combinedSensors = sensors.filter((s) => s.id.startsWith("combined_sensor_"));
   const standaloneEffectors = effectors.filter((e) => !e.id.startsWith("combined_effector_"));
   const combinedEffectors = effectors.filter((e) => e.id.startsWith("combined_effector_"));
 
-  const hasCombined = combinedEffectors.length > 0;
+  const hasCombined = combinedSensors.length > 0 || combinedEffectors.length > 0;
 
   return (
     <div
@@ -176,7 +193,16 @@ export default function SystemsPanel({ sensors, effectors, activeJammers = {} }:
       )}
 
       {hasCombined && (
-        <CollapsibleGroup title="COMBINED" count={combinedEffectors.length}>
+        <CollapsibleGroup title="COMBINED" count={combinedSensors.length + combinedEffectors.length}>
+          {combinedSensors.length > 0 && <SectionLabel label="SENSORS" />}
+          {combinedSensors.map((sensor) => {
+            const cleanName = sensor.name || sensor.id.replace(/^combined_sensor_\d+_/, "").toUpperCase();
+            return <SensorRow key={sensor.id} sensor={{ ...sensor, name: cleanName }} />;
+          })}
+          {combinedSensors.length > 0 && combinedEffectors.length > 0 && (
+            <div style={{ height: 4 }} />
+          )}
+          {combinedEffectors.length > 0 && <SectionLabel label="EFFECTORS" />}
           {combinedEffectors.map((eff) => {
             const cleanName = eff.name || eff.id.replace(/^combined_effector_\d+_/, "").toUpperCase();
             return <EffectorRow key={eff.id} eff={{ ...eff, name: cleanName }} activeJammers={activeJammers} />;
