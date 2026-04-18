@@ -8,11 +8,16 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+---
+
+## [1.10.0] — 2026-04-18
+
 ### Added
 - **Directed energy split** — Legacy directed-energy effector split into two distinct systems: `DE-LASER-3km` and `DE-HPM-3km`.
 - **Directed energy pre-slew behavior** — Out-of-range DE engagement orders now pre-slew the effector onto the selected track instead of failing silently. Once on target, the system waits in `READY` until the operator fires in-range.
 - **Directed energy aim-time model** — DE engagements now include a short slew/aim delay that increases for larger angle changes and faster crossing targets.
 - **Persistent DE FOV wedges** — `DE-LASER-3km` and `DE-HPM-3km` render persistent, visually distinct cones on the tactical map.
+- **EO/IR duplicate-camera labeling** — Multiple EO/IR sensors now surface instance labels (`#1`, `#2`, etc.) in the camera panel and tactical map so operators can verify which camera is active during slew-to-cue.
 
 ### Changed
 - **DE naming cleanup** — Shortened user-facing names to `DE-LASER-3km` and `DE-HPM-3km` across loadouts, scenarios, and engagement UI.
@@ -24,6 +29,8 @@ This project uses [Semantic Versioning](https://semver.org/).
 - **Engagement feedback** — Rejected or pending DE engagements no longer appear as no-ops; UI feedback now surfaces `SLEWING`, LOS, and range status clearly.
 - **Effector-facing state updates** — Runtime `facing_deg` now flows through browser state updates so DE cones visibly slew on the tactical map.
 - **ROE scoring normalization** — Placement-generated DE effector IDs now score correctly for collateral and ROE checks.
+- **EO/IR inactive-camera selection** — Camera proximity slewing now ignores EO/IR sensors that are not active instead of binding to an offline camera.
+- **EO/IR tactical-map cone source** — Slew cone now renders from the selected EO/IR camera instead of always using the first EO/IR sensor in the scenario loadout.
 
 ---
 

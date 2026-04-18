@@ -142,7 +142,7 @@ fastify.addHook('onSend', async (_request, reply, payload) => {
 // REST endpoints
 // ---------------------------------------------------------------------------
 
-fastify.get('/api/health', async () => ({ name: 'OpenSentry', version: '1.7.1' }));
+fastify.get('/api/health', async () => ({ name: 'OpenSentry', version: '1.10.0' }));
 
 fastify.get('/scenarios', async () => {
   try { return listScenarios(); }

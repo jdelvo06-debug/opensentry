@@ -221,8 +221,8 @@ These are Claude Code subagent types, not custom-built tools. They run as part o
 - After-action replay (timeline scrub) — deferred
 
 ## Testing
-- **Frontend:** vitest with 37 unit tests in `frontend/src/__tests__/game-engine.test.ts`
-  - Coverage: detection math (radar/RF/EO-IR/acoustic), FOV, terrain LOS, confidence calculation, segment intersection, drone creation/movement/trail limits, jam behavior rolls, PNT drift, GameState factory, directed-energy LOS/HPM behavior, scoring normalization, and DE slew/pre-slew timing
+- **Frontend:** vitest with 47 unit tests across `frontend/src/__tests__/game-engine.test.ts`, `camera-panel.test.ts`, and `tactical-map.test.ts`
+  - Coverage: detection math (radar/RF/EO-IR/acoustic), FOV, terrain LOS, confidence calculation, segment intersection, drone creation/movement/trail limits, jam behavior rolls, PNT drift, GameState factory, directed-energy LOS/HPM behavior, scoring normalization, DE slew/pre-slew timing, EO/IR proximity camera selection, and tactical-map selected-camera routing
   - Run: `cd frontend && npm test`
 - **Backend:** pytest with 5 test modules in `backend/tests/`
   - Coverage: security, detection, drone, models, scoring
@@ -246,12 +246,15 @@ These are Claude Code subagent types, not custom-built tools. They run as part o
 - LOS corrections: Shenobi and RF Jammer now require LOS (only JACKAL is non-LOS)
 - AGL height range extended down to 2m
 
-## Shipped on main (2026-04-18)
+## Shipped in v1.10.0 (2026-04-18)
 - Directed energy split — legacy directed energy effector replaced by `DE-LASER-3km` and `DE-HPM-3km`
 - Distinct DE gameplay — laser is precision/LOS/single-target; HPM is non-LOS/area-effect/anti-swarm
 - Persistent DE FOV wedges plus distinct beam/pulse visuals
 - Directed energy engagement feedback — rejected shots and `SLEWING` state surfaced clearly in the engagement panel
 - Directed energy pre-slew — out-of-range DE commands now orient the system onto the track instead of doing nothing
+- EO/IR proximity slewing — selected track now binds to the nearest active EO/IR sensor
+- EO/IR tactical-map cone fix — camera cone now renders from the selected EO/IR instead of the first camera in the loadout
+- Duplicate EO/IR labels — camera panel and map markers now show `#1`, `#2`, etc. for easier operator verification
 
 ## Next Session — Priority Work
 1. Fix JACKAL trajectory and reduce action wheel size (Issue #1)

@@ -12,7 +12,7 @@
 
 > 🗺️ **Train at your actual base.** Drop a pin anywhere on Earth — real satellite imagery loads automatically. Set your perimeter, place your sensors, and run scenarios on terrain your operators actually defend. Not a demo airfield. Your location.
 
-**Version:** v1.9.x | **Status:** Active development
+**Version:** v1.10.0 | **Status:** Active development
 
 ---
 
@@ -213,11 +213,14 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 - [x] LOS corrections: Shenobi and RF Jammer now require line-of-sight
 - [x] Geo search on placement map, export preserves custom location coordinates
 
-### Completed (post-v1.9.0 mainline)
+### Completed (v1.10.0)
 - [x] Directed energy split — legacy DE weapon split into `DE-LASER-3km` and `DE-HPM-3km`
 - [x] Distinct DE gameplay — laser requires LOS and favors single drones; HPM ignores LOS and favors swarms
 - [x] DE visuals — persistent FOV wedges plus distinct laser beam and HPM pulse effects
 - [x] Directed energy slew model — DE systems can pre-slew onto out-of-range targets, then engage after an aim delay
+- [x] EO/IR proximity slewing — camera selection now picks the nearest active EO/IR sensor for the chosen track
+- [x] Tactical map camera-cone fix — slew cone now follows the selected EO/IR camera instead of always drawing from the first camera in the loadout
+- [x] Duplicate camera labeling — EO/IR instances are labeled `#1`, `#2`, etc. in the camera panel and on the tactical map for easier operator verification
 
 ### Backlog
 - [ ] Fix JACKAL trajectory + action wheel size (Issue #1)
