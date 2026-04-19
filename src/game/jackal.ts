@@ -5,6 +5,7 @@
  * Direct port of backend/app/jackal.py to TypeScript.
  */
 
+import { markDroneNeutralized } from './state';
 import type { DroneState } from './state';
 import { KTS_TO_KMS } from './helpers';
 
@@ -111,7 +112,7 @@ export function updateJackal(
       const trail = appendTrail(jackal);
       jackal = { ...jackal, altitude: newAlt, trail };
     } else {
-      jackal = { ...jackal, neutralized: true };
+      jackal = { ...jackal, neutralized: true, remove_at: elapsed };
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
@@ -233,15 +234,12 @@ export function updateJackal(
       const attempts = jackal.intercept_attempts + 1;
       if (Math.random() < 0.85) {
         // Success — neutralize target
-        const killedTarget: DroneState = {
-          ...targetDrone,
-          neutralized: true,
-          dtid_phase: 'defeated',
-        };
+        const killedTarget = markDroneNeutralized(targetDrone, elapsed);
         droneMutations.push(killedTarget);
         jackal = {
           ...jackal,
           neutralized: true,
+          remove_at: elapsed,
           intercept_attempts: attempts,
         };
         events.push({

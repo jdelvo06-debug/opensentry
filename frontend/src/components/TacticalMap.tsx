@@ -2007,8 +2007,8 @@ export default function TacticalMap({
           );
         })()}
 
-        {/* Tracks — filter out defeated/neutralized drones (ghost track fix #24) */}
-        {tracks.filter((t) => !t.neutralized).map((track) => {
+        {/* Tracks — let the engine prune expired neutralized tracks after a short post-kill display window */}
+        {tracks.map((track) => {
           const pos = trackPosition(track);
           const isSelected = track.id === selectedTrackId;
           const isInterceptor = !!track.is_interceptor;
