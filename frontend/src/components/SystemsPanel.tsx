@@ -140,18 +140,58 @@ function EffectorRow({ eff, activeJammers }: { eff: EffectorStatus; activeJammer
   );
 }
 
-function SectionLabel({ label }: { label: string }) {
+function getCombinedKey(id: string): string {
+  return id.replace(/^combined_(sensor|effector)_/, "");
+}
+
+function getCombinedBaseName(name: string | undefined, fallbackId: string): string {
+  const raw = name || fallbackId.toUpperCase();
+  return raw.replace(/\s+(RF|PM)$/i, "");
+}
+
+function CombinedSystemRow({
+  name,
+  sensor,
+  effector,
+  activeJammers,
+}: {
+  name: string;
+  sensor?: SensorStatus;
+  effector?: EffectorStatus;
+  activeJammers: Record<string, number>;
+}) {
+  const isDepleted = effector?.ammo_remaining != null && effector.ammo_remaining <= 0;
+  const isRadiating = effector ? effector.id in activeJammers : false;
+  const effectiveStatus = effector
+    ? (isDepleted ? "depleted" : isRadiating ? "radiating" : effector.status)
+    : (sensor?.status ?? "standby");
+  const color = STATUS_COLORS[effectiveStatus] || "#484f58";
+  const capabilities = [sensor ? "RF" : null, effector ? "PM" : null].filter(Boolean).join(" + ");
+
   return (
     <div
       style={{
-        fontSize: 8,
-        fontWeight: 700,
-        color: "#6e7681",
-        letterSpacing: 1,
-        margin: "4px 2px 3px",
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        minHeight: 22,
+        padding: "1px 2px",
+        borderRadius: 3,
+        marginBottom: 1,
       }}
     >
-      {label}
+      <div style={{ width: 6, height: 6, borderRadius: "50%", background: color, flexShrink: 0 }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 10, fontWeight: 600, color: "#e6edf3", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {name}
+        </div>
+        <div style={{ fontSize: 8, color: "#8b949e", letterSpacing: 0.4 }}>
+          {capabilities}
+        </div>
+      </div>
+      <div style={{ fontSize: 8, color, fontWeight: 700, letterSpacing: 0.4, flexShrink: 0 }}>
+        {effectiveStatus.toUpperCase().replace("_", " ")}
+      </div>
     </div>
   );
 }
@@ -162,7 +202,27 @@ export default function SystemsPanel({ sensors, effectors, activeJammers = {} }:
   const standaloneEffectors = effectors.filter((e) => !e.id.startsWith("combined_effector_"));
   const combinedEffectors = effectors.filter((e) => e.id.startsWith("combined_effector_"));
 
-  const hasCombined = combinedSensors.length > 0 || combinedEffectors.length > 0;
+  const combinedMap = new Map<string, { sensor?: SensorStatus; effector?: EffectorStatus; name: string }>();
+  for (const sensor of combinedSensors) {
+    const key = getCombinedKey(sensor.id);
+    const existing = combinedMap.get(key);
+    combinedMap.set(key, {
+      sensor,
+      effector: existing?.effector,
+      name: existing?.name || getCombinedBaseName(sensor.name, key),
+    });
+  }
+  for (const effector of combinedEffectors) {
+    const key = getCombinedKey(effector.id);
+    const existing = combinedMap.get(key);
+    combinedMap.set(key, {
+      sensor: existing?.sensor,
+      effector,
+      name: existing?.name || getCombinedBaseName(effector.name, key),
+    });
+  }
+  const combinedSystems = Array.from(combinedMap.values());
+  const hasCombined = combinedSystems.length > 0;
 
   return (
     <div
@@ -193,20 +253,16 @@ export default function SystemsPanel({ sensors, effectors, activeJammers = {} }:
       )}
 
       {hasCombined && (
-        <CollapsibleGroup title="COMBINED" count={combinedSensors.length + combinedEffectors.length}>
-          {combinedSensors.length > 0 && <SectionLabel label="SENSORS" />}
-          {combinedSensors.map((sensor) => {
-            const cleanName = sensor.name || sensor.id.replace(/^combined_sensor_\d+_/, "").toUpperCase();
-            return <SensorRow key={sensor.id} sensor={{ ...sensor, name: cleanName }} />;
-          })}
-          {combinedSensors.length > 0 && combinedEffectors.length > 0 && (
-            <div style={{ height: 4 }} />
-          )}
-          {combinedEffectors.length > 0 && <SectionLabel label="EFFECTORS" />}
-          {combinedEffectors.map((eff) => {
-            const cleanName = eff.name || eff.id.replace(/^combined_effector_\d+_/, "").toUpperCase();
-            return <EffectorRow key={eff.id} eff={{ ...eff, name: cleanName }} activeJammers={activeJammers} />;
-          })}
+        <CollapsibleGroup title="COMBINED" count={combinedSystems.length}>
+          {combinedSystems.map((system, index) => (
+            <CombinedSystemRow
+              key={`${system.name}-${index}`}
+              name={system.name}
+              sensor={system.sensor}
+              effector={system.effector}
+              activeJammers={activeJammers}
+            />
+          ))}
         </CollapsibleGroup>
       )}
     </div>
