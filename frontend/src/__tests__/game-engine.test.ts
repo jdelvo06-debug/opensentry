@@ -837,7 +837,7 @@ describe('directed energy engagements', () => {
     const removeAt = gs.drones[0].remove_at!;
     tickDrones(gs, removeAt + gs.tick_rate);
     const prunedState = buildStateMsg(gs, removeAt + gs.tick_rate, 100);
-    expect(gs.drones.some((drone) => drone.id === 'bogey-1')).toBe(false);
+    expect(gs.drones.some((drone) => drone.id === 'bogey-1' && drone.neutralized)).toBe(true);
     expect(prunedState.tracks.some((track: { id: string }) => track.id === 'bogey-1')).toBe(false);
   });
 
@@ -996,8 +996,11 @@ describe('calculateDirectedEnergySlewSeconds', () => {
     const postKillState = buildStateMsg(gs, 12.1, 100);
     expect(postKillState.tracks.some((track: { id: string; neutralized: boolean }) => track.id === 'bogey-1' && track.neutralized)).toBe(true);
 
-    tickDrones(gs, gs.drones[0].remove_at! + gs.tick_rate);
-    expect(gs.drones.some((drone) => drone.id === 'bogey-1')).toBe(false);
+    const removeAt = gs.drones[0].remove_at!;
+    tickDrones(gs, removeAt + gs.tick_rate);
+    const prunedState = buildStateMsg(gs, removeAt + gs.tick_rate, 100);
+    expect(gs.drones.some((drone) => drone.id === 'bogey-1' && drone.neutralized)).toBe(true);
+    expect(prunedState.tracks.some((track: { id: string }) => track.id === 'bogey-1')).toBe(false);
   });
 });
 

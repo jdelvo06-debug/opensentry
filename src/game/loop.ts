@@ -553,36 +553,8 @@ export function tickPassiveJamming(gs: GameState, elapsed: number): Msg[] {
   return events;
 }
 
-function pruneExpiredDrones(gs: GameState, elapsed: number): void {
-  const expiredIds = new Set(
-    gs.drones
-      .filter((drone) => drone.remove_at !== null && elapsed >= drone.remove_at)
-      .map((drone) => drone.id),
-  );
-  if (expiredIds.size === 0) return;
-
-  gs.drones = gs.drones.filter((drone) => !expiredIds.has(drone.id));
-
-  for (const id of expiredIds) {
-    gs.behaviors.delete(id);
-    gs.drone_configs.delete(id);
-    gs.previously_detected.delete(id);
-    gs.coast_sensor_loss_time.delete(id);
-    gs.hold_fire_tracks.delete(id);
-    gs.evasive_states.delete(id);
-    gs.jam_resist_notified.delete(id);
-    gs.jam_resist_notified.delete(`pnt_${id}`);
-  }
-
-  for (const sr of gs.sensor_runtime) {
-    sr.detecting = sr.detecting.filter((id) => !expiredIds.has(id));
-  }
-}
-
 export function tickDrones(gs: GameState, elapsed: number): Msg[] {
   const events: Msg[] = [];
-
-  pruneExpiredDrones(gs, elapsed);
 
   for (let i = 0; i < gs.drones.length; i++) {
     const drone = gs.drones[i];
