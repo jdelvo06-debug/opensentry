@@ -8,6 +8,20 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.10.1] — 2026-04-19
+
+### Added
+- **SystemsPanel sidebar consolidation** — SensorPanel + EffectorPanel merged into a single collapsible `SystemsPanel` with SENSORS, EFFECTORS, and COMBINED groups using compact rows.
+- **Shenobi combined display** — Shenobi renders as one row with capability subtext ("RF Detect + Protocol Manipulation") instead of duplicate sensor/effector rows.
+- **DE dwell/resolution timing tests** — Unit tests for directed energy slew → firing → dwell → resolution lifecycle (49/49 passing).
+
+### Changed
+- **DE LOS scoped to BDA only** — Directed energy line-of-sight enforcement is now skipped in standard scenarios (where users cannot place systems based on terrain) and enforced only in Base Defense Architect / custom placement missions.
+
+### Fixed
+- **RF/PNT jammer verification** — Live browser QA confirmed jammer engagement options display correctly, effect messaging appears, tracks stay visible after jam start, and no page or console errors.
+- **DE/HPM verification** — Backend tests confirm DE goes slew → firing → 1.0s dwell → resolution; HPM follows the same delayed resolution path.
+
 ---
 
 ## [1.10.0] — 2026-04-18

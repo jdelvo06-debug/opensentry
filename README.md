@@ -12,7 +12,7 @@
 
 > 🗺️ **Train at your actual base.** Drop a pin anywhere on Earth — real satellite imagery loads automatically. Set your perimeter, place your sensors, and run scenarios on terrain your operators actually defend. Not a demo airfield. Your location.
 
-**Version:** v1.10.0 | **Status:** Active development
+**Version:** v1.10.1 | **Status:** Active development
 
 ---
 
@@ -221,6 +221,12 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 - [x] EO/IR proximity slewing — camera selection now picks the nearest active EO/IR sensor for the chosen track
 - [x] Tactical map camera-cone fix — slew cone now follows the selected EO/IR camera instead of always drawing from the first camera in the loadout
 - [x] Duplicate camera labeling — EO/IR instances are labeled `#1`, `#2`, etc. in the camera panel and on the tactical map for easier operator verification
+
+### Completed (v1.10.1)
+- [x] **PR #7** — SystemsPanel sidebar consolidation: SensorPanel + EffectorPanel → single collapsible panel with SENSORS/EFFECTORS/COMBINED groups
+- [x] Shenobi combined display — one row with capability subtext (no duplicate entries)
+- [x] DE LOS scoped to BDA/custom placement only — standard scenarios skip LOS checks
+- [x] 49/49 unit tests passing — DE dwell/resolution, camera proximity slewing, tactical-map cone routing
 
 ### Backlog
 - [ ] Fix JACKAL trajectory + action wheel size (Issue #1)

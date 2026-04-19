@@ -4,22 +4,21 @@ Copy-paste this into Claude Code when you're ready to continue.
 
 ---
 
-## Status: BDA v2 Shipped (2026-04-09)
+## Status: v1.10.1 — SystemsPanel Merged (2026-04-19)
 
-The Base Defense Architect v2 stepper refactor is complete and merged to main (PR #3).
+PR #7 (SystemsPanel consolidation) is merged to main. DE split (v1.10.0) and sidebar refactor (v1.10.1) are both shipped.
 
 ### What's Working
 
-- ✅ 4-step flow: Base → Equip → Place → Export
-- ✅ Equipment selection with enriched cards (LOS, range, FOV, +/- qty)
-- ✅ Terrain-aware viewshed for all LOS systems (radar, EO/IR, Shenobi, jammer)
-- ✅ Per-system coverage toggle (show/hide individual viewsheds)
-- ✅ Draggable base perimeter with vertex handles
-- ✅ Map tile toggle (Dark/Satellite/Topo)
-- ✅ Geo search on placement map
-- ✅ Export to mission preserves custom location coordinates
-- ✅ AGL height down to 2m with preset buttons
-- ✅ Approach corridor coverage analysis on export screen
+- ✅ 4-step BDA flow: Base → Equip → Place → Export
+- ✅ Directed energy split: DE-LASER-3km (precision/LOS) + DE-HPM-3km (area/non-LOS)
+- ✅ SystemsPanel — single collapsible sidebar with SENSORS/EFFECTORS/COMBINED groups
+- ✅ Shenobi — one combined row with capability subtext (no duplicates)
+- ✅ DE LOS scoped correctly — standard scenarios skip, BDA/custom enforces
+- ✅ 49/49 tests passing (DE dwell/resolution, camera slewing, tactical-map routing)
+- ✅ Live browser QA: RF/PNT jammer, DE laser, HPM all verified
+- ✅ EO/IR proximity slewing — nearest active camera selected
+- ✅ Duplicate camera labels — #1, #2, etc.
 
 ### What's Next
 
@@ -40,11 +39,16 @@ The Base Defense Architect v2 stepper refactor is complete and merged to main (P
 **Priority 4: Innovation Submission**
 - Draft AFWERX/DIU one-pager for OpenSentry
 
+### Key Design Decisions (2026-04-19)
+- **Shenobi display:** One row with "RF Detect + Protocol Manipulation" subtext. No duplicate sensor/effector entries.
+- **DE LOS enforcement:** Skipped in standard scenarios (users can't place systems based on terrain). Enforced only in BDA/custom placement missions.
+
 ### Key Files
 
 ```
 frontend/src/components/
   BaseDefenseArchitect.tsx           ← stepper shell (~120 lines)
+  SystemsPanel.tsx                   ← consolidated sidebar (PR #7)
   bda/
     types.ts, constants.ts, viewshed.ts  ← shared modules
     BdaStepIndicator.tsx             ← step progress bar
@@ -53,8 +57,13 @@ frontend/src/components/
     BdaPlacement.tsx                 ← step 3: map + viewshed + placement
     BdaExport.tsx                    ← step 4: coverage summary + launch
     components/                      ← sub-components (palette, markers, etc.)
+
+src/game/
+  actions.ts                         ← 16 player action handlers (DE LOS conditional)
+  detection.ts                       ← _los_blocked() — used for BDA LOS only
+  jamming.ts                         ← RF + PNT jamming logic
 ```
 
 ---
 
-*Updated 2026-04-09 after BDA v2 merge.*
+*Updated 2026-04-19 after SystemsPanel merge.*

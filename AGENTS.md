@@ -1,4 +1,4 @@
-# CLAUDE.md — OpenSentry Project Guide (Updated 2026-04-19)
+# AGENTS.md — OpenSentry Project Guide (Updated 2026-04-19)
 
 ## What Is This?
 OpenSentry is a **free, browser-based C-UAS training simulator** designed to teach military operators the **DTID kill chain** (Detect → Track → Identify → Defeat). It's built to emulate real-world C-UAS command and control systems. No clearance required — purely training.
@@ -74,14 +74,10 @@ backend/                    ← Python/FastAPI reference implementation (DO NOT 
 | Ku-Band Fire Control Radar | `kufcs` | Sensor | 16km | Yes | Required for JACKAL guidance |
 | EO/IR Camera | `eoir_camera` | Sensor | 8km | Yes | 15° FOV, thermal + daylight |
 | RF/PNT Jammer | `rf_jammer` | Effector | 5km | Yes | RF energy blocked by terrain |
-| DE-LASER-3km | `de_laser_3k` | Effector | 3km | Yes | Precision single-target DE weapon; can pre-slew to a selected track |
-| DE-HPM-3km | `de_hpm_3k` | Effector | 3km | No | Area-effect DE pulse; best against swarms; no LOS required |
 | JACKAL Pallet | `jackal_pallet` | Effector | 10km | No | 4 interceptors, guided flight path |
 | Shenobi | `shenobi` | Combined | 8km/6km | Yes | RF detect + protocol manipulation |
 
-**LOS = Line of Sight.** Systems with LOS=Yes get terrain-aware viewshed visualization in Base Defense Architect. `DE-HPM-3km` and JACKAL are the only current effectors that can engage without LOS.
-
-**Directed Energy Behavior:** `DE-LASER-3km` and `DE-HPM-3km` can pre-slew toward a selected track even before it enters range. Their map cones should visibly rotate during the slew window, and an in-range engagement then fires after a short aim delay.
+**LOS = Line of Sight.** Systems with LOS=Yes get terrain-aware viewshed visualization in Base Defense Architect. Only JACKAL (kinetic interceptor with guided flight) operates without LOS.
 
 ---
 
@@ -109,11 +105,11 @@ DroneState fields added for PNT: `pnt_jammed`, `pnt_drift_magnitude`, `pnt_jamme
 
 | Scenario | Sensors | Effectors | Note |
 |----------|---------|-----------|------|
-| Tutorial | L-Band + EO/IR | RF Jammer + DE-LASER-3km + Shenobi | Learn basics, precision DE introduced |
-| Lone Wolf | L-Band + Ku-Band + EO/IR | RF Jammer + DE-LASER-3km + 2× JACKAL + Shenobi | Standard single-threat loadout |
-| Swarm Attack | L-Band + Ku-Band + 2× EO/IR | 2× RF Jammer + DE-LASER-3km + DE-HPM-3km + 2× JACKAL + 2× Shenobi | High-volume mixed DE + kinetic defense |
-| Recon Probe | L-Band + Ku-Band + 2× EO/IR | RF Jammer + DE-LASER-3km + DE-HPM-3km + 1× JACKAL + Shenobi | ROE discipline with DE options |
-| Free Play | L-Band + Ku-Band + EO/IR | RF Jammer + DE-LASER-3km + 1× JACKAL + Shenobi | Casual sandbox with a representative mixed-system loadout |
+| Tutorial | L-Band + EO/IR | RF Jammer + Shenobi | Learn basics, no JACKAL |
+| Lone Wolf | L-Band + Ku-Band + EO/IR | RF Jammer + 2× JACKAL + Shenobi | Standard loadout |
+| Swarm Attack | L-Band + Ku-Band + 2× EO/IR | 2× RF Jammer + 2× JACKAL + 2× Shenobi | High volume |
+| Recon Probe | L-Band + Ku-Band + 2× EO/IR | RF Jammer + 1× JACKAL + Shenobi | ROE discipline |
+| Free Play | L-Band + Ku-Band + EO/IR | RF Jammer + 1× JACKAL + Shenobi | One of each, casual sandbox |
 
 ---
 
@@ -192,7 +188,7 @@ pkill -f vite && cd frontend && npm run dev
 
 ## Development Workflow
 
-This project uses Claude Code subagents for a structured development pipeline:
+This project uses Codex subagents for a structured development pipeline:
 
 | Agent | Role |
 |-------|------|
@@ -205,7 +201,7 @@ This project uses Claude Code subagents for a structured development pipeline:
 
 **Typical flow:** plan → architect → implement → code-review → security-review → cleanup
 
-These are Claude Code subagent types, not custom-built tools. They run as part of the normal Claude Code session and are invoked automatically based on the task at hand.
+These are Codex subagent types, not custom-built tools. They run as part of the normal Codex session and are invoked automatically based on the task at hand.
 
 ---
 
@@ -247,20 +243,20 @@ These are Claude Code subagent types, not custom-built tools. They run as part o
 - AGL height range extended down to 2m
 
 ## Shipped in v1.10.0 (2026-04-18)
-- Directed energy split — legacy directed energy effector replaced by `DE-LASER-3km` and `DE-HPM-3km`
-- Distinct DE gameplay — laser is precision/LOS/single-target; HPM is non-LOS/area-effect/anti-swarm
-- Persistent DE FOV wedges plus distinct beam/pulse visuals
-- Directed energy engagement feedback — rejected shots and `SLEWING` state surfaced clearly in the engagement panel
-- Directed energy pre-slew — out-of-range DE commands now orient the system onto the track instead of doing nothing
-- EO/IR proximity slewing — selected track now binds to the nearest active EO/IR sensor
-- EO/IR tactical-map cone fix — camera cone now renders from the selected EO/IR instead of the first camera in the loadout
-- Duplicate EO/IR labels — camera panel and map markers now show `#1`, `#2`, etc. for easier operator verification
+- Directed energy split — legacy DE replaced by `DE-LASER-3km` and `DE-HPM-3km`
+- DE gameplay differentiation — laser is precision/LOS/single-target; HPM is non-LOS/area-effect/anti-swarm
+- Persistent DE FOV wedges + distinct beam/pulse visuals
+- DE engagement feedback — `SLEWING` state surfaced in engagement panel
+- DE pre-slew — out-of-range DE orders orient the system onto the track
+- EO/IR proximity slewing — binds to nearest active EO/IR sensor
+- EO/IR tactical-map cone fix — renders from selected camera
+- Duplicate EO/IR labels — `#1`, `#2`, etc.
 
 ## Shipped in v1.10.1 (2026-04-19)
-- **SystemsPanel sidebar consolidation (PR #7)** — SensorPanel + EffectorPanel merged into a single collapsible SystemsPanel with SENSORS, EFFECTORS, and COMBINED groups, compact rows
-- **Shenobi display fix** — Shenobi now renders as one combined row with capability subtext ("RF Detect + Protocol Manipulation") instead of duplicate rows
-- **DE LOS scoped to BDA only** — Directed energy line-of-sight enforcement skipped in standard scenarios (where users can't place systems based on terrain), applied only in Base Defense Architect / custom placement missions
-- **49/49 tests passing** — DE dwell/resolution timing tests added and passing; live browser QA confirmed RF/PNT jammer, DE laser, and HPM engagement all working correctly
+- **SystemsPanel sidebar consolidation (PR #7)** — SensorPanel + EffectorPanel merged into single collapsible SystemsPanel with SENSORS, EFFECTORS, and COMBINED groups
+- **Shenobi display fix** — one combined row with capability subtext instead of duplicate rows
+- **DE LOS scoped to BDA only** — directed energy line-of-sight enforcement skipped in standard scenarios, applied only in Base Defense Architect / custom placement
+- **49/49 tests passing** — DE dwell/resolution timing tests added; live browser QA verified RF/PNT jammer, DE laser, and HPM
 
 ## Next Session — Priority Work
 1. Fix JACKAL trajectory and reduce action wheel size (Issue #1)
