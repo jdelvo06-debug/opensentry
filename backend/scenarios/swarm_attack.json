@@ -212,12 +212,10 @@
       "correct_classification": "shahed",
       "correct_affiliation": "hostile",
       "optimal_effectors": [
-        "kinetic",
-        "de_laser"
+        "kinetic"
       ],
       "acceptable_effectors": [
-        "kinetic",
-        "de_laser"
+        "kinetic"
       ],
       "roe_violations": [],
       "should_engage": true

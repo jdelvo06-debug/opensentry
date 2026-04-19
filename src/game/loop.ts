@@ -494,7 +494,7 @@ export function tickPassiveJamming(gs: GameState, elapsed: number): Msg[] {
       let pntApplied = false;
 
       // RF jamming
-      if (!drone.jammed) {
+      if (!drone.jammed && drone.rf_emitting) {
         const behavior = pickJamBehavior(drone.drone_type);
         if (behavior === null) {
           if (!gs.jam_resist_notified.has(drone.id)) {

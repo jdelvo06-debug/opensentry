@@ -429,7 +429,7 @@ function _engageJammer(
     }
   }
 
-  const jamBehavior = pickJamBehavior(d.drone_type);
+  const jamBehavior = d.rf_emitting ? pickJamBehavior(d.drone_type) : null;
   const [pntEffective, pntDrift] = applyPntJamming(d.drone_type);
   const pntDuration = pntEffective ? _randUniform(15.0, 25.0) : 0;
 
@@ -557,7 +557,7 @@ function _engageDirect(
   const neutralized = effectiveness > 0.5;
   gs.drones[droneIdx] = neutralized
     ? markDroneNeutralized(d, elapsed)
-    : { ...d, dtid_phase: 'defeated', neutralized: false };
+    : d;
   gs.engage_times.set(targetId, elapsed);
   gs.effector_used.set(targetId, effState.type);
   gs.actions.push({ action: 'engage', target_id: targetId, effector: effectorId, timestamp: elapsed });
@@ -690,7 +690,7 @@ function _engageHpm(
     const neutralized = effectiveness > 0.5;
     gs.drones[i] = neutralized
       ? markDroneNeutralized(candidate, elapsed)
-      : { ...candidate, dtid_phase: 'defeated', neutralized: false };
+      : candidate;
     gs.engage_times.set(candidate.id, elapsed);
     gs.effector_used.set(candidate.id, effState.type);
     gs.actions.push({ action: 'engage', target_id: candidate.id, effector: effectorId, timestamp: elapsed });

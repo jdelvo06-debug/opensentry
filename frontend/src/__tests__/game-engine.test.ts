@@ -2,6 +2,7 @@
  * Game engine unit tests — covers detection math, confidence calculation,
  * drone movement, jamming behavior, and scoring fundamentals.
  */
+import { readFileSync } from 'node:fs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   SensorSimulator,
@@ -15,7 +16,7 @@ import { pickJamBehavior, updatePntJammedDrone } from '@opensentry/game/jamming'
 import { KTS_TO_KMS, calculateDirectedEnergySlewSeconds } from '@opensentry/game/helpers';
 import { handleEngage } from '@opensentry/game/actions';
 import { calculateScore } from '@opensentry/game/scoring';
-import { buildStateMsg, tickDrones, tickPendingDirectedEnergyEngagements } from '@opensentry/game/loop';
+import { buildStateMsg, tickDrones, tickPassiveJamming, tickPendingDirectedEnergyEngagements } from '@opensentry/game/loop';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -76,6 +77,12 @@ function makeScenario(overrides: Partial<ScenarioConfig> = {}): ScenarioConfig {
     no_ambient: false,
     ...overrides,
   };
+}
+
+function readScenarioFixture(name: string): ScenarioConfig {
+  return JSON.parse(
+    readFileSync(new URL(`../../public/data/scenarios/${name}.json`, import.meta.url), 'utf8'),
+  ) as ScenarioConfig;
 }
 
 // ---------------------------------------------------------------------------
@@ -787,6 +794,52 @@ describe('directed energy engagements', () => {
     expect(gs.pending_directed_energy_engagements).toHaveLength(0);
   });
 
+  it('does not neutralize shahed with DE-LASER', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'de_laser',
+      name: 'DE-LASER-3km',
+      type: 'de_laser',
+      range_km: 5,
+      status: 'ready',
+      recharge_seconds: 15,
+      x: 0,
+      y: 0,
+      fov_deg: 10,
+      facing_deg: 180,
+      requires_los: true,
+      single_use: false,
+      ammo_count: null,
+      ammo_remaining: null,
+    }];
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
+    gs.effector_states.push({
+      ...effectors[0],
+      recharge_remaining: 0,
+    });
+    gs.drones.push(makeDrone({
+      id: 'bogey-1',
+      display_label: 'SHAHED-1',
+      x: 2.5,
+      y: 0,
+      altitude: 500,
+      speed: 130,
+      drone_type: 'shahed',
+      dtid_phase: 'identified',
+      classification: 'shahed',
+      classified: true,
+      affiliation: 'hostile',
+    }));
+
+    handleEngage(gs, 'bogey-1', 'de_laser', 10);
+    tickPendingDirectedEnergyEngagements(gs, 20);
+    const impactMsgs = tickPendingDirectedEnergyEngagements(gs, 21);
+    const result = impactMsgs.find((msg) => msg.type === 'engagement_result');
+
+    expect(result?.effective).toBe(false);
+    expect(gs.drones[0].neutralized).toBe(false);
+    expect(gs.drones[0].dtid_phase).toBe('identified');
+  });
+
   it('keeps a DE kill visible briefly after impact, then prunes it cleanly', () => {
     const effectors: EffectorConfig[] = [{
       id: 'de_laser',
@@ -1062,5 +1115,152 @@ describe('directed energy scoring', () => {
     expect(score.roe_score).toBe(0);
     expect(score.details.roe).toContain('de_hpm');
     expect(score.details.defeat).toContain('collateral risk');
+  });
+});
+
+describe('targeted realism rules', () => {
+  it('direct RF/PNT jamming only applies RF jam behavior to RF-emitting tracks', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'jammer',
+      name: 'RF/PNT Jammer',
+      type: 'electronic',
+      range_km: 5,
+      status: 'ready',
+      recharge_seconds: 10,
+      x: 0,
+      y: 0,
+      fov_deg: 360,
+      facing_deg: 0,
+      requires_los: false,
+      single_use: false,
+      ammo_count: null,
+      ammo_remaining: null,
+    }];
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
+    gs.effector_states.push({
+      ...effectors[0],
+      recharge_remaining: 0,
+    });
+    gs.drones.push(makeDrone({
+      id: 'bogey-1',
+      display_label: 'FW-001',
+      x: 2,
+      y: 0,
+      drone_type: 'fixed_wing',
+      dtid_phase: 'identified',
+      classification: 'fixed_wing',
+      classified: true,
+      affiliation: 'hostile',
+      rf_emitting: false,
+    }));
+
+    const msgs = handleEngage(gs, 'bogey-1', 'jammer', 10);
+
+    expect(msgs.some((msg) => String(msg.message ?? '').includes('JAMMED'))).toBe(false);
+    expect(msgs.some((msg) => String(msg.message ?? '').includes('NAVIGATION DEGRADED'))).toBe(true);
+    expect(gs.drones[0].jammed).toBe(false);
+    expect(gs.drones[0].pnt_jammed).toBe(true);
+  });
+
+  it('passive jamming skips RF jam state on non-emitting tracks', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'jammer',
+      name: 'RF/PNT Jammer',
+      type: 'electronic',
+      range_km: 5,
+      status: 'ready',
+      recharge_seconds: 10,
+      x: 0,
+      y: 0,
+      fov_deg: 360,
+      facing_deg: 0,
+      requires_los: false,
+      single_use: false,
+      ammo_count: null,
+      ammo_remaining: null,
+    }];
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
+    gs.effector_states.push({
+      ...effectors[0],
+      jammer_active: true,
+      recharge_remaining: 0,
+    });
+    gs.drones.push(makeDrone({
+      id: 'bogey-1',
+      display_label: 'FW-001',
+      x: 2,
+      y: 0,
+      drone_type: 'fixed_wing',
+      dtid_phase: 'identified',
+      classification: 'fixed_wing',
+      classified: true,
+      affiliation: 'hostile',
+      rf_emitting: false,
+    }));
+
+    const events = tickPassiveJamming(gs, 15);
+
+    expect(events.some((msg) => String(msg.message ?? '').includes('RF JAM:'))).toBe(false);
+    expect(events.some((msg) => String(msg.message ?? '').includes('PNT:'))).toBe(true);
+    expect(gs.drones[0].jammed).toBe(false);
+    expect(gs.drones[0].pnt_jammed).toBe(true);
+  });
+
+  it('blocks Shenobi against fixed-wing tracks even when they emit RF', () => {
+    const sensors: SensorConfig[] = [makeSensor({
+      id: 'shenobi-sensor',
+      name: 'Shenobi RF Sensor',
+      type: 'rf',
+      range_km: 10,
+    })];
+    const effectors: EffectorConfig[] = [{
+      id: 'shenobi',
+      name: 'Shenobi',
+      type: 'shenobi_pm',
+      range_km: 6,
+      status: 'ready',
+      recharge_seconds: 10,
+      x: 0,
+      y: 0,
+      fov_deg: 360,
+      facing_deg: 0,
+      requires_los: false,
+      single_use: false,
+      ammo_count: null,
+      ammo_remaining: null,
+    }];
+    const gs = createGameState(makeScenario({ sensors, effectors }), sensors, effectors, null, null, []);
+    gs.effector_states.push({
+      ...effectors[0],
+      recharge_remaining: 0,
+    });
+    gs.drones.push(makeDrone({
+      id: 'bogey-1',
+      display_label: 'FW-001',
+      x: 2,
+      y: 0,
+      drone_type: 'fixed_wing',
+      dtid_phase: 'identified',
+      classification: 'fixed_wing',
+      classified: true,
+      affiliation: 'hostile',
+      rf_emitting: true,
+    }));
+
+    const msgs = handleEngage(gs, 'bogey-1', 'shenobi', 10, 'shenobi_hold');
+    const result = msgs.find((msg) => msg.type === 'engagement_result');
+
+    expect(msgs.some((msg) => String(msg.message ?? '').includes('NO PROTOCOL MATCH'))).toBe(true);
+    expect(result?.effective).toBe(false);
+    expect(gs.drones[0].shenobi_cm_active).toBeNull();
+  });
+
+  it('keeps shahed doctrine kinetic-only in swarm attack', () => {
+    const scenario = readScenarioFixture('swarm_attack');
+    const shahed = scenario.drones.find((drone) => drone.drone_type === 'shahed');
+
+    expect(shahed).toBeDefined();
+    expect(shahed?.optimal_effectors).toEqual(['kinetic']);
+    expect(shahed?.acceptable_effectors).toEqual(['kinetic']);
   });
 });
