@@ -37,6 +37,11 @@ export const Shenobi_IMMUNE_TYPES: Set<DroneType> = new Set<DroneType>([
   'military_jet',
 ]);
 
+const SHENOBI_SUPPORTED_TYPES: Set<DroneType> = new Set<DroneType>([
+  'commercial_quad',
+  'micro',
+]);
+
 // ---------------------------------------------------------------------------
 // Vulnerability / effectiveness checks
 // ---------------------------------------------------------------------------
@@ -45,22 +50,18 @@ export const Shenobi_IMMUNE_TYPES: Set<DroneType> = new Set<DroneType>([
 export function isShenobiVulnerable(drone: DroneState): boolean {
   if (Shenobi_IMMUNE_TYPES.has(drone.drone_type)) return false;
   if (!drone.rf_emitting) return false;
-  return true;
+  return SHENOBI_SUPPORTED_TYPES.has(drone.drone_type);
 }
 
 /**
  * Determine if a Shenobi countermeasure succeeds on this drone.
  *
- * Fixed-wing UAS with autonomous navigation have a 30% chance to resist.
- * All other RF-emitting types are reliably affected.
+ * Supported Shenobi targets are reliably affected once the library match exists.
  */
 export function pickShenobiCmEffectiveness(
   drone: DroneState,
   _cmType: string,
 ): boolean {
-  if (drone.drone_type === ('fixed_wing' as DroneType)) {
-    return Math.random() > 0.3; // 70% success
-  }
   return true;
 }
 

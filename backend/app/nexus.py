@@ -37,6 +37,7 @@ DRONE_FREQUENCY_MAP: dict[str, str] = {
 
 # Drones that NEXUS cannot affect (no RF control link in library)
 NEXUS_IMMUNE_TYPES = {DroneType.BIRD, DroneType.WEATHER_BALLOON, DroneType.PASSENGER_AIRCRAFT, DroneType.MILITARY_JET}
+NEXUS_SUPPORTED_TYPES = {DroneType.COMMERCIAL_QUAD, DroneType.MICRO}
 
 
 def is_nexus_vulnerable(drone: DroneState) -> bool:
@@ -45,17 +46,14 @@ def is_nexus_vulnerable(drone: DroneState) -> bool:
         return False
     if not drone.rf_emitting:
         return False
-    return True
+    return drone.drone_type in NEXUS_SUPPORTED_TYPES
 
 
 def pick_nexus_cm_effectiveness(drone: DroneState, cm_type: str) -> bool:
     """Determine if a NEXUS countermeasure succeeds on this drone.
 
-    Fixed-wing UAS with autonomous navigation have a 30% chance to resist.
-    All other RF-emitting types are reliably affected.
+    Supported NEXUS library matches are reliably affected.
     """
-    if drone.drone_type == DroneType.FIXED_WING:
-        return random.random() > 0.3  # 70% success
     return True
 
 

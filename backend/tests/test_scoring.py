@@ -1,5 +1,8 @@
 """Tests for the DTID scoring engine."""
 
+import json
+from pathlib import Path
+
 import pytest
 
 from app.helpers import effector_effectiveness
@@ -54,6 +57,23 @@ class TestEffectorEffectiveness:
 
     def test_de_hpm_is_weaker_vs_fixed_wing(self):
         assert effector_effectiveness("de_hpm", "fixed_wing") == 0.6
+
+    def test_de_laser_is_ineffective_vs_shahed(self):
+        assert effector_effectiveness("de_laser", "shahed") == 0.0
+
+    def test_de_hpm_is_ineffective_vs_shahed(self):
+        assert effector_effectiveness("de_hpm", "shahed") == 0.0
+
+
+class TestScenarioDoctrineCopies:
+    def test_swarm_attack_shahed_is_kinetic_only(self):
+        scenario = json.loads(
+            Path(__file__).resolve().parents[1].joinpath("scenarios/swarm_attack.json").read_text()
+        )
+        shahed = next(drone for drone in scenario["drones"] if drone["drone_type"] == "shahed")
+
+        assert shahed["optimal_effectors"] == ["kinetic"]
+        assert shahed["acceptable_effectors"] == ["kinetic"]
 
 
 # ===== Detection Response scoring =====

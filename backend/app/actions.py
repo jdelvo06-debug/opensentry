@@ -402,7 +402,7 @@ def _engage_jammer(
         return msgs
 
     # --- RF link jamming ---
-    jam_behavior = pick_jam_behavior(d.drone_type)
+    jam_behavior = pick_jam_behavior(d.drone_type) if d.rf_emitting else None
 
     # --- PNT jamming (runs independently of RF result) ---
     pnt_effective, pnt_drift = apply_pnt_jamming(d.drone_type)
@@ -523,10 +523,11 @@ def _engage_direct(
 ) -> list[dict]:
     msgs: list[dict] = []
     neutralized = effectiveness > 0.5
-    gs.drones[drone_idx] = d.model_copy(update={
-        "dtid_phase": DTIDPhase.DEFEATED,
-        "neutralized": neutralized,
-    })
+    gs.drones[drone_idx] = (
+        d.model_copy(update={"dtid_phase": DTIDPhase.DEFEATED, "neutralized": True})
+        if neutralized
+        else d
+    )
     gs.engage_times[target_id] = elapsed
     gs.effector_used[target_id] = eff_state["type"]
     gs.actions.append(PlayerAction(
@@ -570,10 +571,11 @@ def _engage_hpm(
 
         effectiveness = effector_effectiveness(eff_state["type"], candidate.drone_type.value)
         neutralized = effectiveness > 0.5
-        gs.drones[i] = candidate.model_copy(update={
-            "dtid_phase": DTIDPhase.DEFEATED,
-            "neutralized": neutralized,
-        })
+        gs.drones[i] = (
+            candidate.model_copy(update={"dtid_phase": DTIDPhase.DEFEATED, "neutralized": True})
+            if neutralized
+            else candidate
+        )
         gs.engage_times[candidate.id] = elapsed
         gs.effector_used[candidate.id] = eff_state["type"]
         gs.actions.append(PlayerAction(

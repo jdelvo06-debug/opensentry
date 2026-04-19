@@ -464,7 +464,7 @@ def _tick_passive_jamming(gs: GameState, elapsed: float) -> list[dict]:
             pnt_applied = False
 
             # --- RF jamming (skip if already jammed) ---
-            if not drone.jammed:
+            if not drone.jammed and drone.rf_emitting:
                 behavior = pick_jam_behavior(drone.drone_type)
                 if behavior is None:
                     if drone.id not in gs.jam_resist_notified:

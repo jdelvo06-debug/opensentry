@@ -71,7 +71,7 @@ const EFFECTIVENESS_MATRIX: Record<string, Record<string, number>> = {
     swarm: 0.8,
     improvised: 0.8,
     improvised_hardened: 0.75,
-    shahed: 0.7,
+    shahed: 0.0,
   },
   de_laser: {
     commercial_quad: 0.9,
@@ -80,7 +80,7 @@ const EFFECTIVENESS_MATRIX: Record<string, Record<string, number>> = {
     swarm: 0.4,
     improvised: 0.8,
     improvised_hardened: 0.75,
-    shahed: 0.7,
+    shahed: 0.0,
   },
   de_hpm: {
     commercial_quad: 0.7,
@@ -89,7 +89,7 @@ const EFFECTIVENESS_MATRIX: Record<string, Record<string, number>> = {
     swarm: 0.9,
     improvised: 0.75,
     improvised_hardened: 0.45,
-    shahed: 0.25,
+    shahed: 0.0,
   },
   shenobi_pm: {
     commercial_quad: 0.95,
