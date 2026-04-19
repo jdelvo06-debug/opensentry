@@ -76,6 +76,7 @@ export interface DEBeamAnimationData {
   targetX: number;
   targetY: number;
   effective: boolean;
+  resolved?: boolean;
   beamType: "laser" | "hpm";
   startTime: number;
   duration: number;
@@ -751,6 +752,7 @@ function DEBeamOverlay({
   startXY,
   targetXY,
   effective,
+  resolved = false,
   beamType,
   startTime,
   duration,
@@ -760,6 +762,7 @@ function DEBeamOverlay({
   startXY: [number, number];
   targetXY: [number, number];
   effective: boolean;
+  resolved?: boolean;
   beamType: "laser" | "hpm";
   startTime: number;
   duration: number;
@@ -856,12 +859,16 @@ function DEBeamOverlay({
           const flashR = 8 + impactT * 15;
           const flashOp = (1 - impactT) * pulseFlicker;
           const impactGlow = ctx.createRadialGradient(tp.x, tp.y, 0, tp.x, tp.y, flashR * 1.5);
-          impactGlow.addColorStop(0, effective
-            ? `rgba(255, 245, 180, ${flashOp})`
-            : `rgba(255, 140, 70, ${flashOp * 0.9})`);
-          impactGlow.addColorStop(0.5, effective
-            ? `rgba(255, 170, 70, ${flashOp * 0.55})`
-            : `rgba(255, 90, 50, ${flashOp * 0.4})`);
+          impactGlow.addColorStop(0, !resolved
+            ? `rgba(255, 235, 190, ${flashOp})`
+            : effective
+              ? `rgba(255, 245, 180, ${flashOp})`
+              : `rgba(255, 140, 70, ${flashOp * 0.9})`);
+          impactGlow.addColorStop(0.5, !resolved
+            ? `rgba(255, 180, 90, ${flashOp * 0.5})`
+            : effective
+              ? `rgba(255, 170, 70, ${flashOp * 0.55})`
+              : `rgba(255, 90, 50, ${flashOp * 0.4})`);
           impactGlow.addColorStop(1, "rgba(255, 120, 60, 0)");
 
           ctx.beginPath();
@@ -871,9 +878,11 @@ function DEBeamOverlay({
 
           ctx.beginPath();
           ctx.arc(tp.x, tp.y, flashR, 0, Math.PI * 2);
-          ctx.fillStyle = effective
-            ? `rgba(255, 200, 100, ${flashOp * 0.6})`
-            : `rgba(255, 100, 50, ${flashOp * 0.4})`;
+          ctx.fillStyle = !resolved
+            ? `rgba(255, 190, 110, ${flashOp * 0.5})`
+            : effective
+              ? `rgba(255, 200, 100, ${flashOp * 0.6})`
+              : `rgba(255, 100, 50, ${flashOp * 0.4})`;
           ctx.fill();
         }
       } else {
@@ -998,15 +1007,17 @@ function DEBeamOverlay({
 
           ctx.beginPath();
           ctx.arc(tp.x, tp.y, 10 + rippleT * 10, 0, Math.PI * 2);
-          ctx.fillStyle = effective
-            ? `rgba(150, 255, 255, ${rippleOp * 0.35})`
-            : `rgba(255, 120, 120, ${rippleOp * 0.18})`;
+          ctx.fillStyle = !resolved
+            ? `rgba(160, 220, 255, ${rippleOp * 0.22})`
+            : effective
+              ? `rgba(150, 255, 255, ${rippleOp * 0.35})`
+              : `rgba(255, 120, 120, ${rippleOp * 0.18})`;
           ctx.fill();
         }
       }
 
       // Effective/ineffective marker after beam phase
-      if (t >= 0.8 && t < 1) {
+      if (resolved && t >= 0.8 && t < 1) {
         const resultT = (t - 0.8) / 0.2;
         const markerOp = 1 - resultT;
         if (effective) {
@@ -1051,7 +1062,7 @@ function DEBeamOverlay({
       }
       canvasRef.current = null;
     };
-  }, [map, startXY, targetXY, effective, beamType, startTime, duration, baseLat, baseLng]);
+  }, [map, startXY, targetXY, effective, resolved, beamType, startTime, duration, baseLat, baseLng]);
 
   return null;
 }
@@ -1774,6 +1785,7 @@ export default function TacticalMap({
             startXY={[beam.startX, beam.startY]}
             targetXY={[beam.targetX, beam.targetY]}
             effective={beam.effective}
+            resolved={beam.resolved}
             beamType={beam.beamType}
             startTime={beam.startTime}
             duration={beam.duration}
@@ -2007,8 +2019,8 @@ export default function TacticalMap({
           );
         })()}
 
-        {/* Tracks — filter out defeated/neutralized drones (ghost track fix #24) */}
-        {tracks.filter((t) => !t.neutralized).map((track) => {
+        {/* Tracks — let the engine prune expired neutralized tracks after a short post-kill display window */}
+        {tracks.map((track) => {
           const pos = trackPosition(track);
           const isSelected = track.id === selectedTrackId;
           const isInterceptor = !!track.is_interceptor;

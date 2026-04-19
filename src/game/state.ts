@@ -32,6 +32,8 @@ export type NexusCMType = 'shenobi_hold' | 'shenobi_land_now' | 'shenobi_deafen'
 export type NexusCMState = 'pending' | '1/2' | '2/2';
 export type GamePhase = 'waiting' | 'running' | 'debrief';
 
+export const POST_KILL_DISPLAY_SECONDS = 2.0;
+
 // --- Core game state interfaces ---
 
 export interface DroneState {
@@ -80,6 +82,7 @@ export interface DroneState {
   display_label: string;
   last_jam_attempt_ts?: number;
   jam_cooldown: number;
+  remove_at: number | null;
 }
 
 export function createDefaultDrone(overrides: Partial<DroneState> & Pick<DroneState, 'id' | 'drone_type' | 'x' | 'y' | 'altitude' | 'speed' | 'heading'>): DroneState {
@@ -121,6 +124,7 @@ export function createDefaultDrone(overrides: Partial<DroneState> & Pick<DroneSt
     shenobi_cm_initial_duration: 0,
     display_label: '',
     jam_cooldown: 0,
+    remove_at: null,
     ...overrides,
   };
 }
@@ -128,6 +132,21 @@ export function createDefaultDrone(overrides: Partial<DroneState> & Pick<DroneSt
 /** Clone a DroneState with partial updates (replaces Pydantic model_copy) */
 export function updateDrone(drone: DroneState, updates: Partial<DroneState>): DroneState {
   return { ...drone, ...updates };
+}
+
+export function markDroneNeutralized(
+  drone: DroneState,
+  elapsed: number,
+  updates: Partial<DroneState> = {},
+  removeDelaySeconds: number = POST_KILL_DISPLAY_SECONDS,
+): DroneState {
+  return {
+    ...drone,
+    ...updates,
+    neutralized: true,
+    dtid_phase: 'defeated',
+    remove_at: elapsed + removeDelaySeconds,
+  };
 }
 
 export interface SensorConfig {

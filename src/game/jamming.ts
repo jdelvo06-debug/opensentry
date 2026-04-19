@@ -2,6 +2,7 @@
  * OpenSentry jamming logic — direct port of backend/app/jamming.py
  */
 
+import { markDroneNeutralized } from './state';
 import type { DroneState } from './state';
 import { KTS_TO_KMS } from './helpers';
 
@@ -155,7 +156,7 @@ export function updateJammedDrone(
     const trail = [...d.trail, [Math.round(newX * 1000) / 1000, Math.round(newY * 1000) / 1000]].slice(-20);
     d = { ...d, x: newX, y: newY, altitude: newAlt, speed: d.speed * 0.95, trail };
     if (newAlt <= 0 || d.jammed_time_remaining <= 0) {
-      d = { ...d, neutralized: true, dtid_phase: 'defeated', jammed_time_remaining: 0, altitude: 0 };
+      d = markDroneNeutralized(d, elapsed, { jammed_time_remaining: 0, altitude: 0 });
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
@@ -171,7 +172,7 @@ export function updateJammedDrone(
     const trail = [...d.trail, [Math.round(newX * 1000) / 1000, Math.round(newY * 1000) / 1000]].slice(-20);
     d = { ...d, x: newX, y: newY, heading: headingDeg, trail };
     if (Math.sqrt(newX ** 2 + newY ** 2) > 10.0 || d.jammed_time_remaining <= 0) {
-      d = { ...d, neutralized: true, dtid_phase: 'defeated', jammed_time_remaining: 0 };
+      d = markDroneNeutralized(d, elapsed, { jammed_time_remaining: 0 });
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
@@ -182,7 +183,7 @@ export function updateJammedDrone(
     const newAlt = Math.max(0, d.altitude - 50 * tickRate);
     d = { ...d, altitude: newAlt, speed: Math.max(0, d.speed - 5 * tickRate) };
     if (newAlt <= 0) {
-      d = { ...d, neutralized: true, dtid_phase: 'defeated', jammed_time_remaining: 0, altitude: 0, speed: 0 };
+      d = markDroneNeutralized(d, elapsed, { jammed_time_remaining: 0, altitude: 0, speed: 0 });
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
@@ -217,7 +218,7 @@ export function updateJammedDrone(
     const trail = [...d.trail, [Math.round(newX * 1000) / 1000, Math.round(newY * 1000) / 1000]].slice(-20);
     d = { ...d, x: newX, y: newY, heading: spoofHeading, trail };
     if (Math.sqrt(newX ** 2 + newY ** 2) > 10.0 || d.jammed_time_remaining <= 0) {
-      d = { ...d, neutralized: true, dtid_phase: 'defeated', jammed_time_remaining: 0 };
+      d = markDroneNeutralized(d, elapsed, { jammed_time_remaining: 0 });
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,

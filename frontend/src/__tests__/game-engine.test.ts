@@ -2,7 +2,7 @@
  * Game engine unit tests — covers detection math, confidence calculation,
  * drone movement, jamming behavior, and scoring fundamentals.
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   SensorSimulator,
   calculateConfidence,
@@ -15,7 +15,7 @@ import { pickJamBehavior, updatePntJammedDrone } from '@opensentry/game/jamming'
 import { KTS_TO_KMS, calculateDirectedEnergySlewSeconds } from '@opensentry/game/helpers';
 import { handleEngage } from '@opensentry/game/actions';
 import { calculateScore } from '@opensentry/game/scoring';
-import { tickPendingDirectedEnergyEngagements } from '@opensentry/game/loop';
+import { buildStateMsg, tickDrones, tickPendingDirectedEnergyEngagements } from '@opensentry/game/loop';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -787,6 +787,60 @@ describe('directed energy engagements', () => {
     expect(gs.pending_directed_energy_engagements).toHaveLength(0);
   });
 
+  it('keeps a DE kill visible briefly after impact, then prunes it cleanly', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'de_laser',
+      name: 'DE-LASER-3km',
+      type: 'de_laser',
+      range_km: 5,
+      status: 'ready',
+      recharge_seconds: 15,
+      x: 0,
+      y: 0,
+      fov_deg: 10,
+      facing_deg: 180,
+      requires_los: true,
+      single_use: false,
+      ammo_count: null,
+      ammo_remaining: null,
+    }];
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
+    gs.effector_states.push({
+      ...effectors[0],
+      recharge_remaining: 0,
+    });
+    gs.drones.push(makeDrone({
+      id: 'bogey-1',
+      display_label: 'TRN-001',
+      x: 2.5,
+      y: 0,
+      drone_type: 'commercial_quad',
+      dtid_phase: 'identified',
+      classification: 'commercial_quad',
+      classified: true,
+      affiliation: 'hostile',
+      detected: true,
+      trail: [[2.5, 0]],
+    }));
+
+    handleEngage(gs, 'bogey-1', 'de_laser', 10);
+    tickPendingDirectedEnergyEngagements(gs, 20);
+    tickPendingDirectedEnergyEngagements(gs, 21);
+
+    expect(gs.drones[0].neutralized).toBe(true);
+    expect(gs.drones[0].dtid_phase).toBe('defeated');
+    expect(gs.drones[0].remove_at).toBeGreaterThan(21);
+
+    const postKillState = buildStateMsg(gs, 21.5, 100);
+    expect(postKillState.tracks.some((track: { id: string; neutralized: boolean }) => track.id === 'bogey-1' && track.neutralized)).toBe(true);
+
+    const removeAt = gs.drones[0].remove_at!;
+    tickDrones(gs, removeAt + gs.tick_rate);
+    const prunedState = buildStateMsg(gs, removeAt + gs.tick_rate, 100);
+    expect(gs.drones.some((drone) => drone.id === 'bogey-1' && drone.neutralized)).toBe(true);
+    expect(prunedState.tracks.some((track: { id: string }) => track.id === 'bogey-1')).toBe(false);
+  });
+
   it('returns DE-LASER to ready after an out-of-range pre-slew completes', () => {
     const effectors: EffectorConfig[] = [{
       id: 'de_laser',
@@ -866,46 +920,118 @@ describe('calculateDirectedEnergySlewSeconds', () => {
   });
 
   it('keeps RF jammed tracks active until the jam effect resolves', () => {
-    const effectors: EffectorConfig[] = [{
-      id: 'rf_jam',
-      name: 'RF Jammer',
-      type: 'rf_jam',
-      range_km: 5,
-      status: 'ready',
-      recharge_seconds: 10,
-      x: 0,
-      y: 0,
-      fov_deg: 360,
-      facing_deg: 0,
-      requires_los: false,
-      single_use: false,
-      ammo_count: null,
-      ammo_remaining: null,
-    }];
-    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
-    gs.effector_states.push({
-      ...effectors[0],
-      recharge_remaining: 0,
-    });
+    const randomSpy = vi.spyOn(Math, 'random').mockImplementation(() => 0.9);
+    try {
+      const effectors: EffectorConfig[] = [{
+        id: 'rf_jam',
+        name: 'RF Jammer',
+        type: 'rf_jam',
+        range_km: 5,
+        status: 'ready',
+        recharge_seconds: 10,
+        x: 0,
+        y: 0,
+        fov_deg: 360,
+        facing_deg: 0,
+        requires_los: false,
+        single_use: false,
+        ammo_count: null,
+        ammo_remaining: null,
+      }];
+      const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
+      gs.effector_states.push({
+        ...effectors[0],
+        recharge_remaining: 0,
+      });
+      gs.drones.push(makeDrone({
+        id: 'bogey-1',
+        display_label: 'TRN-001',
+        x: 2,
+        y: 0,
+        drone_type: 'commercial_quad',
+        dtid_phase: 'identified',
+        classification: 'commercial_quad',
+        classified: true,
+        affiliation: 'hostile',
+        rf_emitting: true,
+      }));
+
+      const msgs = handleEngage(gs, 'bogey-1', 'rf_jam', 10);
+
+      expect(msgs.some((msg) => String(msg.message ?? '').includes('JAMMED'))).toBe(true);
+      expect(gs.drones[0].jammed).toBe(true);
+      expect(gs.drones[0].dtid_phase).toBe('identified');
+      expect(gs.drones[0].neutralized).toBe(false);
+    } finally {
+      randomSpy.mockRestore();
+    }
+  });
+
+  it('prunes a neutralized jam-kill after the post-kill display window', () => {
+    const gs = createGameState(makeScenario(), [], [], null, null, []);
     gs.drones.push(makeDrone({
       id: 'bogey-1',
       display_label: 'TRN-001',
-      x: 2,
+      x: 1.2,
       y: 0,
-      drone_type: 'commercial_quad',
+      altitude: 4,
+      speed: 20,
       dtid_phase: 'identified',
       classification: 'commercial_quad',
       classified: true,
       affiliation: 'hostile',
-      rf_emitting: true,
+      detected: true,
+      jammed: true,
+      jammed_behavior: 'forced_landing',
+      jammed_time_remaining: 1,
+      trail: [[1.2, 0]],
     }));
 
-    const msgs = handleEngage(gs, 'bogey-1', 'rf_jam', 10);
+    tickDrones(gs, 12);
 
-    expect(msgs.some((msg) => String(msg.message ?? '').includes('JAMMED'))).toBe(true);
+    expect(gs.drones[0].neutralized).toBe(true);
+    expect(gs.drones[0].dtid_phase).toBe('defeated');
+    expect(gs.drones[0].remove_at).toBeGreaterThan(12);
+
+    const postKillState = buildStateMsg(gs, 12.1, 100);
+    expect(postKillState.tracks.some((track: { id: string; neutralized: boolean }) => track.id === 'bogey-1' && track.neutralized)).toBe(true);
+
+    const removeAt = gs.drones[0].remove_at!;
+    tickDrones(gs, removeAt + gs.tick_rate);
+    const prunedState = buildStateMsg(gs, removeAt + gs.tick_rate, 100);
+    expect(gs.drones.some((drone) => drone.id === 'bogey-1' && drone.neutralized)).toBe(true);
+    expect(prunedState.tracks.some((track: { id: string }) => track.id === 'bogey-1')).toBe(false);
+  });
+
+  it('continues applying PNT degradation while RF jamming is active', () => {
+    const gs = createGameState(makeScenario(), [], [], null, null, []);
+    gs.drones.push(makeDrone({
+      id: 'bogey-1',
+      display_label: 'TRN-001',
+      x: 1.5,
+      y: 0,
+      altitude: 100,
+      speed: 12,
+      dtid_phase: 'identified',
+      classification: 'commercial_quad',
+      classified: true,
+      affiliation: 'hostile',
+      detected: true,
+      jammed: true,
+      jammed_behavior: 'atti_mode',
+      jammed_time_remaining: 5,
+      pnt_jammed: true,
+      pnt_drift_magnitude: 0.008,
+      pnt_jammed_time_remaining: 5,
+      trail: [[1.5, 0]],
+    }));
+
+    tickDrones(gs, 15);
+
     expect(gs.drones[0].jammed).toBe(true);
-    expect(gs.drones[0].dtid_phase).toBe('identified');
-    expect(gs.drones[0].neutralized).toBe(false);
+    expect(gs.drones[0].pnt_jammed).toBe(true);
+    expect(gs.drones[0].jammed_time_remaining).toBeLessThan(5);
+    expect(gs.drones[0].pnt_jammed_time_remaining).toBeLessThan(5);
   });
 });
 

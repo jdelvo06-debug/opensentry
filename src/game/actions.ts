@@ -2,6 +2,9 @@
  * Player action handlers — ported from actions.py
  */
 
+import {
+  markDroneNeutralized,
+} from './state.js';
 import type { DroneState, GameState, PlayerAction, EffectorRuntimeState } from './state.js';
 import {
   bearingToTargetDegrees,
@@ -535,6 +538,7 @@ function _engageJackal(
     neutralized: false,
     display_label: jackalId,
     jam_cooldown: 0,
+    remove_at: null,
   };
 
   gs.drones.push(jackalDrone);
@@ -551,7 +555,9 @@ function _engageDirect(
 ): Record<string, unknown>[] {
   const msgs: Record<string, unknown>[] = [];
   const neutralized = effectiveness > 0.5;
-  gs.drones[droneIdx] = { ...d, dtid_phase: 'defeated', neutralized };
+  gs.drones[droneIdx] = neutralized
+    ? markDroneNeutralized(d, elapsed)
+    : { ...d, dtid_phase: 'defeated', neutralized: false };
   gs.engage_times.set(targetId, elapsed);
   gs.effector_used.set(targetId, effState.type);
   gs.actions.push({ action: 'engage', target_id: targetId, effector: effectorId, timestamp: elapsed });
@@ -682,7 +688,9 @@ function _engageHpm(
 
     const effectiveness = effectorEffectiveness(effState.type, candidate.drone_type);
     const neutralized = effectiveness > 0.5;
-    gs.drones[i] = { ...candidate, dtid_phase: 'defeated', neutralized };
+    gs.drones[i] = neutralized
+      ? markDroneNeutralized(candidate, elapsed)
+      : { ...candidate, dtid_phase: 'defeated', neutralized: false };
     gs.engage_times.set(candidate.id, elapsed);
     gs.effector_used.set(candidate.id, effState.type);
     gs.actions.push({ action: 'engage', target_id: candidate.id, effector: effectorId, timestamp: elapsed });

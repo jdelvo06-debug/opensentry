@@ -24,6 +24,7 @@ import ROEBriefing from "./components/ROEBriefing";
 import StudyLibrary from "./components/StudyLibrary";
 import StudyModule from "./components/StudyModule";
 import BaseDefenseArchitect from "./components/BaseDefenseArchitect";
+import { buildDeBeamFromFiringEvent } from "./utils/deEngagement";
 
 import { useGameEngine as useWebSocket } from "./hooks/useGameEngine";
 import "./app.css";
@@ -414,6 +415,18 @@ export default function App() {
           ...prev,
           { timestamp: msg.timestamp, message: msg.message },
         ]);
+        const deBeam = buildDeBeamFromFiringEvent(
+          msg.message,
+          effectorsRef.current.length ? effectorsRef.current : effectorConfigsRef.current,
+          tracksRef.current,
+          Date.now(),
+        );
+        if (deBeam) {
+          setActiveDEBeams((prev) => [...prev, deBeam]);
+          window.setTimeout(() => {
+            setActiveDEBeams((prev) => prev.filter((beam) => beam.id !== deBeam.id));
+          }, deBeam.duration + 700);
+        }
         const attempt = engagementAttemptRef.current;
         if (
           attempt
@@ -487,6 +500,14 @@ export default function App() {
         }
         // Track JACKAL intercept animation
         const effLower = msg.effector.toLowerCase();
+        const effType = (msg as any).effector_type || "";
+        if (effType === "de_laser" || effType === "de_hpm") {
+          setActiveDEBeams((prev) => prev.map((beam) => (
+            beam.effectorId === msg.effector && beam.targetId === msg.target_id
+              ? { ...beam, effective: msg.effective, resolved: true }
+              : beam
+          )));
+        }
         if (effLower.includes("jackal") || effLower.includes("interceptor")) {
           // Find effector and target positions
           const effObj = effectorsRef.current.find((e) => e.id === msg.effector)
@@ -512,36 +533,6 @@ export default function App() {
             setTimeout(() => {
               setActiveIntercepts((prev) => prev.filter((a) => a.id !== interceptId));
             }, duration + 1500);
-          }
-        }
-
-        // Track DE beam animation (laser / HPM)
-        const effType = (msg as any).effector_type || "";
-        if (effType === "de_laser" || effType === "de_hpm") {
-          const effObj = effectorsRef.current.find((e) => e.id === msg.effector)
-            || effectorConfigsRef.current.find((e) => e.id === msg.effector);
-          const target = tracksRef.current.find((t) => t.id === msg.target_id);
-          if (effObj && target && effObj.x != null) {
-            const beamId = `de-beam-${Date.now()}`;
-            const beamType: "laser" | "hpm" = effType === "de_hpm" ? "hpm" : "laser";
-            const duration = beamType === "hpm" ? 3200 : 2600;
-            const newBeam: DEBeamAnimationData = {
-              id: beamId,
-              effectorId: msg.effector,
-              targetId: msg.target_id,
-              startX: effObj.x ?? 0,
-              startY: effObj.y ?? 0,
-              targetX: target.x,
-              targetY: target.y,
-              effective: msg.effective,
-              beamType,
-              startTime: Date.now(),
-              duration,
-            };
-            setActiveDEBeams((prev) => [...prev, newBeam]);
-            setTimeout(() => {
-              setActiveDEBeams((prev) => prev.filter((b) => b.id !== beamId));
-            }, duration + 700);
           }
         }
 

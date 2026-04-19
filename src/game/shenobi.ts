@@ -14,6 +14,7 @@
  * Direct port of backend/app/shenobi.py to TypeScript.
  */
 
+import { markDroneNeutralized } from './state';
 import type { DroneState, DroneType } from './state';
 import { KTS_TO_KMS } from './helpers';
 
@@ -207,14 +208,11 @@ function applyHold(
   const newAlt = Math.max(0, drone.altitude - descentRate * tickRate);
   drone = { ...drone, altitude: newAlt };
   if (newAlt <= 0) {
-    drone = {
-      ...drone,
-      neutralized: true,
-      dtid_phase: 'defeated',
+    drone = markDroneNeutralized(drone, elapsed, {
       altitude: 0,
       speed: 0,
       shenobi_cm_time_remaining: 0,
-    };
+    });
     events.push({
       type: 'event',
       timestamp: Math.round(elapsed * 10) / 10,
@@ -237,14 +235,11 @@ function applyLandNow(
   drone = { ...drone, altitude: newAlt, speed: newSpeed };
 
   if (newAlt <= 0) {
-    drone = {
-      ...drone,
-      neutralized: true,
-      dtid_phase: 'defeated',
+    drone = markDroneNeutralized(drone, elapsed, {
       altitude: 0,
       speed: 0,
       shenobi_cm_time_remaining: 0,
-    };
+    });
     events.push({
       type: 'event',
       timestamp: Math.round(elapsed * 10) / 10,
@@ -279,14 +274,11 @@ function applyDeafen(
     drone = { ...drone, speed: newSpeed, altitude: newAlt, trail };
 
     if (newAlt <= 0) {
-      drone = {
-        ...drone,
-        neutralized: true,
-        dtid_phase: 'defeated',
+      drone = markDroneNeutralized(drone, elapsed, {
         altitude: 0,
         speed: 0,
         shenobi_cm_time_remaining: 0,
-      };
+      });
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,
@@ -304,12 +296,9 @@ function applyDeafen(
 
     // Leave area check
     if (Math.sqrt(newX ** 2 + newY ** 2) > 10.0) {
-      drone = {
-        ...drone,
-        neutralized: true,
-        dtid_phase: 'defeated',
+      drone = markDroneNeutralized(drone, elapsed, {
         shenobi_cm_time_remaining: 0,
-      };
+      });
       events.push({
         type: 'event',
         timestamp: Math.round(elapsed * 10) / 10,

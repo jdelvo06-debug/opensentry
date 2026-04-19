@@ -23,7 +23,7 @@ import type {
   SensorConfig, EffectorConfig, PlacementConfig, BaseTemplate,
   TerrainFeature, EquipmentCatalog, PlayerAction, EffectorStatus,
 } from './state.js';
-import { createGameState } from './state.js';
+import { createGameState, markDroneNeutralized } from './state.js';
 import {
   KTS_TO_KMS,
   threatLevel,
@@ -589,9 +589,14 @@ export function tickDrones(gs: GameState, elapsed: number): Msg[] {
 
     // RF-jammed drone
     if (drone.jammed) {
-      const [updated, jevents] = updateJammedDrone(drone, gs.tick_rate, elapsed);
-      gs.drones[i] = updated;
+      let [updated, jevents] = updateJammedDrone(drone, gs.tick_rate, elapsed);
       events.push(...jevents);
+      if (!updated.neutralized && updated.pnt_jammed) {
+        const [pntUpdated, pevents] = updatePntJammedDrone(updated, gs.tick_rate, elapsed);
+        updated = pntUpdated;
+        events.push(...pevents);
+      }
+      gs.drones[i] = updated;
       continue;
     }
 
@@ -650,7 +655,7 @@ export function tickDrones(gs: GameState, elapsed: number): Msg[] {
     if (gs.drones[i].is_ambient) {
       const dist = Math.sqrt(gs.drones[i].x ** 2 + gs.drones[i].y ** 2);
       if (dist > 12.0) {
-        gs.drones[i] = { ...gs.drones[i], neutralized: true };
+        gs.drones[i] = markDroneNeutralized(gs.drones[i], elapsed);
       }
     }
 
@@ -829,6 +834,7 @@ function _updateSensorRuntime(gs: GameState, droneIdx: number): void {
 export function buildStateMsg(gs: GameState, elapsed: number, timeRemaining: number): Msg {
   const tracks: Msg[] = [];
   for (const drone of gs.drones) {
+    if (drone.remove_at !== null && elapsed >= drone.remove_at) continue;
     if (drone.detected || drone.neutralized) {
       let etaSeconds: number | null = null;
       if (!drone.neutralized && drone.speed > 0) {
