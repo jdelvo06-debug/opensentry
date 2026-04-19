@@ -1007,15 +1007,17 @@ function DEBeamOverlay({
 
           ctx.beginPath();
           ctx.arc(tp.x, tp.y, 10 + rippleT * 10, 0, Math.PI * 2);
-          ctx.fillStyle = effective
-            ? `rgba(150, 255, 255, ${rippleOp * 0.35})`
-            : `rgba(255, 120, 120, ${rippleOp * 0.18})`;
+          ctx.fillStyle = !resolved
+            ? `rgba(160, 220, 255, ${rippleOp * 0.22})`
+            : effective
+              ? `rgba(150, 255, 255, ${rippleOp * 0.35})`
+              : `rgba(255, 120, 120, ${rippleOp * 0.18})`;
           ctx.fill();
         }
       }
 
       // Effective/ineffective marker after beam phase
-      if (t >= 0.8 && t < 1) {
+      if (resolved && t >= 0.8 && t < 1) {
         const resultT = (t - 0.8) / 0.2;
         const markerOp = 1 - resultT;
         if (effective) {
@@ -1060,7 +1062,7 @@ function DEBeamOverlay({
       }
       canvasRef.current = null;
     };
-  }, [map, startXY, targetXY, effective, beamType, startTime, duration, baseLat, baseLng]);
+  }, [map, startXY, targetXY, effective, resolved, beamType, startTime, duration, baseLat, baseLng]);
 
   return null;
 }
@@ -1783,6 +1785,7 @@ export default function TacticalMap({
             startXY={[beam.startX, beam.startY]}
             targetXY={[beam.targetX, beam.targetY]}
             effective={beam.effective}
+            resolved={beam.resolved}
             beamType={beam.beamType}
             startTime={beam.startTime}
             duration={beam.duration}
