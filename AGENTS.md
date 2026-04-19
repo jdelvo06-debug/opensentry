@@ -95,7 +95,7 @@ Two independent jamming layers:
 | shahed | 100% (RF-immune) | 0.0 (INS-primary, fully PNT-immune) |
 | bird / ambient | 50% (default) | 0.0 (default — immunity via rf_emitting=false) |
 
-**Tactical note:** Jammer won't defeat a Shahed — it gets `pnt_jammed` + navigation drift, shown as "PNT DEGRADED" in the panel. Use jammer to degrade Shahed accuracy + buy JACKAL spinup time. JACKAL is the only reliable defeat.
+**Tactical notes:** RF jam effects now require `rf_emitting`; a non-emitting fixed-wing can still show **PNT DEGRADED** without ever entering RF-jammed behavior. Shenobi protocol manipulation is scoped to `commercial_quad` and `micro` library matches only. Shahed / OW-UAS is fully RF/PNT-immune and should be treated as a **kinetic-only** doctrine target.
 
 DroneState fields added for PNT: `pnt_jammed`, `pnt_drift_magnitude`, `pnt_jammed_time_remaining`
 
@@ -217,12 +217,12 @@ These are Codex subagent types, not custom-built tools. They run as part of the 
 - After-action replay (timeline scrub) — deferred
 
 ## Testing
-- **Frontend:** vitest with 49 unit tests across `frontend/src/__tests__/game-engine.test.ts`, `camera-panel.test.ts`, and `tactical-map.test.ts`
-  - Coverage: detection math (radar/RF/EO-IR/acoustic), FOV, terrain LOS, confidence calculation, segment intersection, drone creation/movement/trail limits, jam behavior rolls, PNT drift, GameState factory, directed-energy LOS/HPM behavior, scoring normalization, DE slew/pre-slew timing, DE dwell/resolution timing, EO/IR proximity camera selection, and tactical-map selected-camera routing
+- **Frontend:** vitest with 62 unit tests across `frontend/src/__tests__/game-engine.test.ts`, `camera-panel.test.ts`, `tactical-map.test.ts`, `de-engagement.test.ts`, and `track-effects.test.ts`
+  - Coverage: detection math (radar/RF/EO-IR/acoustic), FOV, terrain LOS, confidence calculation, segment intersection, drone creation/movement/trail limits, jam behavior rolls, PNT drift, GameState factory, directed-energy LOS/HPM behavior, DE slew/pre-slew timing, DE dwell/resolution timing, EO/IR proximity camera selection, tactical-map selected-camera routing, realism-rule gating, and PNT-only effect-state visibility
   - Run: `cd frontend && npm test`
-- **Backend:** pytest with 5 test modules in `backend/tests/`
-  - Coverage: security, detection, drone, models, scoring
-  - Run: `cd backend && python -m pytest`
+- **Backend:** pytest with 147 tests across 6 modules in `backend/tests/`
+  - Coverage: security, detection, drone, models, scoring, and NEXUS/Shenobi eligibility
+  - Run: `cd backend && python3 -m pytest`
 - **Not yet tested:** React components, hooks, phase transitions, integration tests
 
 ## Shipped in v1.8.0 (2026-04-05)
@@ -257,6 +257,11 @@ These are Codex subagent types, not custom-built tools. They run as part of the 
 - **Shenobi display fix** — one combined row with capability subtext instead of duplicate rows
 - **DE LOS scoped to BDA only** — directed energy line-of-sight enforcement skipped in standard scenarios, applied only in Base Defense Architect / custom placement
 - **49/49 tests passing** — DE dwell/resolution timing tests added; live browser QA verified RF/PNT jammer, DE laser, and HPM
+
+## Current main (post-v1.10.1)
+- **PR #9 realism pass** — Shahed / OW-UAS is kinetic-only in doctrine and effectiveness tables
+- **RF/PNT split surfaced cleanly** — non-emitting fixed-wing targets now show `PNT DEGRADED` instead of appearing jammer-immune
+- **Shenobi/NEXUS scope tightened** — protocol manipulation now only applies to commercial quad and micro targets with supported library matches
 
 ## Next Session — Priority Work
 1. Fix JACKAL trajectory and reduce action wheel size (Issue #1)

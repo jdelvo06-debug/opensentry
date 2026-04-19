@@ -55,16 +55,16 @@ All systems are fictional but specification-accurate — no real program of reco
 | DE-LASER-3km | Directed energy | 3 km | Precision single-target effector; LOS required; can pre-slew onto tracks before they enter range |
 | DE-HPM-3km | Directed energy | 3 km | Wide-area microwave pulse; no LOS required; best against clustered swarms |
 | JACKAL Pallet | Kinetic interceptor | 10 km | 4 interceptors; 10–15s spinup; requires Ku-Band FCS |
-| Shenobi | RF detect + Protocol Manipulation | 8km/6km | Downlink acquisition → uplink defeat (HOLD / LAND NOW / DEAFEN) |
+| Shenobi | RF detect + Protocol Manipulation | 8km/6km | Downlink acquisition → uplink defeat (HOLD / LAND NOW / DEAFEN); library scoped to commercial quad + micro control links |
 
 ### Threats
 | Threat | RF Jam Resistance | Notes |
 |--------|------------------|-------|
 | Commercial Quad | 0% | Fully jammable; Shenobi-vulnerable |
-| Micro UAS | 10% | Small RCS; hard to visually ID |
-| Fixed-Wing UAS | 40% | Faster; partially jam-resistant |
-| Improvised UAS | 50% | Unknown electronics; Shenobi library miss likely |
-| Shahed-style | 100% (RF-immune) | INS-primary; **RF jamming has no effect**; kinetic defeat required |
+| Micro UAS | 10% | Small RCS; hard to visually ID; Shenobi-vulnerable |
+| Fixed-Wing UAS | 40% | Faster; RF effects require an active command link; non-emitting tracks show PNT degradation only |
+| Improvised UAS | 50% | Unknown electronics; jammer/PM effectiveness depends on emissions and library match |
+| Shahed-style | 100% (RF-immune) | INS-primary; **RF/PNT jamming has no effect**; kinetic defeat required |
 | Bird / Balloon | — | Ambient traffic; cannot be engaged (ROE) |
 | Passenger / Military Jet | — | ATC-clearable; may appear as UNKNOWN contacts |
 
@@ -105,6 +105,7 @@ UAS and drone contacts are never ATC-authorized — only manned aircraft can rec
 ## Features
 
 - **📍 Custom base location** — Before any scenario, drop a pin anywhere on Earth. Real satellite imagery loads for that location. Place your sensors, set your perimeter, and train on the terrain you actually defend. Your base. Your airspace.
+- **EW realism pass** — RF jamming now respects command-link presence, Shenobi is limited to supported commercial/micro control links, and Shahed-class threats are documented and scored as kinetic-only.
 - **Directed energy split** — `DE-LASER-3km` for precision single-target kills and `DE-HPM-3km` for area effects against swarms. Each system has distinct visuals, recharge timing, and ROE tradeoffs.
 - **Weapon pre-slew / aim time** — Directed energy systems can orient onto a target before it enters range, then fire after a short slew/aim delay once commanded in-range.
 - **Real-world satellite maps** via Leaflet.js — OpenStreetMap + CartoDB imagery, global coverage
@@ -227,6 +228,12 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 - [x] Shenobi combined display — one row with capability subtext (no duplicate entries)
 - [x] DE LOS scoped to BDA/custom placement only — standard scenarios skip LOS checks
 - [x] 49/49 unit tests passing — DE dwell/resolution, camera proximity slewing, tactical-map cone routing
+
+### Current main (post-v1.10.1)
+- [x] **PR #9** — EW realism pass: Shahed / OW-UAS is now kinetic-only in doctrine and effectiveness tables
+- [x] RF jammer gating — RF effects require `rf_emitting`; non-emitting fixed-wing tracks surface as **PNT DEGRADED** instead of looking untouched
+- [x] Shenobi scope tightened — protocol manipulation now applies only to commercial quad and micro control-link targets
+- [x] 62 frontend tests + 147 backend tests covering realism rules, doctrine copies, and PNT-only status visibility
 
 ### Backlog
 - [ ] Fix JACKAL trajectory + action wheel size (Issue #1)

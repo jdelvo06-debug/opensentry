@@ -8,6 +8,15 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- **EW realism pass** — RF jammer behavior now requires an active RF command link; non-emitting fixed-wing targets can still show PNT-only degradation where applicable.
+- **Shenobi/NEXUS library scope** — Protocol manipulation is now limited to commercial quad and micro control-link targets instead of broadly affecting any RF-emitting UAS.
+- **Shahed doctrine alignment** — Shahed / OW-UAS is now kinetic-only in effectiveness tables and scenario doctrine copies across both the browser engine and legacy backend path.
+
+### Fixed
+- **Ineffective DE/HPM state handling** — Failed directed-energy shots no longer mark a live track as `defeated`; targets remain actionable after shrugging off the engagement.
+- **PNT-only UI visibility** — Non-emitting fixed-wing targets now clearly surface `PNT DEGRADED` in the engagement panel and tactical map instead of appearing immune to the jammer.
+
 ## [1.10.1] — 2026-04-19
 
 ### Added
