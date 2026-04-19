@@ -246,7 +246,8 @@ export function handleEngage(
       break;
     }
 
-    if (effState.requires_los && !isJammer && !isShenobi) {
+    const enforceTerrainLos = gs.placement_config != null;
+    if (effState.requires_los && enforceTerrainLos && !isJammer && !isShenobi) {
       const ex = effState.x ?? 0;
       const ey = effState.y ?? 0;
       if (gs.terrain.length > 0 && _losBlocked(gs, ex, ey, d.x, d.y)) {

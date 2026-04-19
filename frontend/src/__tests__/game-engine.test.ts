@@ -9,7 +9,7 @@ import {
   segmentsIntersect,
 } from '@opensentry/game/detection';
 import { createDefaultDrone, createGameState } from '@opensentry/game/state';
-import type { DroneState, EffectorConfig, EffectorRuntimeState, SensorConfig, ScenarioConfig } from '@opensentry/game/state';
+import type { BaseTemplate, DroneState, EffectorConfig, EffectorRuntimeState, PlacementConfig, SensorConfig, ScenarioConfig } from '@opensentry/game/state';
 import { createDroneFromConfig, moveDrone, distanceToBase } from '@opensentry/game/drone';
 import { pickJamBehavior, updatePntJammedDrone } from '@opensentry/game/jamming';
 import { KTS_TO_KMS, calculateDirectedEnergySlewSeconds } from '@opensentry/game/helpers';
@@ -418,7 +418,7 @@ describe('createGameState', () => {
 });
 
 describe('directed energy engagements', () => {
-  it('blocks DE-LASER when terrain blocks line of sight', () => {
+  it('ignores terrain LOS for DE-LASER in standard scenarios', () => {
     const effectors: EffectorConfig[] = [{
       id: 'de_laser',
       name: 'DE-LASER-3km',
@@ -444,6 +444,72 @@ describe('directed energy engagements', () => {
       height_m: 50,
     }];
     const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, terrain);
+    gs.effector_states.push({
+      ...effectors[0],
+      recharge_remaining: 0,
+    });
+    gs.drones.push(makeDrone({
+      id: 'bogey-1',
+      display_label: 'TRN-001',
+      x: 3,
+      y: 0,
+      dtid_phase: 'identified',
+      classification: 'commercial_quad',
+      classified: true,
+      affiliation: 'hostile',
+    }));
+
+    const msgs = handleEngage(gs, 'bogey-1', 'de_laser', 10);
+
+    expect(msgs.some((msg) => String(msg.message ?? '').includes('NO LINE OF SIGHT'))).toBe(false);
+    expect(msgs.some((msg) => String(msg.message ?? '').includes('SLEWING'))).toBe(true);
+  });
+
+  it('blocks DE-LASER when terrain blocks line of sight in BDA missions', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'de_laser',
+      name: 'DE-LASER-3km',
+      type: 'de_laser',
+      range_km: 5,
+      status: 'ready',
+      recharge_seconds: 15,
+      x: 0,
+      y: 0,
+      fov_deg: 360,
+      facing_deg: 0,
+      requires_los: true,
+      single_use: false,
+      ammo_count: null,
+      ammo_remaining: null,
+    }];
+    const terrain = [{
+      id: 'wall',
+      type: 'building',
+      name: 'Wall',
+      polygon: [[1, -1], [1, 1], [1.1, 1], [1.1, -1]] as [number, number][],
+      blocks_los: true,
+      height_m: 50,
+    }];
+    const placement: PlacementConfig = {
+      base_id: 'custom',
+      sensors: [],
+      effectors: [{ catalog_id: 'de_laser_3k', x: 0, y: 0, facing_deg: 0 }],
+      combined: [],
+    };
+    const baseTemplate: BaseTemplate = {
+      id: 'custom',
+      name: 'Custom',
+      description: 'Custom',
+      size: 'small',
+      boundary: [[-1,-1],[1,-1],[1,1],[-1,1]],
+      protected_assets: [],
+      terrain,
+      approach_corridors: [],
+      max_sensors: 3,
+      max_effectors: 3,
+      placement_bounds_km: 1,
+    };
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, placement, baseTemplate, terrain);
     gs.effector_states.push({
       ...effectors[0],
       recharge_remaining: 0,
