@@ -589,9 +589,14 @@ export function tickDrones(gs: GameState, elapsed: number): Msg[] {
 
     // RF-jammed drone
     if (drone.jammed) {
-      const [updated, jevents] = updateJammedDrone(drone, gs.tick_rate, elapsed);
-      gs.drones[i] = updated;
+      let [updated, jevents] = updateJammedDrone(drone, gs.tick_rate, elapsed);
       events.push(...jevents);
+      if (!updated.neutralized && updated.pnt_jammed) {
+        const [pntUpdated, pevents] = updatePntJammedDrone(updated, gs.tick_rate, elapsed);
+        updated = pntUpdated;
+        events.push(...pevents);
+      }
+      gs.drones[i] = updated;
       continue;
     }
 

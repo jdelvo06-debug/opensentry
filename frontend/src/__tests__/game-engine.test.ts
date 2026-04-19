@@ -1002,6 +1002,37 @@ describe('calculateDirectedEnergySlewSeconds', () => {
     expect(gs.drones.some((drone) => drone.id === 'bogey-1' && drone.neutralized)).toBe(true);
     expect(prunedState.tracks.some((track: { id: string }) => track.id === 'bogey-1')).toBe(false);
   });
+
+  it('continues applying PNT degradation while RF jamming is active', () => {
+    const gs = createGameState(makeScenario(), [], [], null, null, []);
+    gs.drones.push(makeDrone({
+      id: 'bogey-1',
+      display_label: 'TRN-001',
+      x: 1.5,
+      y: 0,
+      altitude: 100,
+      speed: 12,
+      dtid_phase: 'identified',
+      classification: 'commercial_quad',
+      classified: true,
+      affiliation: 'hostile',
+      detected: true,
+      jammed: true,
+      jammed_behavior: 'atti_mode',
+      jammed_time_remaining: 5,
+      pnt_jammed: true,
+      pnt_drift_magnitude: 0.008,
+      pnt_jammed_time_remaining: 5,
+      trail: [[1.5, 0]],
+    }));
+
+    tickDrones(gs, 15);
+
+    expect(gs.drones[0].jammed).toBe(true);
+    expect(gs.drones[0].pnt_jammed).toBe(true);
+    expect(gs.drones[0].jammed_time_remaining).toBeLessThan(5);
+    expect(gs.drones[0].pnt_jammed_time_remaining).toBeLessThan(5);
+  });
 });
 
 describe('directed energy scoring', () => {
