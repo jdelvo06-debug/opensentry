@@ -594,7 +594,13 @@ describe('directed energy engagements', () => {
     expect(msgs.some((msg) => String(msg.message ?? '').includes('SLEWING'))).toBe(true);
 
     const fireMsgs = tickPendingDirectedEnergyEngagements(gs, 20);
-    const results = fireMsgs.filter((msg) => msg.type === 'engagement_result');
+    expect(fireMsgs.some((msg) => String(msg.message ?? '').includes('FIRING'))).toBe(true);
+    expect(fireMsgs.filter((msg) => msg.type === 'engagement_result')).toHaveLength(0);
+    expect(gs.drones[0].neutralized).toBe(false);
+    expect(gs.drones[1].neutralized).toBe(false);
+
+    const impactMsgs = tickPendingDirectedEnergyEngagements(gs, 21);
+    const results = impactMsgs.filter((msg) => msg.type === 'engagement_result');
 
     expect(results).toHaveLength(2);
     expect(results.every((msg) => msg.effector_type === 'de_hpm')).toBe(true);
@@ -730,7 +736,7 @@ describe('directed energy engagements', () => {
     expect(gs.effector_states[0].facing_deg).toBeLessThan(180);
   });
 
-  it('fires queued DE-LASER after slew time elapses', () => {
+  it('fires queued DE-LASER, then neutralizes after a short dwell', () => {
     const effectors: EffectorConfig[] = [{
       id: 'de_laser',
       name: 'DE-LASER-3km',
@@ -767,7 +773,15 @@ describe('directed energy engagements', () => {
     handleEngage(gs, 'bogey-1', 'de_laser', 10);
     const fireMsgs = tickPendingDirectedEnergyEngagements(gs, 20);
 
-    expect(fireMsgs.some((msg) => msg.type === 'engagement_result')).toBe(true);
+    expect(fireMsgs.some((msg) => String(msg.message ?? '').includes('FIRING'))).toBe(true);
+    expect(fireMsgs.some((msg) => msg.type === 'engagement_result')).toBe(false);
+    expect(gs.effector_states[0].status).toBe('slewing');
+    expect(gs.drones[0].neutralized).toBe(false);
+    expect(gs.pending_directed_energy_engagements).toHaveLength(1);
+    expect(gs.pending_directed_energy_engagements[0].mode).toBe('fire');
+
+    const impactMsgs = tickPendingDirectedEnergyEngagements(gs, 21);
+    expect(impactMsgs.some((msg) => msg.type === 'engagement_result')).toBe(true);
     expect(gs.effector_states[0].status).toBe('recharging');
     expect(gs.drones[0].neutralized).toBe(true);
     expect(gs.pending_directed_energy_engagements).toHaveLength(0);
@@ -849,6 +863,49 @@ describe('calculateDirectedEnergySlewSeconds', () => {
 
     expect(highSlew).toBeGreaterThan(lowSlew);
     expect(lowSlew).toBeGreaterThan(0);
+  });
+
+  it('keeps RF jammed tracks active until the jam effect resolves', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'rf_jam',
+      name: 'RF Jammer',
+      type: 'rf_jam',
+      range_km: 5,
+      status: 'ready',
+      recharge_seconds: 10,
+      x: 0,
+      y: 0,
+      fov_deg: 360,
+      facing_deg: 0,
+      requires_los: false,
+      single_use: false,
+      ammo_count: null,
+      ammo_remaining: null,
+    }];
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
+    gs.effector_states.push({
+      ...effectors[0],
+      recharge_remaining: 0,
+    });
+    gs.drones.push(makeDrone({
+      id: 'bogey-1',
+      display_label: 'TRN-001',
+      x: 2,
+      y: 0,
+      drone_type: 'commercial_quad',
+      dtid_phase: 'identified',
+      classification: 'commercial_quad',
+      classified: true,
+      affiliation: 'hostile',
+      rf_emitting: true,
+    }));
+
+    const msgs = handleEngage(gs, 'bogey-1', 'rf_jam', 10);
+
+    expect(msgs.some((msg) => String(msg.message ?? '').includes('JAMMED'))).toBe(true);
+    expect(gs.drones[0].jammed).toBe(true);
+    expect(gs.drones[0].dtid_phase).toBe('identified');
+    expect(gs.drones[0].neutralized).toBe(false);
   });
 });
 

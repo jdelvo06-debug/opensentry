@@ -395,7 +395,7 @@ export interface PendingDirectedEnergyEngagement {
   execute_at: number;
   queued_at: number;
   initial_facing_deg: number;
-  mode: 'slew' | 'engage';
+  mode: 'slew' | 'engage' | 'fire';
 }
 
 // --- GameState (ported from game_state.py) ---

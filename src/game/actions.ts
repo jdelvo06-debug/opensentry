@@ -454,7 +454,6 @@ function _engageJammer(
       const jamDuration = jamBehavior === 'atti_mode'
         ? _randUniform(20.0, 40.0)
         : _randUniform(5.0, 10.0);
-      updateFields.dtid_phase = 'defeated';
       updateFields.jammed = true;
       updateFields.jammed_behavior = jamBehavior;
       updateFields.jammed_time_remaining = jamDuration;
@@ -574,7 +573,7 @@ function _queueDirectedEnergyEngagement(
   effectorId: string,
   targetId: string,
   elapsed: number,
-  mode: 'slew' | 'engage',
+  mode: 'slew' | 'engage' | 'fire',
 ): Record<string, unknown>[] {
   const ex = effState.x ?? 0;
   const ey = effState.y ?? 0;
@@ -608,7 +607,7 @@ export function handleDirectedEnergyResolution(
   targetId: string,
   effectorId: string,
   elapsed: number,
-  mode: 'slew' | 'engage' = 'engage',
+  mode: 'slew' | 'engage' | 'fire' = 'engage',
 ): Record<string, unknown>[] {
   const effState = findEffectorConfig(gs.effector_states, effectorId);
   if (!effState) return [];
@@ -637,6 +636,23 @@ export function handleDirectedEnergyResolution(
     effState.status = 'ready';
     effState.recharge_remaining = 0;
     return [_event(elapsed, `ENGAGEMENT: ${effState.name} — Target moved out of range during slew`)];
+  }
+
+  if (mode === 'engage') {
+    const effX = effState.x ?? 0;
+    const effY = effState.y ?? 0;
+    effState.facing_deg = bearingToTargetDegrees(effX, effY, targetDrone.x, targetDrone.y);
+    effState.status = 'slewing';
+    effState.recharge_remaining = 1.0;
+    gs.pending_directed_energy_engagements.push({
+      effector_id: effectorId,
+      target_id: targetId,
+      execute_at: elapsed + 1.0,
+      queued_at: elapsed,
+      initial_facing_deg: effState.facing_deg,
+      mode: 'fire',
+    });
+    return [_event(elapsed, `ENGAGEMENT: ${effState.name} FIRING — ${(targetDrone.display_label || targetDrone.id).toUpperCase()} (1.0s dwell)` )];
   }
 
   const effectiveness = effectorEffectiveness(effState.type, targetDrone.drone_type);
