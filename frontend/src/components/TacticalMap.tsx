@@ -17,6 +17,7 @@ import RadialActionWheel from "./RadialActionWheel";
 import DeviceWheel from "./DeviceWheel";
 import SelectionList, { findNearbySelectables } from "./SelectionList";
 import { getActiveCameraSensor, getSensorDisplayLabel } from "./tactical-map-sensors";
+import { getTrackEffectState } from "../utils/trackEffects";
 
 // Import leaflet CSS
 import "leaflet/dist/leaflet.css";
@@ -1098,7 +1099,9 @@ function TrackDataBlock({
   const yOff = offsetIndex * 18;
 
   const isCoasting = track.coasting;
-  const isJammed = track.jammed && !track.neutralized;
+  const effectState = getTrackEffectState(track);
+  const isJammed = effectState === "jammed";
+  const isPntJammed = effectState === "pnt";
   const blockOpacity = isCoasting ? 0.5 : 1.0;
   const coastLabel = isCoasting
     ? `<span style="color:#d29922;font-size:7px;font-weight:700;margin-left:4px;">COAST</span>`
@@ -1108,7 +1111,9 @@ function TrackDataBlock({
     : "";
   const jamLabel = isJammed
     ? `<span style="display:inline-block;background:#1f6feb33;border:1px solid #1f6feb88;border-radius:2px;padding:0 3px;margin-left:4px;color:#58a6ff;font-size:7px;font-weight:700;animation:track-blink 1s ease-in-out infinite;">JAM</span>`
-    : "";
+    : isPntJammed
+      ? `<span style="display:inline-block;background:#e3b34122;border:1px solid #e3b34188;border-radius:2px;padding:0 3px;margin-left:4px;color:#e3b341;font-size:7px;font-weight:700;animation:track-blink 1.6s ease-in-out infinite;">PNT</span>`
+      : "";
   const interceptPhaseLabel = isInterceptor && track.intercept_phase && !track.neutralized
     ? track.intercept_phase === "spinup"
       ? `<span style="color:#d29922;font-size:7px;font-weight:700;margin-left:4px;">SPINUP T-${Math.ceil(track.spinup_remaining ?? 0)}s</span>`
@@ -1141,6 +1146,11 @@ function TrackDataBlock({
     const etaColor = eta <= 15 ? "#f85149" : eta <= 30 ? "#db6d28" : "#bc8cff";
     etaLabel = `<div style="color:${etaColor};font-size:8px;font-weight:600;">ETA: ${Math.round(eta)}s</div>`;
   }
+  const effectDetail = isJammed
+    ? `<div style="color:#58a6ff;font-size:8px;font-weight:600;">EW EFFECT ACTIVE</div>`
+    : isPntJammed
+      ? `<div style="color:#e3b341;font-size:8px;font-weight:600;">PNT DEGRADED</div>`
+      : "";
 
   const html = `<div style="
     pointer-events:none;
@@ -1174,7 +1184,7 @@ function TrackDataBlock({
     <div style="color:#8b949e;font-size:8px;opacity:${isSelected ? 0.9 : 0.65};">
       BRG:${Math.round(bearing)}\u00B0 | RNG:${range.toFixed(1)}km
     </div>
-    ${etaLabel}` : isShenobiCM ? `
+    ${etaLabel}${effectDetail}` : isShenobiCM ? `
     <div style="color:#a371f7;font-size:8px;font-weight:600;">Shenobi ${(track.shenobi_cm_active || "").replace("shenobi_", "").replace("_", " ").toUpperCase()} [${track.shenobi_cm_state || "?"}]</div>` : isJammed ? `
     <div style="color:#58a6ff;font-size:8px;font-weight:600;">EW EFFECT ACTIVE</div>` : `
     <div style="color:#484f58;font-size:8px;">NEUTRALIZED</div>`}

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { EffectorStatus, TrackData } from "../types";
+import { getTrackEffectState } from "../utils/trackEffects";
 
 interface AtcMessage {
   direction: "out" | "in";
@@ -93,6 +94,8 @@ export default function EngagementPanel({
       </div>
     );
   }
+
+  const effectState = getTrackEffectState(track);
 
   return (
     <div style={{ padding: "12px 14px", minHeight: 120 }}>
@@ -611,7 +614,7 @@ export default function EngagementPanel({
         </div>
       )}
 
-      {(track.dtid_phase === "defeated" || (track.dtid_phase === "identified" && !!track.shenobi_cm_active)) && (
+      {(track.dtid_phase === "defeated" || effectState !== "none") && (
         <div
           style={{
             textAlign: "center",
@@ -726,7 +729,7 @@ export default function EngagementPanel({
                 </div>
               </>
             );
-          })() : track.jammed && !track.neutralized ? (
+          })() : effectState === "jammed" ? (
             <>
               <div
                 style={{
@@ -740,11 +743,11 @@ export default function EngagementPanel({
               >
                 JAMMED
               </div>
-              <div style={{ fontSize: 11, color: "#d29922", opacity: 0.8 }}>
-                {track.jammed_behavior?.replace(/_/g, " ").toUpperCase() || "EW EFFECT ACTIVE"}
-              </div>
-            </>
-          ) : track.pnt_jammed && !track.neutralized ? (
+                <div style={{ fontSize: 11, color: "#d29922", opacity: 0.8 }}>
+                  {track.jammed_behavior?.replace(/_/g, " ").toUpperCase() || "EW EFFECT ACTIVE"}
+                </div>
+              </>
+          ) : effectState === "pnt" ? (
             <>
               <div
                 style={{
