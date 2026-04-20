@@ -102,9 +102,10 @@ export default function DraggableBasePerimeter({
   );
 
   useEffect(() => {
-    const source = boundary?.length ? boundary : defaultBoundary;
-    setPerimVertices(source.map(([x, y]) => ({ x, y })));
-  }, [boundary, defaultBoundary]);
+    if (boundary?.length) {
+      setPerimVertices(boundary.map(([x, y]) => ({ x, y })));
+    }
+  }, [boundary]);
 
   const updateVertices = (updater: SetStateAction<{ x: number; y: number }[]>) => {
     setPerimVertices((prev) => {
