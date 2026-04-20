@@ -8,5 +8,20 @@
     "id": "aviano_ab",
     "aliases": ["aviano", "aviano ab", "aviano air base", "lipa", "aviano italy", "aviano airbase", "aviano afb"],
     "baseFile": "aviano_ab"
+  },
+  {
+    "id": "spangdahlem_ab",
+    "aliases": ["spangdahlem", "spangdahlem ab", "spangdahlem air base", "etad", "spangdahlem germany"],
+    "baseFile": "spangdahlem_ab"
+  },
+  {
+    "id": "mcentire_jngb",
+    "aliases": ["mcentire", "mcentire jngb", "mcentire joint national guard base", "kmmt", "mcentire sc"],
+    "baseFile": "mcentire_jngb"
+  },
+  {
+    "id": "shaw_afb",
+    "aliases": ["shaw", "shaw afb", "shaw air force base", "kssc", "shaw south carolina"],
+    "baseFile": "shaw_afb"
   }
 ]

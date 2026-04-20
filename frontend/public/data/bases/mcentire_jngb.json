@@ -1,0 +1,99 @@
+{
+  "id": "mcentire_jngb",
+  "name": "McEntire Joint National Guard Base",
+  "description": "Curated McEntire Joint National Guard Base preset for Richland County, South Carolina, USA, using a simplified open-source aerodrome footprint derived from OSM Way 475953220. Includes the primary 18/36 runway axis, main apron area, and broad support zones for a more credible starting layout. ICAO: KMMT.",
+  "size": "medium",
+  "center_lat": 33.9205,
+  "center_lng": -80.7995,
+  "default_zoom": 14,
+  "boundary": [
+    [-0.02, 1.9],
+    [-0.16, 1.66],
+    [-1.41, 1.14],
+    [-1.63, 0.73],
+    [-1.48, 0.63],
+    [-1.38, 0.23],
+    [-1.12, -0.11],
+    [-0.93, -0.54],
+    [-1.17, -0.92],
+    [1.6, -1.9],
+    [1.31, -0.88],
+    [1.04, -0.01],
+    [0.75, 0.89],
+    [0.48, 1.69]
+  ],
+  "protected_assets": [
+    {
+      "id": "airfield_ops",
+      "name": "Airfield Operations",
+      "x": 0.45,
+      "y": 0.85,
+      "priority": 1
+    },
+    {
+      "id": "main_apron",
+      "name": "Main Apron / Flight Line",
+      "x": -0.15,
+      "y": 0.45,
+      "priority": 2
+    },
+    {
+      "id": "east_support",
+      "name": "East Support Campus",
+      "x": 0.85,
+      "y": -0.4,
+      "priority": 2
+    }
+  ],
+  "terrain": [
+    {
+      "id": "runway_1836",
+      "type": "runway",
+      "name": "Runway 18/36",
+      "polygon": [[-0.05, -1.5], [-0.2, -1.5], [-1.35, 1.05], [-1.2, 1.05]],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "ops_tower",
+      "type": "tower",
+      "name": "ATC / Ops Tower",
+      "polygon": [[0.38, 0.78], [0.38, 0.92], [0.52, 0.92], [0.52, 0.78]],
+      "blocks_los": false,
+      "height_m": 22.0
+    },
+    {
+      "id": "main_hangars",
+      "type": "building",
+      "name": "Main Hangar Area",
+      "polygon": [[-0.4, 0.35], [-0.4, 0.85], [0.15, 0.85], [0.15, 0.35]],
+      "blocks_los": true,
+      "height_m": 14.0
+    },
+    {
+      "id": "east_apron",
+      "type": "building",
+      "name": "East Apron Facilities",
+      "polygon": [[0.8, -0.6], [0.8, 0.0], [1.35, 0.0], [1.35, -0.6]],
+      "blocks_los": true,
+      "height_m": 10.0
+    },
+    {
+      "id": "south_support_blocks",
+      "type": "building",
+      "name": "South Support Blocks",
+      "polygon": [[0.65, -1.4], [0.65, -0.75], [1.2, -0.75], [1.2, -1.4]],
+      "blocks_los": true,
+      "height_m": 9.0
+    }
+  ],
+  "approach_corridors": [
+    {"name": "Runway North", "bearing_deg": 0, "width_deg": 18},
+    {"name": "Runway South", "bearing_deg": 180, "width_deg": 18},
+    {"name": "East Sector", "bearing_deg": 90, "width_deg": 30},
+    {"name": "West Sector", "bearing_deg": 270, "width_deg": 30}
+  ],
+  "max_sensors": 4,
+  "max_effectors": 3,
+  "placement_bounds_km": 2.0
+}
