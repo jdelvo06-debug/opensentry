@@ -1,7 +1,47 @@
 // frontend/src/components/bda/BdaBaseSelection.tsx
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import type { BaseInfo, BaseTemplate } from "../../types";
 import { COLORS } from "./constants";
+
+// ─── Preset alias types ─────────────────────────────────────────────────────
+
+interface PresetAlias {
+  id: string;
+  aliases: string[];
+  baseFile: string;
+}
+
+interface GeoSearchResult {
+  name: string;
+  lat: number;
+  lng: number;
+  presetId?: string;
+  presetFile?: string;
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function getSizeColor(size: string): string {
+  if (size === "small") return COLORS.success;
+  if (size === "medium") return COLORS.warning;
+  return COLORS.danger;
+}
+
+function normalizePresetText(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
+}
+
+function matchPreset(name: string, aliases: PresetAlias[]): PresetAlias | undefined {
+  const normalized = normalizePresetText(name);
+  for (const alias of aliases) {
+    for (const a of alias.aliases) {
+      if (normalized.includes(normalizePresetText(a))) return alias;
+    }
+  }
+  return undefined;
+}
+
+// ─── Component ──────────────────────────────────────────────────────────────
 
 interface Props {
   selectedBaseId: string | null;
@@ -10,22 +50,18 @@ interface Props {
   onNext: () => void;
 }
 
-function getSizeColor(size: string): string {
-  if (size === "small") return COLORS.success;
-  if (size === "medium") return COLORS.warning;
-  return COLORS.danger;
-}
-
 export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack, onNext }: Props) {
   const [bases, setBases] = useState<BaseInfo[]>([]);
   const [basesLoading, setBasesLoading] = useState(true);
   const [basesError, setBasesError] = useState<string | null>(null);
 
+  const [presetAliases, setPresetAliases] = useState<PresetAlias[]>([]);
+
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<{ name: string; lat: number; lng: number }[]>([]);
+  const [searchResults, setSearchResults] = useState<GeoSearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
 
-  // ─── Load base index ──────────────────────────────────────────────────────
+  // ─── Load base index + preset aliases ───────────────────────────────────────
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}data/bases/index.json`)
@@ -40,6 +76,13 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
       .catch((err) => {
         setBasesError(err.message);
         setBasesLoading(false);
+      });
+
+    fetch(`${import.meta.env.BASE_URL}data/bases/preset-aliases.json`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: PresetAlias[]) => setPresetAliases(data))
+      .catch(() => {
+        // Preset aliases are optional; fail silently
       });
   }, []);
 
@@ -93,29 +136,51 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
       });
   }, []);
 
-  // ─── Select geo result → load medium_airbase, override center coords ──────
+  // ─── Annotate search results with preset matches ────────────────────────────
+
+  const annotatedResults = useMemo<GeoSearchResult[]>(() => {
+    if (presetAliases.length === 0) return searchResults;
+    return searchResults.map((r) => {
+      const match = matchPreset(r.name, presetAliases);
+      if (match) {
+        return { ...r, presetId: match.id, presetFile: match.baseFile };
+      }
+      return r;
+    });
+  }, [searchResults, presetAliases]);
+
+  // ─── Select geo result → load preset or fallback template ──────────────────
 
   const handleSelectGeoResult = useCallback(
-    (result: { name: string; lat: number; lng: number }) => {
-      fetch(`${import.meta.env.BASE_URL}data/bases/medium_airbase.json`)
+    (result: GeoSearchResult) => {
+      const templateFile = result.presetFile ?? "medium_airbase";
+      const templateUrl = `${import.meta.env.BASE_URL}data/bases/${templateFile}.json`;
+
+      fetch(templateUrl)
         .then((res) => {
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           return res.json();
         })
         .then((template: BaseTemplate) => {
-          const customTemplate: BaseTemplate = {
-            ...template,
-            id: "custom",
-            name: `Custom (${result.name})`,
-            center_lat: result.lat,
-            center_lng: result.lng,
-          };
+          if (result.presetId) {
+            // Preset match: use curated template as-is (it has correct center, boundary, etc.)
+            onSelectBase(result.presetId, template);
+          } else {
+            // Generic fallback: override center and name for custom location
+            const customTemplate: BaseTemplate = {
+              ...template,
+              id: "custom",
+              name: `Custom (${result.name})`,
+              center_lat: result.lat,
+              center_lng: result.lng,
+            };
+            onSelectBase("custom", customTemplate);
+          }
           setSearchQuery(result.name);
           setSearchResults([]);
-          onSelectBase("custom", customTemplate);
         })
         .catch((err) => {
-          console.error("[BdaBaseSelection] Failed to load medium_airbase for custom location:", err);
+          console.error("[BdaBaseSelection] Failed to load template for location:", err);
         });
     },
     [onSelectBase],
@@ -301,7 +366,7 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
             </div>
           )}
 
-          {searchResults.length > 0 && (
+          {annotatedResults.length > 0 && (
             <div
               style={{
                 position: "absolute",
@@ -316,7 +381,7 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
                 overflow: "hidden",
               }}
             >
-              {searchResults.map((result, i) => (
+              {annotatedResults.map((result, i) => (
                 <button
                   key={i}
                   onClick={() => handleSelectGeoResult(result)}
@@ -334,7 +399,26 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
                     cursor: "pointer",
                   }}
                 >
-                  {result.name}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span>{result.name}</span>
+                    {result.presetId && (
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 600,
+                          color: COLORS.accent,
+                          background: `${COLORS.accent}18`,
+                          border: `1px solid ${COLORS.accent}40`,
+                          borderRadius: 3,
+                          padding: "1px 5px",
+                          whiteSpace: "nowrap",
+                          letterSpacing: 0.3,
+                        }}
+                      >
+                        ⭐ Preset boundary available
+                      </span>
+                    )}
+                  </div>
                 </button>
               ))}
             </div>
