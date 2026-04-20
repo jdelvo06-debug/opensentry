@@ -1,23 +1,9 @@
 // frontend/src/components/bda/BdaBaseSelection.tsx
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import type { BaseInfo, BaseTemplate } from "../../types";
 import { COLORS } from "./constants";
-
-// ─── Preset alias types ─────────────────────────────────────────────────────
-
-interface PresetAlias {
-  id: string;
-  aliases: string[];
-  baseFile: string;
-}
-
-interface GeoSearchResult {
-  name: string;
-  lat: number;
-  lng: number;
-  presetId?: string;
-  presetFile?: string;
-}
+import { useLocationSearch, type LocationSearchResult } from "../../hooks/useLocationSearch";
+import { type AliasEntry } from "../../utils/resolvePreset";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -25,20 +11,6 @@ function getSizeColor(size: string): string {
   if (size === "small") return COLORS.success;
   if (size === "medium") return COLORS.warning;
   return COLORS.danger;
-}
-
-function normalizePresetText(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
-}
-
-function matchPreset(name: string, aliases: PresetAlias[]): PresetAlias | undefined {
-  const normalized = normalizePresetText(name);
-  for (const alias of aliases) {
-    for (const a of alias.aliases) {
-      if (normalized.includes(normalizePresetText(a))) return alias;
-    }
-  }
-  return undefined;
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -55,11 +27,9 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
   const [basesLoading, setBasesLoading] = useState(true);
   const [basesError, setBasesError] = useState<string | null>(null);
 
-  const [presetAliases, setPresetAliases] = useState<PresetAlias[]>([]);
+  const [presetAliases, setPresetAliases] = useState<AliasEntry[]>([]);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<GeoSearchResult[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
+  const { query: searchQuery, setQuery: setSearchQuery, results: annotatedResults, loading: searchLoading, clearResults } = useLocationSearch(presetAliases);
 
   // ─── Load base index + preset aliases ───────────────────────────────────────
 
@@ -80,7 +50,7 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
 
     fetch(`${import.meta.env.BASE_URL}data/bases/preset-aliases.json`)
       .then((res) => (res.ok ? res.json() : []))
-      .then((data: PresetAlias[]) => setPresetAliases(data))
+      .then((data: AliasEntry[]) => setPresetAliases(data))
       .catch(() => {
         // Preset aliases are optional; fail silently
       });
@@ -105,54 +75,12 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
     [onSelectBase],
   );
 
-  // ─── Geo search (Nominatim) ───────────────────────────────────────────────
 
-  const handleGeocodeSearch = useCallback((query: string) => {
-    setSearchQuery(query);
-    if (query.trim().length < 2) {
-      setSearchResults([]);
-      return;
-    }
-    setSearchLoading(true);
-    fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
-      { headers: { "Accept-Language": "en", "User-Agent": "OpenSentry-BDA/1.0" } },
-    )
-      .then((res) => res.json())
-      .then((data: { display_name: string; lat: string; lon: string }[]) => {
-        setSearchResults(
-          data.map((r) => ({
-            name: r.display_name.split(",").slice(0, 2).join(","),
-            lat: parseFloat(r.lat),
-            lng: parseFloat(r.lon),
-          })),
-        );
-        setSearchLoading(false);
-      })
-      .catch((err) => {
-        console.error("[BdaBaseSelection] GeoSearch error:", err);
-        setSearchResults([]);
-        setSearchLoading(false);
-      });
-  }, []);
-
-  // ─── Annotate search results with preset matches ────────────────────────────
-
-  const annotatedResults = useMemo<GeoSearchResult[]>(() => {
-    if (presetAliases.length === 0) return searchResults;
-    return searchResults.map((r) => {
-      const match = matchPreset(r.name, presetAliases);
-      if (match) {
-        return { ...r, presetId: match.id, presetFile: match.baseFile };
-      }
-      return r;
-    });
-  }, [searchResults, presetAliases]);
 
   // ─── Select geo result → load preset or fallback template ──────────────────
 
   const handleSelectGeoResult = useCallback(
-    (result: GeoSearchResult) => {
+    (result: LocationSearchResult) => {
       const templateFile = result.presetFile ?? "medium_airbase";
       const templateUrl = `${import.meta.env.BASE_URL}data/bases/${templateFile}.json`;
 
@@ -177,7 +105,7 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
             onSelectBase("custom", customTemplate);
           }
           setSearchQuery(result.name);
-          setSearchResults([]);
+          clearResults();
         })
         .catch((err) => {
           console.error("[BdaBaseSelection] Failed to load template for location:", err);
@@ -339,7 +267,7 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
             type="text"
             placeholder="Search location (e.g., Shaw AFB, Lugoff SC)..."
             value={searchQuery}
-            onChange={(e) => handleGeocodeSearch(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
             style={{
               width: "100%",
               padding: "9px 12px",

@@ -1,12 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { ScenarioInfo, BaseInfo } from "../types";
-
-interface NominatimResult {
-  place_id: number;
-  display_name: string;
-  lat: string;
-  lon: string;
-}
+import { useLocationSearch, type LocationSearchResult } from "../hooks/useLocationSearch";
+import { type AliasEntry } from "../utils/resolvePreset";
 
 interface CustomLocation {
   lat: number;
@@ -39,58 +34,23 @@ export default function ScenarioSelect({ onSelect }: Props) {
   const [selectedBase, setSelectedBase] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Location search state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<NominatimResult[]>([]);
-  const [searching, setSearching] = useState(false);
   const [customLocation, setCustomLocation] = useState<CustomLocation | null>(null);
-  const debounceRef = useRef<number>(0);
 
-  const searchLocation = useCallback(async (query: string) => {
-    if (query.trim().length < 3) {
-      setSearchResults([]);
-      return;
-    }
-    setSearching(true);
-    try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5`,
-        { headers: { "User-Agent": "OpenSentry-Training-Sim/1.0" } },
-      );
-      const data: NominatimResult[] = await res.json();
-      setSearchResults(data);
-    } catch {
-      setSearchResults([]);
-    } finally {
-      setSearching(false);
-    }
-  }, []);
+  // Preset aliases for location search
+  const [presetAliases, setPresetAliases] = useState<AliasEntry[]>([]);
+  const { query: searchQuery, setQuery: setSearchQueryAction, results: searchResults, loading: searching, clearResults: clearSearchResults } = useLocationSearch(presetAliases);
 
-  const handleSearchInput = useCallback(
-    (value: string) => {
-      setSearchQuery(value);
-      setCustomLocation(null);
-      window.clearTimeout(debounceRef.current);
-      debounceRef.current = window.setTimeout(() => searchLocation(value), 300);
-    },
-    [searchLocation],
-  );
-
-  const handleSelectLocation = useCallback((result: NominatimResult) => {
-    const parts = result.display_name.split(", ");
-    const shortName = parts.length > 2
-      ? `${parts[0]}, ${parts[parts.length - 1]}`
-      : result.display_name;
+  const handleSelectLocation = useCallback((result: LocationSearchResult) => {
+    const shortName = result.name;
     setCustomLocation({
-      lat: parseFloat(result.lat),
-      lng: parseFloat(result.lon),
+      lat: result.lat,
+      lng: result.lng,
       name: shortName,
     });
-    setSearchResults([]);
-    setSearchQuery(result.display_name);
+    clearSearchResults();
+    setSearchQueryAction(result.name);
     setSelectedBase("custom_location");
-  }, []);
+  }, [clearSearchResults, setSearchQueryAction]);
 
   useEffect(() => {
     Promise.all([
@@ -112,6 +72,12 @@ export default function ScenarioSelect({ onSelect }: Props) {
         setError(err.message);
         setLoading(false);
       });
+
+    // Load preset aliases for location search
+    fetch(`${import.meta.env.BASE_URL}data/bases/preset-aliases.json`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: AliasEntry[]) => setPresetAliases(data))
+      .catch(() => { /* optional */ });
   }, []);
 
   const canContinue = selectedScenario !== null && selectedBase !== null
@@ -298,7 +264,7 @@ export default function ScenarioSelect({ onSelect }: Props) {
                 return (
                   <div
                     key={b.id}
-                    onClick={() => { setSelectedBase(b.id); setCustomLocation(null); setSearchQuery(""); setSearchResults([]); }}
+                    onClick={() => { setSelectedBase(b.id); setCustomLocation(null); setSearchQueryAction(""); clearSearchResults(); }}
                     style={{
                       background: "#161b22",
                       border: isSelected
@@ -429,7 +395,7 @@ export default function ScenarioSelect({ onSelect }: Props) {
                       <input
                         type="text"
                         value={searchQuery}
-                        onChange={(e) => handleSearchInput(e.target.value)}
+                        onChange={(e) => { setSearchQueryAction(e.target.value); setCustomLocation(null); }}
                         onClick={(e) => e.stopPropagation()}
                         placeholder="Search location (e.g., Shaw AFB)"
                         style={{
@@ -468,9 +434,9 @@ export default function ScenarioSelect({ onSelect }: Props) {
                           overflowY: "auto",
                         }}
                       >
-                        {searchResults.map((result) => (
+                        {searchResults.map((result, i) => (
                           <div
-                            key={result.place_id}
+                            key={i}
                             onClick={(e) => { e.stopPropagation(); handleSelectLocation(result); }}
                             style={{
                               padding: "8px 12px",
@@ -484,7 +450,26 @@ export default function ScenarioSelect({ onSelect }: Props) {
                             onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = "#161b22"; }}
                             onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
                           >
-                            {result.display_name}
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <span>{result.name}</span>
+                              {result.presetId && (
+                                <span
+                                  style={{
+                                    fontSize: 10,
+                                    fontWeight: 600,
+                                    color: "#58a6ff",
+                                    background: "#58a6ff18",
+                                    border: "1px solid #58a6ff40",
+                                    borderRadius: 3,
+                                    padding: "1px 5px",
+                                    whiteSpace: "nowrap",
+                                    letterSpacing: 0.3,
+                                  }}
+                                >
+                                  ⭐ Preset boundary available
+                                </span>
+                              )}
+                            </div>
                           </div>
                         ))}
                       </div>
