@@ -29,6 +29,7 @@ export default function BaseDefenseArchitect({ onBack, onExportToMission }: Prop
 
   // Step 3 state
   const [systems, setSystems] = useState<PlacedSystem[]>([]);
+  const [boundary, setBoundary] = useState<number[][]>([]);
 
   // Track completed steps
   const completedSteps = useMemo(() => {
@@ -64,6 +65,7 @@ export default function BaseDefenseArchitect({ onBack, onExportToMission }: Prop
     }
     setSelectedBaseId(baseId);
     setBaseTemplate(template);
+    setBoundary(template.boundary ?? []);
   }, [selectedEquipment]);
 
   const handleEquipmentChange = useCallback((equipment: SelectedEquipment) => {
@@ -113,7 +115,9 @@ export default function BaseDefenseArchitect({ onBack, onExportToMission }: Prop
           baseTemplate={baseTemplate}
           selectedEquipment={selectedEquipment}
           systems={systems}
+          boundary={boundary}
           onSystemsChange={setSystems}
+          onBoundaryChange={setBoundary}
           onBack={() => setCurrentStep(2)}
           onNext={() => setCurrentStep(4)}
         />
@@ -123,6 +127,7 @@ export default function BaseDefenseArchitect({ onBack, onExportToMission }: Prop
         <BdaExport
           baseTemplate={baseTemplate}
           systems={systems}
+          boundary={boundary.length ? boundary : baseTemplate.boundary}
           onExportToMission={onExportToMission}
           onBack={() => setCurrentStep(3)}
           onBackToMenu={onBack}

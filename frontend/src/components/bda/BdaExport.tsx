@@ -8,6 +8,7 @@ import { latLngToGameXY } from "../../utils/coordinates";
 interface Props {
   baseTemplate: BaseTemplate;
   systems: PlacedSystem[];
+  boundary: number[][];
   onExportToMission?: (placement: PlacementConfig, scenarioId: string, baseId: string, baseTemplate: BaseTemplate) => void;
   onBack: () => void;
   onBackToMenu: () => void;
@@ -73,17 +74,23 @@ function analyzeCoverage(
 
 // ─── PlacementConfig builder ──────────────────────────────────────────────────
 
-function buildPlacement(baseTemplate: BaseTemplate, systems: PlacedSystem[]): PlacementConfig {
+function buildPlacement(baseTemplate: BaseTemplate, systems: PlacedSystem[], boundary: number[][]): PlacementConfig {
   const baseLat = baseTemplate.center_lat ?? 32.5;
   const baseLng = baseTemplate.center_lng ?? 45.5;
+  const xs = boundary.map(([x]) => x);
+  const ys = boundary.map(([, y]) => y);
+  const width = xs.length ? Math.max(...xs) - Math.min(...xs) : 0;
+  const height = ys.length ? Math.max(...ys) - Math.min(...ys) : 0;
+  const maxDim = Math.max(width, height);
+  const placementBoundsKm = Math.max(maxDim * 1.5, baseTemplate.placement_bounds_km);
 
   const placement: PlacementConfig = {
     base_id: baseTemplate.id,
     sensors: [],
     effectors: [],
     combined: [],
-    boundary: baseTemplate.boundary,
-    placement_bounds_km: baseTemplate.placement_bounds_km,
+    boundary,
+    placement_bounds_km: placementBoundsKm,
   };
 
   for (const sys of systems) {
@@ -159,6 +166,7 @@ function ProgressBar({ status, count }: { status: CoverageStatus; count: number 
 export default function BdaExport({
   baseTemplate,
   systems,
+  boundary,
   onExportToMission,
   onBack,
   onBackToMenu,
@@ -221,12 +229,12 @@ export default function BdaExport({
 
   const handleLaunch = useCallback(() => {
     if (!onExportToMission) return;
-    const placement = buildPlacement(baseTemplate, systems);
+    const placement = buildPlacement(baseTemplate, systems, boundary);
     onExportToMission(placement, selectedScenarioId, baseTemplate.id, baseTemplate);
-  }, [onExportToMission, baseTemplate, systems, selectedScenarioId]);
+  }, [onExportToMission, baseTemplate, systems, boundary, selectedScenarioId]);
 
   const handleDownload = useCallback(() => {
-    const placement = buildPlacement(baseTemplate, systems);
+    const placement = buildPlacement(baseTemplate, systems, boundary);
     const json = JSON.stringify(placement, null, 2);
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -238,7 +246,7 @@ export default function BdaExport({
     URL.revokeObjectURL(url);
     setDownloadDone(true);
     setTimeout(() => setDownloadDone(false), 2500);
-  }, [baseTemplate, systems]);
+  }, [baseTemplate, systems, boundary]);
 
   // ─── Render ─────────────────────────────────────────────────────────────────
 
