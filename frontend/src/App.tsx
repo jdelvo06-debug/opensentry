@@ -844,22 +844,43 @@ export default function App() {
     setBaseId(selBaseId);
 
     if (customLocation) {
-      // Build a custom base template from Small FOB structure at the custom coordinates
+      // Check if the custom location name matches a curated preset
       try {
-        const res = await fetch(`${import.meta.env.BASE_URL}data/bases/small_fob.json`);
-        const fobData = await res.json();
-        const customBase: BaseTemplate = {
-          ...fobData,
-          id: "custom_location",
-          name: `Custom: ${customLocation.name}`,
-          description: `Custom location at ${customLocation.lat.toFixed(4)}, ${customLocation.lng.toFixed(4)}`,
-          center_lat: customLocation.lat,
-          center_lng: customLocation.lng,
-          default_zoom: 15,
-        };
-        setBaseTemplate(customBase);
-        setMaxSensors(customBase.max_sensors);
-        setMaxEffectors(customBase.max_effectors);
+        const aliasRes = await fetch(`${import.meta.env.BASE_URL}data/bases/preset-aliases.json`);
+        const aliases: { presetId: string; aliases: string[] }[] = await aliasRes.json();
+        const nameLower = customLocation.name.toLowerCase();
+        const matched = aliases.find((entry) =>
+          entry.aliases.some((a) => nameLower.includes(a.toLowerCase()))
+        );
+        if (matched) {
+          // Load the curated preset, override center to the searched location
+          const presetRes = await fetch(`${import.meta.env.BASE_URL}data/bases/${matched.presetId}.json`);
+          const presetData: BaseTemplate = await presetRes.json();
+          const presetBase: BaseTemplate = {
+            ...presetData,
+            center_lat: customLocation.lat,
+            center_lng: customLocation.lng,
+          };
+          setBaseTemplate(presetBase);
+          setMaxSensors(presetBase.max_sensors);
+          setMaxEffectors(presetBase.max_effectors);
+        } else {
+          // Fall back to Small FOB structure at the custom coordinates
+          const res = await fetch(`${import.meta.env.BASE_URL}data/bases/small_fob.json`);
+          const fobData = await res.json();
+          const customBase: BaseTemplate = {
+            ...fobData,
+            id: "custom_location",
+            name: `Custom: ${customLocation.name}`,
+            description: `Custom location at ${customLocation.lat.toFixed(4)}, ${customLocation.lng.toFixed(4)}`,
+            center_lat: customLocation.lat,
+            center_lng: customLocation.lng,
+            default_zoom: 15,
+          };
+          setBaseTemplate(customBase);
+          setMaxSensors(customBase.max_sensors);
+          setMaxEffectors(customBase.max_effectors);
+        }
       } catch {
         setMaxSensors(3);
         setMaxEffectors(2);
