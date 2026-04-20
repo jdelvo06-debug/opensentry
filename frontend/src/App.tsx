@@ -25,6 +25,7 @@ import StudyLibrary from "./components/StudyLibrary";
 import StudyModule from "./components/StudyModule";
 import BaseDefenseArchitect from "./components/BaseDefenseArchitect";
 import { buildDeBeamFromFiringEvent } from "./utils/deEngagement";
+import { resolvePreset, type AliasEntry } from "./utils/resolvePreset";
 
 import { useGameEngine as useWebSocket } from "./hooks/useGameEngine";
 import "./app.css";
@@ -847,11 +848,8 @@ export default function App() {
       // Check if the custom location name matches a curated preset
       try {
         const aliasRes = await fetch(`${import.meta.env.BASE_URL}data/bases/preset-aliases.json`);
-        const aliases: { id: string; aliases: string[]; baseFile: string }[] = await aliasRes.json();
-        const nameLower = customLocation.name.toLowerCase();
-        const matched = aliases.find((entry) =>
-          entry.aliases.some((a) => nameLower.includes(a.toLowerCase()))
-        );
+        const aliases: AliasEntry[] = await aliasRes.json();
+        const matched = resolvePreset(customLocation.name, aliases);
         if (matched) {
           // Load the curated preset, override center to the searched location
           const presetRes = await fetch(`${import.meta.env.BASE_URL}data/bases/${matched.baseFile}.json`);
