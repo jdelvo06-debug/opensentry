@@ -23,5 +23,20 @@
     "id": "shaw_afb",
     "aliases": ["shaw", "shaw afb", "shaw air force base", "kssc", "shaw south carolina"],
     "baseFile": "shaw_afb"
+  },
+  {
+    "id": "prince_sultan_ab",
+    "aliases": ["prince sultan", "prince sultan ab", "prince sultan air base", "oeps", "al kharj air base", "al kharj"],
+    "baseFile": "prince_sultan_ab"
+  },
+  {
+    "id": "ramstein_ab",
+    "aliases": ["ramstein", "ramstein ab", "ramstein air base", "etar", "ramstein germany"],
+    "baseFile": "ramstein_ab"
+  },
+  {
+    "id": "raf_mildenhall",
+    "aliases": ["raf mildenhall", "mildenhall", "egun", "mildenhall uk"],
+    "baseFile": "raf_mildenhall"
   }
 ]
