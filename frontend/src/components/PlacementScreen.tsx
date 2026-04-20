@@ -495,12 +495,17 @@ export default function PlacementScreen({
   const [showRangeRings, setShowRangeRings] = useState(true);
 
   // Freeform polygon perimeter vertices in game XY (km from base center)
-  const [perimVertices, setPerimVertices] = useState<{x: number; y: number}[]>([
-    { x: -0.5, y: -0.5 },
-    { x: -0.5, y:  0.5 },
-    { x:  0.5, y:  0.5 },
-    { x:  0.5, y: -0.5 },
-  ]);
+  // Seed from curated preset boundary if available, otherwise default 1km² square
+  const [perimVertices, setPerimVertices] = useState<{x: number; y: number}[]>(
+    baseTemplate.boundary?.length
+      ? baseTemplate.boundary.map(([x, y]) => ({ x, y }))
+      : [
+          { x: -0.5, y: -0.5 },
+          { x: -0.5, y:  0.5 },
+          { x:  0.5, y:  0.5 },
+          { x:  0.5, y: -0.5 },
+        ]
+  );
 
   // Draggable asset positions
   const [assetPositions, setAssetPositions] = useState<Record<string, { x: number; y: number }>>(
