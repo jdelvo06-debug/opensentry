@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type SetStateAction } from "react";
 import { Polygon, Marker } from "react-leaflet";
 import L from "leaflet";
 import { gameXYToLatLng, latLngToGameXY } from "../../../utils/coordinates";
@@ -18,24 +18,29 @@ function createCornerHandle(): L.DivIcon {
 }
 
 function createMidpointHandle(): L.DivIcon {
-  const svg = `<svg width="10" height="10" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="5" cy="5" r="4" fill="#d29922" stroke="#ffb800" stroke-width="1" opacity="0.6"/>
+  const svg = `<svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="6" cy="6" r="5" fill="#d29922" stroke="#ffb800" stroke-width="1.5" opacity="0.85"/>
+    <line x1="3" y1="6" x2="9" y2="6" stroke="#ffb800" stroke-width="1.5"/>
+    <line x1="6" y1="3" x2="6" y2="9" stroke="#ffb800" stroke-width="1.5"/>
   </svg>`;
   return L.divIcon({
     html: svg,
     className: "",
-    iconSize: [10, 10],
-    iconAnchor: [5, 5],
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
   });
 }
 
-function createPolygonLabel(text: string): L.DivIcon {
-  const html = `<span style="font:600 10px 'JetBrains Mono',monospace;color:#d29922;white-space:nowrap;pointer-events:none;background:rgba(13,17,23,0.85);padding:2px 6px;border-radius:3px;border:1px solid #d2992244;">${text}</span>`;
+function createPolygonLabel(text: string, hint: string): L.DivIcon {
+  const html = `<div style="text-align:center;pointer-events:none;">
+    <span style="font:600 10px 'JetBrains Mono',monospace;color:#d29922;white-space:nowrap;background:rgba(13,17,23,0.85);padding:2px 6px;border-radius:3px;border:1px solid #d2992244;">${text}</span><br/>
+    <span style="font:500 8px 'JetBrains Mono',monospace;color:#8b949e;white-space:nowrap;background:rgba(13,17,23,0.85);padding:1px 5px;border-radius:2px;">${hint}</span>
+  </div>`;
   return L.divIcon({
     html,
     className: "",
-    iconSize: [120, 16],
-    iconAnchor: [60, 8],
+    iconSize: [200, 28],
+    iconAnchor: [100, 14],
   });
 }
 
@@ -68,6 +73,8 @@ interface Props {
   baseLat: number;
   baseLng: number;
   placementBoundsKm: number;
+  boundary?: number[][];
+  onBoundaryChange?: (boundary: number[][]) => void;
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -76,14 +83,36 @@ export default function DraggableBasePerimeter({
   baseLat,
   baseLng,
   placementBoundsKm,
+  boundary,
+  onBoundaryChange,
 }: Props) {
   const half = placementBoundsKm / 2;
-  const [perimVertices, setPerimVertices] = useState<{ x: number; y: number }[]>([
-    { x: -half, y: -half },
-    { x: -half, y: half },
-    { x: half, y: half },
-    { x: half, y: -half },
-  ]);
+  const defaultBoundary = useMemo(
+    () => [
+      [-half, -half],
+      [-half, half],
+      [half, half],
+      [half, -half],
+    ],
+    [half],
+  );
+  // Keep the default simple: 4 main sides, with midpoint handles for quick refinement
+  const [perimVertices, setPerimVertices] = useState<{ x: number; y: number }[]>(
+    (boundary?.length ? boundary : defaultBoundary).map(([x, y]) => ({ x, y })),
+  );
+
+  useEffect(() => {
+    const source = boundary?.length ? boundary : defaultBoundary;
+    setPerimVertices(source.map(([x, y]) => ({ x, y })));
+  }, [boundary, defaultBoundary]);
+
+  const updateVertices = (updater: SetStateAction<{ x: number; y: number }[]>) => {
+    setPerimVertices((prev) => {
+      const next = typeof updater === "function" ? updater(prev) : updater;
+      onBoundaryChange?.(next.map((v) => [v.x, v.y]));
+      return next;
+    });
+  };
 
   const perimPositions = useMemo(
     () => perimVertices.map((v) => gameXYToLatLng(v.x, v.y, baseLat, baseLng)),
@@ -134,7 +163,7 @@ export default function DraggableBasePerimeter({
               dragend: (e: L.LeafletEvent) => {
                 const latlng = (e.target as L.Marker).getLatLng();
                 const { x, y } = latLngToGameXY(latlng.lat, latlng.lng, baseLat, baseLng);
-                setPerimVertices((prev) =>
+                updateVertices((prev) =>
                   prev.map((pv, j) =>
                     j === i
                       ? { x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100 }
@@ -146,7 +175,7 @@ export default function DraggableBasePerimeter({
                 L.DomEvent.preventDefault(e.originalEvent);
                 L.DomEvent.stopPropagation(e.originalEvent);
                 if (perimVertices.length > 3) {
-                  setPerimVertices((prev) => prev.filter((_, j) => j !== i));
+                  updateVertices((prev) => prev.filter((_, j) => j !== i));
                 }
               },
             }}
@@ -165,7 +194,7 @@ export default function DraggableBasePerimeter({
               click: (e: L.LeafletMouseEvent) => {
                 L.DomEvent.stopPropagation(e.originalEvent);
                 const insertIdx = mp.afterIndex + 1;
-                setPerimVertices((prev) => [
+                updateVertices((prev) => [
                   ...prev.slice(0, insertIdx),
                   { x: Math.round(mp.x * 100) / 100, y: Math.round(mp.y * 100) / 100 },
                   ...prev.slice(insertIdx),
@@ -178,7 +207,10 @@ export default function DraggableBasePerimeter({
       {/* Polygon centroid label */}
       <Marker
         position={perimLabelPos}
-        icon={createPolygonLabel(`${perimVertices.length} pts \u2014 ${perimArea.toFixed(1)} km\u00B2`)}
+        icon={createPolygonLabel(
+          `${perimVertices.length} pts \u2014 ${perimArea.toFixed(1)} km\u00B2`,
+          'click \u2295 to add \u2022 right-click to remove',
+        )}
         interactive={false}
       />
     </>

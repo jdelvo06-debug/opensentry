@@ -85,7 +85,9 @@ interface Props {
   baseTemplate: BaseTemplate;
   selectedEquipment: SelectedEquipment;
   systems: PlacedSystem[];
+  boundary: number[][];
   onSystemsChange: (systems: PlacedSystem[]) => void;
+  onBoundaryChange: (boundary: number[][]) => void;
   onBack: () => void;
   onNext: () => void;
 }
@@ -94,7 +96,9 @@ export default function BdaPlacement({
   baseTemplate,
   selectedEquipment,
   systems,
+  boundary,
   onSystemsChange,
+  onBoundaryChange,
   onBack,
   onNext,
 }: Props) {
@@ -613,6 +617,8 @@ export default function BdaPlacement({
               baseLat={baseLat}
               baseLng={baseLng}
               placementBoundsKm={baseTemplate.placement_bounds_km}
+              boundary={boundary}
+              onBoundaryChange={onBoundaryChange}
             />
 
             {/* Terrain features */}
