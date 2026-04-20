@@ -3,5 +3,10 @@
     "id": "osan_ab",
     "aliases": ["osan air base", "osan ab", "rkso", "osan airbase", "osan afb", "k-55", "k 55"],
     "baseFile": "osan_ab"
+  },
+  {
+    "id": "aviano_ab",
+    "aliases": ["aviano", "aviano ab", "aviano air base", "lipa", "aviano italy", "aviano airbase", "aviano afb"],
+    "baseFile": "aviano_ab"
   }
 ]
