@@ -847,14 +847,14 @@ export default function App() {
       // Check if the custom location name matches a curated preset
       try {
         const aliasRes = await fetch(`${import.meta.env.BASE_URL}data/bases/preset-aliases.json`);
-        const aliases: { presetId: string; aliases: string[] }[] = await aliasRes.json();
+        const aliases: { id: string; aliases: string[]; baseFile: string }[] = await aliasRes.json();
         const nameLower = customLocation.name.toLowerCase();
         const matched = aliases.find((entry) =>
           entry.aliases.some((a) => nameLower.includes(a.toLowerCase()))
         );
         if (matched) {
           // Load the curated preset, override center to the searched location
-          const presetRes = await fetch(`${import.meta.env.BASE_URL}data/bases/${matched.presetId}.json`);
+          const presetRes = await fetch(`${import.meta.env.BASE_URL}data/bases/${matched.baseFile}.json`);
           const presetData: BaseTemplate = await presetRes.json();
           const presetBase: BaseTemplate = {
             ...presetData,
