@@ -258,14 +258,22 @@ These are Codex subagent types, not custom-built tools. They run as part of the 
 - **DE LOS scoped to BDA only** — directed energy line-of-sight enforcement skipped in standard scenarios, applied only in Base Defense Architect / custom placement
 - **49/49 tests passing** — DE dwell/resolution timing tests added; live browser QA verified RF/PNT jammer, DE laser, and HPM
 
-## Current main (post-v1.10.1)
+## Current main (post-v1.11.0)
 - **PR #9 realism pass** — Shahed / OW-UAS is kinetic-only in doctrine and effectiveness tables
-- **RF/PNT split surfaced cleanly** — non-emitting fixed-wing targets now show `PNT DEGRADED` instead of appearing jammer-immune
-- **Shenobi/NEXUS scope tightened** — protocol manipulation now only applies to commercial quad and micro targets with supported library matches
+- **PR #13–#22** — 20 curated base presets + custom mission handoff fixes
+- **4-sided default perimeter** with midpoint add / right-click remove
+- **Custom mission handoff** uses live edited boundary, not stale template
+- **62/62 frontend tests passing**
+
+## WIP (on `wip/preset-generation-script` branch)
+- `scripts/generate-preset.py` — deterministic OSM-based preset generator (polygon quality still needs work)
+- Script-regenerated Barksdale, Nellis, Kadena, Tyndall (unverified)
+- Langley AFB preset (polygon mangled from OSM relation stitching)
+- Updated `docs/adding-base-presets.md`
 
 ## Next Session — Priority Work
-1. Fix JACKAL trajectory and reduce action wheel size (Issue #1)
-2. Save/load BDA designs as JSON (share with unit, iterate on layouts)
-3. Add CI test step to GitHub Actions workflow (both vitest and pytest)
-4. Code-split bundle with React.lazy() for heavy components (currently 733 KB)
-5. Investigate stuck bogey in Lone Wolf — still unconfirmed
+1. Fix preset polygon quality (OSM relation stitching, oversized boundary handling) — consider shapely or a coding app
+2. Fix JACKAL trajectory and reduce action wheel size (Issue #1)
+3. Add remaining bases (Langley, Andersen, Incirlik, etc.) once polygon pipeline is solid
+4. Add CI test step to GitHub Actions workflow (both vitest and pytest)
+5. Code-split bundle with React.lazy() for heavy components (currently 733 KB)

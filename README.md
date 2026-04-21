@@ -108,6 +108,7 @@ UAS and drone contacts are never ATC-authorized — only manned aircraft can rec
 - **EW realism pass** — RF jamming now respects command-link presence, Shenobi is limited to supported commercial/micro control links, and Shahed-class threats are documented and scored as kinetic-only.
 - **Directed energy split** — `DE-LASER-3km` for precision single-target kills and `DE-HPM-3km` for area effects against swarms. Each system has distinct visuals, recharge timing, and ROE tradeoffs.
 - **Weapon pre-slew / aim time** — Directed energy systems can orient onto a target before it enters range, then fire after a short slew/aim delay once commanded in-range.
+- **📍 20 curated base presets** — Search by name or ICAO code for real installations. Curated boundaries load automatically — Osan, Aviano, Shaw, Ramstein, RAF Mildenhall, RAF Lakenheath, Al Udeid, Creech, Fort Liberty, Nellis, Kadena, Barksdale, Lackland, Scott, Tyndall, Kunsan, Prince Sultan, Spangdahlem, McEntire, and more coming.
 - **Real-world satellite maps** via Leaflet.js — OpenStreetMap + CartoDB imagery, global coverage
 - **Pre-mission ROE briefing** — review Rules of Engagement before each scenario
 - **ATC coordination mechanic** — UNKNOWN contacts require IFF clearance before engagement
@@ -229,15 +230,36 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 - [x] DE LOS scoped to BDA/custom placement only — standard scenarios skip LOS checks
 - [x] 49/49 unit tests passing — DE dwell/resolution, camera proximity slewing, tactical-map cone routing
 
-### Current main (post-v1.10.1)
+### Current main (post-v1.11.0)
 - [x] **PR #9** — EW realism pass: Shahed / OW-UAS is now kinetic-only in doctrine and effectiveness tables
 - [x] RF jammer gating — RF effects require `rf_emitting`; non-emitting fixed-wing tracks surface as **PNT DEGRADED** instead of looking untouched
 - [x] Shenobi scope tightened — protocol manipulation now applies only to commercial quad and micro control-link targets
 - [x] 62 frontend tests + 147 backend tests covering realism rules, doctrine copies, and PNT-only status visibility
+- [x] **PR #13** — Fix BDA boundary handoff to mission
+- [x] **PR #14** — Add curated Osan AB preset
+- [x] **PR #15** — Add curated Aviano AB preset
+- [x] **PR #16** — Pack 2 (Spangdahlem, McEntire, Shaw) + custom mission preset handoff fix
+- [x] **PR #17** — Fix custom mission preset alias schema mismatch
+- [x] **PR #18** — Fix preset boundary overwritten by default boundary
+- [x] **PR #19** — Fix custom mission preset boundary not loading
+- [x] **PR #20** — Refactor: shared location search + tighter preset alias matching
+- [x] **PR #21** — Pack 3 (Prince Sultan AB, Ramstein AB, RAF Mildenhall)
+- [x] **PR #22** — Pack 4 (11 bases: Barksdale, Lackland, Scott, Tyndall, Kunsan, Nellis, Kadena, Al Udeid, Creech, Fort Liberty, RAF Lakenheath)
+- [x] 4-sided default perimeter with midpoint add / right-click remove
+- [x] Custom mission handoff uses live edited boundary (not stale template)
+- [x] `placement_bounds_km` derived from edited polygon
+- [x] **20 curated base presets** in preset library (8 high quality, 12 need re-verification)
+
+### WIP (on `wip/preset-generation-script` branch)
+- `scripts/generate-preset.py` — deterministic OSM-based preset generator
+- Script-regenerated polygons for Barksdale, Nellis, Kadena, Tyndall (unverified)
+- Langley AFB preset (polygon still mangled from OSM relation stitching issues)
+- Updated `docs/adding-base-presets.md`
 
 ### Backlog
 - [ ] Fix JACKAL trajectory + action wheel size (Issue #1)
-- [ ] Save/load BDA designs (share with unit, iterate on layouts)
+- [ ] Improve preset polygon quality (OSM relation stitching, oversized boundary handling)
+- [ ] Add remaining bases (Langley, Andersen, Incirlik, etc.)
 - [ ] After-action replay (timeline scrub)
 - [ ] Multi-operator / shared mission
 - [ ] React.lazy() code splitting for bundle size reduction

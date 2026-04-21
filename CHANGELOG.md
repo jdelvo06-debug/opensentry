@@ -17,6 +17,25 @@ This project uses [Semantic Versioning](https://semver.org/).
 - **Ineffective DE/HPM state handling** — Failed directed-energy shots no longer mark a live track as `defeated`; targets remain actionable after shrugging off the engagement.
 - **PNT-only UI visibility** — Non-emitting fixed-wing targets now clearly surface `PNT DEGRADED` in the engagement panel and tactical map instead of appearing immune to the jammer.
 
+## [1.11.0] — 2026-04-20
+
+### Added
+- **Curated base preset library** — 20 real-world installation presets with preloaded boundaries. Search by name or ICAO code to load a curated polygon instead of the generic fallback.
+- **Preset alias system** — `preset-aliases.json` maps search terms (name, abbreviation, ICAO code) to preset templates.
+- **4-sided default perimeter** — boundary starts as a simple quadrilateral with midpoint circles for adding vertices and right-click to remove.
+- **Base presets (20 total):** Osan AB, Aviano AB, Spangdahlem AB, McEntire JNGB, Shaw AFB, Prince Sultan AB, Ramstein AB, RAF Mildenhall, Barksdale AFB, Lackland AFB, Scott AFB, Tyndall AFB, Kunsan AB, Nellis AFB, Kadena AB, Al Udeid AB, Creech AFB, Fort Liberty, RAF Lakenheath.
+
+### Changed
+- **Custom mission handoff uses live boundary** — BDA polygon edits now carry into custom mission launch instead of being overwritten by the stale template boundary.
+- **`placement_bounds_km` derived from edited polygon** — dynamic sizing based on actual boundary, not hardcoded template values.
+- **Tighter preset alias matching** — multi-word aliases must appear at start of name or as whole phrase; single-word aliases require exact match; longest-match-wins priority.
+- **Shared location search** — BDA and custom mission use a unified search component instead of duplicated logic.
+
+### Fixed
+- **Preset boundary overwritten by default boundary** — selecting a preset no longer gets clobbered by the default boundary side-effect.
+- **Custom mission preset alias schema mismatch** — alias lookup now uses `{id, aliases, baseFile}` format correctly.
+- **Custom mission preset boundary not loading** — preset data flows through to PlacementScreen properly.
+
 ## [1.10.1] — 2026-04-19
 
 ### Added
