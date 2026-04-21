@@ -269,6 +269,7 @@ export interface BaseTemplate {
   max_sensors: number;
   max_effectors: number;
   placement_bounds_km: number;
+  location_name?: string;  // Original search name for custom locations (used for saving presets)
 }
 
 export interface CatalogSensor {

@@ -4,6 +4,12 @@ import type { BaseInfo, BaseTemplate } from "../../types";
 import { COLORS } from "./constants";
 import { useLocationSearch, type LocationSearchResult } from "../../hooks/useLocationSearch";
 import { type AliasEntry } from "../../utils/resolvePreset";
+import { customPresetIdForName, slugifyBaseName } from "../../utils/baseSlug";
+import { buildGenericCustomBase } from "../../utils/customLocationBase";
+import {
+  normalizeLoadedBaseTemplate,
+  stripCustomBaseScaffold,
+} from "../../utils/recenterCustomBase";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -66,7 +72,7 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
           return res.json();
         })
         .then((template: BaseTemplate) => {
-          onSelectBase(baseId, template);
+          onSelectBase(baseId, normalizeLoadedBaseTemplate(template));
         })
         .catch((err) => {
           console.error("[BdaBaseSelection] Failed to load template:", err);
@@ -80,38 +86,44 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
   // ─── Select geo result → load preset or fallback template ──────────────────
 
   const handleSelectGeoResult = useCallback(
-    (result: LocationSearchResult) => {
-      const templateFile = result.presetFile ?? "medium_airbase";
-      const templateUrl = `${import.meta.env.BASE_URL}data/bases/${templateFile}.json`;
+    async (result: LocationSearchResult) => {
+      try {
+        const slug = slugifyBaseName(result.name);
+        const customPresetId = customPresetIdForName(result.name);
+        const customPresetRes = await fetch(`${import.meta.env.BASE_URL}data/bases/${customPresetId}.json`);
 
-      fetch(templateUrl)
-        .then((res) => {
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          return res.json();
-        })
-        .then((template: BaseTemplate) => {
-          if (result.presetId) {
-            // Preset match: use curated template as-is (it has correct center, boundary, etc.)
-            onSelectBase(result.presetId, template);
-          } else {
-            // Generic fallback: override center and name for custom location
-            const customTemplate: BaseTemplate = {
-              ...template,
-              id: "custom",
-              name: `Custom (${result.name})`,
-              center_lat: result.lat,
-              center_lng: result.lng,
-            };
-            onSelectBase("custom", customTemplate);
+        if (customPresetRes.ok) {
+          const template = normalizeLoadedBaseTemplate(await customPresetRes.json() as BaseTemplate);
+          onSelectBase(template.id || slug, template);
+        } else {
+          const legacyPresetRes = await fetch(`${import.meta.env.BASE_URL}data/bases/${slug}.json`);
+          if (legacyPresetRes.ok) {
+            const legacyPreset = await legacyPresetRes.json() as BaseTemplate;
+            if (legacyPreset.location_name) {
+              const template = normalizeLoadedBaseTemplate(legacyPreset);
+              onSelectBase(template.id || slug, template);
+              setSearchQuery(result.name);
+              clearResults();
+              return;
+            }
           }
-          setSearchQuery(result.name);
-          clearResults();
-        })
-        .catch((err) => {
-          console.error("[BdaBaseSelection] Failed to load template for location:", err);
-        });
+
+          const customTemplate: BaseTemplate = stripCustomBaseScaffold(
+            buildGenericCustomBase(
+              { lat: result.lat, lng: result.lng, name: result.name },
+              "custom",
+            ),
+          );
+          onSelectBase("custom", customTemplate);
+        }
+
+        setSearchQuery(result.name);
+        clearResults();
+      } catch (err) {
+        console.error("[BdaBaseSelection] Failed to load template for location:", err);
+      }
     },
-    [onSelectBase],
+    [clearResults, onSelectBase, setSearchQuery],
   );
 
   // ─── Styles ───────────────────────────────────────────────────────────────

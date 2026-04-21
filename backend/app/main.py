@@ -11,6 +11,7 @@ import time
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app import config
 from app.config import KTS_TO_KMS
@@ -34,7 +35,18 @@ from app.actions import (
     handle_release_hold_fire,
     handle_resume_mission,
 )
-from app.bases import list_bases, load_base, load_equipment_catalog
+import re
+
+from app.bases import (
+    list_bases,
+    load_base,
+    load_equipment_catalog,
+    save_base_polygon,
+    get_preset_base_ids,
+    GENERIC_TEMPLATE_IDS,
+)
+
+VALID_BASE_ID_RE = re.compile(r"^[a-z][a-z0-9_]{1,63}$")
 from app.jackal import update_jackal
 from app.detection import calculate_confidence, update_sensors
 from app.drone import create_drone, distance_to_base, update_drone
@@ -152,6 +164,43 @@ async def get_base(base_id: str):
         logger.error("Failed to load base %s: %s", base_id, e)
         return {"error": f"Failed to load base: {base_id}"}
     return base.model_dump()
+
+
+@app.post("/bases/{base_id}/polygon")
+async def save_base_polygon_endpoint(base_id: str, body: dict):
+    if base_id in GENERIC_TEMPLATE_IDS:
+        return JSONResponse(
+            status_code=400,
+            content={"error": f"Cannot overwrite generic template: {base_id}"},
+        )
+    # Validate base_id format: lowercase alphanumeric + underscores, no path traversal
+    if not VALID_BASE_ID_RE.match(base_id):
+        return JSONResponse(
+            status_code=400,
+            content={"error": f"Invalid base ID: {base_id}. Use lowercase alphanumeric with underscores."},
+        )
+    boundary = body.get("boundary")
+    if not isinstance(boundary, list) or len(boundary) < 3:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "boundary must be a list of at least 3 points"},
+        )
+    try:
+        save_base_polygon(
+            base_id,
+            boundary,
+            body.get("center_lat"),
+            body.get("center_lng"),
+            base_name=body.get("base_name"),
+            base_size=body.get("base_size"),
+            location_name=body.get("location_name"),
+            protected_assets=body.get("protected_assets"),
+            terrain=body.get("terrain"),
+        )
+        return {"ok": True}
+    except Exception as e:
+        logger.error("Failed to save polygon for %s: %s", base_id, e)
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 
 @app.get("/equipment")

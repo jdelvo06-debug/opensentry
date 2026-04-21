@@ -25,7 +25,13 @@ import StudyLibrary from "./components/StudyLibrary";
 import StudyModule from "./components/StudyModule";
 import BaseDefenseArchitect from "./components/BaseDefenseArchitect";
 import { buildDeBeamFromFiringEvent } from "./utils/deEngagement";
-import { resolvePreset, type AliasEntry } from "./utils/resolvePreset";
+import { customPresetIdForName, slugifyBaseName } from "./utils/baseSlug";
+import { buildGenericCustomBase } from "./utils/customLocationBase";
+import {
+  normalizeLoadedBaseTemplate,
+  recenterCustomBase,
+  stripCustomBaseScaffold,
+} from "./utils/recenterCustomBase";
 
 import { useGameEngine as useWebSocket } from "./hooks/useGameEngine";
 import "./app.css";
@@ -157,6 +163,16 @@ export default function App() {
   const [scenarioId, setScenarioId] = useState<string>("");
   const [baseId, setBaseId] = useState<string>("");
   const [baseTemplate, setBaseTemplate] = useState<BaseTemplate | null>(null);
+  const [selectedCustomLocation, setSelectedCustomLocation] = useState<{
+    lat: number;
+    lng: number;
+    name: string;
+  } | null>(null);
+  const [missionBaseCenter, setMissionBaseCenter] = useState<{
+    lat?: number;
+    lng?: number;
+    zoom?: number;
+  } | null>(null);
 
   // Equipment loadout
   const [selectedSensors, setSelectedSensors] = useState<CatalogSensor[]>([]);
@@ -843,39 +859,51 @@ export default function App() {
   ) => {
     setScenarioId(selScenarioId);
     setBaseId(selBaseId);
+    setSelectedCustomLocation(customLocation ?? null);
 
     if (customLocation) {
-      // Check if the custom location name matches a curated preset
       try {
-        const aliasRes = await fetch(`${import.meta.env.BASE_URL}data/bases/preset-aliases.json`);
-        const aliases: AliasEntry[] = await aliasRes.json();
-        const matched = resolvePreset(customLocation.name, aliases);
-        if (matched) {
-          // Load the curated preset, override center to the searched location
-          const presetRes = await fetch(`${import.meta.env.BASE_URL}data/bases/${matched.baseFile}.json`);
-          const presetData: BaseTemplate = await presetRes.json();
-          const presetBase: BaseTemplate = {
-            ...presetData,
-            center_lat: customLocation.lat,
-            center_lng: customLocation.lng,
-          };
-          setBaseTemplate(presetBase);
-          setMaxSensors(presetBase.max_sensors);
-          setMaxEffectors(presetBase.max_effectors);
+        const slug = slugifyBaseName(customLocation.name);
+        const customPresetId = customPresetIdForName(customLocation.name);
+        const customPresetRes = await fetch(`${import.meta.env.BASE_URL}data/bases/${customPresetId}.json`);
+
+        if (customPresetRes.ok) {
+          const savedPreset = normalizeLoadedBaseTemplate(await customPresetRes.json() as BaseTemplate);
+          setBaseTemplate(savedPreset);
+          setMissionBaseCenter({
+            lat: savedPreset.center_lat,
+            lng: savedPreset.center_lng,
+            zoom: savedPreset.default_zoom,
+          });
+          setMaxSensors(savedPreset.max_sensors);
+          setMaxEffectors(savedPreset.max_effectors);
         } else {
-          // Fall back to Small FOB structure at the custom coordinates
-          const res = await fetch(`${import.meta.env.BASE_URL}data/bases/small_fob.json`);
-          const fobData = await res.json();
-          const customBase: BaseTemplate = {
-            ...fobData,
-            id: "custom_location",
-            name: `Custom: ${customLocation.name}`,
-            description: `Custom location at ${customLocation.lat.toFixed(4)}, ${customLocation.lng.toFixed(4)}`,
-            center_lat: customLocation.lat,
-            center_lng: customLocation.lng,
-            default_zoom: 15,
-          };
+          const legacyPresetRes = await fetch(`${import.meta.env.BASE_URL}data/bases/${slug}.json`);
+          if (legacyPresetRes.ok) {
+            const legacyPreset = await legacyPresetRes.json() as BaseTemplate;
+            if (legacyPreset.location_name) {
+              const savedPreset = normalizeLoadedBaseTemplate(legacyPreset);
+              setBaseTemplate(savedPreset);
+              setMissionBaseCenter({
+                lat: savedPreset.center_lat,
+                lng: savedPreset.center_lng,
+                zoom: savedPreset.default_zoom,
+              });
+              setMaxSensors(savedPreset.max_sensors);
+              setMaxEffectors(savedPreset.max_effectors);
+              return;
+            }
+          }
+
+          const customBase: BaseTemplate = stripCustomBaseScaffold(
+            buildGenericCustomBase(customLocation, "custom_location"),
+          );
           setBaseTemplate(customBase);
+          setMissionBaseCenter({
+            lat: customBase.center_lat,
+            lng: customBase.center_lng,
+            zoom: customBase.default_zoom,
+          });
           setMaxSensors(customBase.max_sensors);
           setMaxEffectors(customBase.max_effectors);
         }
@@ -887,8 +915,13 @@ export default function App() {
       // Fetch base template for the loadout screen limits
       try {
         const res = await fetch(`${import.meta.env.BASE_URL}data/bases/${selBaseId}.json`);
-        const data = await res.json();
+        const data = normalizeLoadedBaseTemplate(await res.json() as BaseTemplate);
         setBaseTemplate(data);
+        setMissionBaseCenter({
+          lat: data.center_lat,
+          lng: data.center_lng,
+          zoom: data.default_zoom,
+        });
         setMaxSensors(data.max_sensors);
         setMaxEffectors(data.max_effectors);
       } catch {
@@ -929,8 +962,22 @@ export default function App() {
     placement: PlacementConfig,
     overrideScenarioId?: string,
     overrideBaseId?: string,
+    overrideBaseTemplate?: BaseTemplate,
   ) => {
-    setPlacementConfig(placement);
+    const launchBaseTemplate = overrideBaseTemplate ?? baseTemplate;
+    const normalized = launchBaseTemplate
+      ? recenterCustomBase(launchBaseTemplate, placement)
+      : { baseTemplate: launchBaseTemplate, placement };
+
+    setPlacementConfig(normalized.placement);
+    if (normalized.baseTemplate) {
+      setBaseTemplate(normalized.baseTemplate);
+      setMissionBaseCenter({
+        lat: normalized.baseTemplate.center_lat,
+        lng: normalized.baseTemplate.center_lng,
+        zoom: normalized.baseTemplate.default_zoom,
+      });
+    }
     // Reset running state
     setScore(null);
     setTracks([]);
@@ -963,7 +1010,8 @@ export default function App() {
     connect({
       scenarioId: overrideScenarioId ?? scenarioId,
       baseId: overrideBaseId ?? baseId,
-      placement,
+      placement: normalized.placement,
+      baseTemplate: normalized.baseTemplate,
       scorePlacement: true,
     });
   };
@@ -997,6 +1045,8 @@ export default function App() {
     setPaused(false);
     setNotes([]);
     setWaveNumber(1);
+    setSelectedCustomLocation(null);
+    setMissionBaseCenter(null);
     setShowRoeOverlay(false);
     // ATC reset
     setAtcCommsMessages({});
@@ -1448,9 +1498,14 @@ export default function App() {
         fetch(`${import.meta.env.BASE_URL}data/bases/${baseId}.json`),
         fetch(`${import.meta.env.BASE_URL}data/scenarios/${scenarioId}.json`),
       ]);
-      const base = await baseRes.json();
+      const base = normalizeLoadedBaseTemplate(await baseRes.json() as BaseTemplate);
       const scenarioData = await scenarioRes.json();
       setBaseTemplate(base);
+      setMissionBaseCenter({
+        lat: base.center_lat,
+        lng: base.center_lng,
+        zoom: base.default_zoom,
+      });
       setScenarioId(scenarioId);
       setBaseId(baseId);
 
@@ -1534,7 +1589,12 @@ export default function App() {
             setScenarioId(exportScenarioId);
             setBaseId(exportBaseId);
             setBaseTemplate(exportBaseTemplate);
-            handlePlacementConfirm(placement, exportScenarioId, exportBaseId);
+            setMissionBaseCenter({
+              lat: exportBaseTemplate.center_lat,
+              lng: exportBaseTemplate.center_lng,
+              zoom: exportBaseTemplate.default_zoom,
+            });
+            handlePlacementConfirm(placement, exportScenarioId, exportBaseId, exportBaseTemplate);
             setPhase("running");
           }}
         />
@@ -1608,14 +1668,39 @@ export default function App() {
   }
 
   // --- Phase: Placement ---
-  if (phase === "plan" && baseTemplate) {
+  if (phase === "plan") {
+    const planBaseTemplate = baseTemplate
+      ?? (selectedCustomLocation
+        ? stripCustomBaseScaffold(buildGenericCustomBase(selectedCustomLocation, "custom_location"))
+        : null);
+
+    if (!planBaseTemplate) {
+      return (
+        <div
+          style={{
+            height: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#0d1117",
+            color: "#8b949e",
+            fontFamily: "'Inter', sans-serif",
+          }}
+        >
+          Loading base placement...
+        </div>
+      );
+    }
+
     return (
       <PlacementScreen
-        baseTemplate={baseTemplate}
+        baseTemplate={planBaseTemplate}
         selectedSensors={selectedSensors}
         selectedEffectors={selectedEffectors}
         selectedCombined={selectedCombined}
-        onConfirm={handlePlacementConfirm}
+        onConfirm={(placement) =>
+          handlePlacementConfirm(placement, undefined, undefined, planBaseTemplate)
+        }
         onBack={() => setPhase("equip")}
       />
     );
@@ -1729,9 +1814,9 @@ export default function App() {
           }}
           engagementZones={engagementZones}
           elapsed={elapsed}
-          baseLat={baseTemplate?.center_lat}
-          baseLng={baseTemplate?.center_lng}
-          defaultZoom={baseTemplate?.default_zoom}
+          baseLat={missionBaseCenter?.lat ?? selectedCustomLocation?.lat ?? baseTemplate?.center_lat}
+          baseLng={missionBaseCenter?.lng ?? selectedCustomLocation?.lng ?? baseTemplate?.center_lng}
+          defaultZoom={missionBaseCenter?.zoom ?? (selectedCustomLocation ? 15 : undefined) ?? baseTemplate?.default_zoom}
           effectors={effectors}
           onConfirmTrack={confirmTrack}
           onIdentify={identify}

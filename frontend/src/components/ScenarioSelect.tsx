@@ -529,7 +529,7 @@ export default function ScenarioSelect({ onSelect }: Props) {
                 if (selectedScenario && selectedBase) {
                   onSelect(
                     selectedScenario,
-                    selectedBase === "custom_location" ? "small_fob" : selectedBase,
+                    selectedBase,
                     selectedBase === "custom_location" && customLocation ? customLocation : undefined,
                   );
                 }

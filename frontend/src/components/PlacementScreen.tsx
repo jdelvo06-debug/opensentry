@@ -26,6 +26,8 @@ import {
   gamePolygonToLatLng,
   getBaseCenter,
 } from "../utils/coordinates";
+import { customPresetIdForName } from "../utils/baseSlug";
+import { isPolygonDrivenCustomBase, recenterCustomBase } from "../utils/recenterCustomBase";
 
 import "leaflet/dist/leaflet.css";
 
@@ -493,6 +495,9 @@ export default function PlacementScreen({
   const [selectedPlaced, setSelectedPlaced] = useState<number | null>(null);
   const [facingDeg, setFacingDeg] = useState(0);
   const [showRangeRings, setShowRangeRings] = useState(true);
+  const [savePerimStatus, setSavePerimStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+
+  const GENERIC_BASE_IDS = new Set(["small_fob", "medium_airbase", "large_installation"]);
 
   // Freeform polygon perimeter vertices in game XY (km from base center)
   // Seed from curated preset boundary if available, otherwise default 1km² square
@@ -781,6 +786,55 @@ export default function PlacementScreen({
     };
     onConfirm(config);
   }, [baseTemplate.id, baseTemplate.placement_bounds_km, baseTemplate.protected_assets, placedItems, onConfirm, perimVertices, assetPositions]);
+
+  const handleSavePerimeter = useCallback(async () => {
+    setSavePerimStatus("saving");
+    // Derive a valid base_id from location_name for custom locations
+    const baseId = baseTemplate.id === "custom" || baseTemplate.id === "custom_location"
+      ? customPresetIdForName(baseTemplate.location_name || baseTemplate.name)
+      : baseTemplate.id;
+    const boundary: number[][] = perimVertices.map(v => [v.x, v.y]);
+    const movedAssets = baseTemplate.protected_assets
+      .filter(a => assetPositions[a.id].x !== a.x || assetPositions[a.id].y !== a.y)
+      .map(a => ({ id: a.id, x: assetPositions[a.id].x, y: assetPositions[a.id].y }));
+    const normalized = recenterCustomBase(baseTemplate, {
+      base_id: baseId,
+      sensors: [],
+      effectors: [],
+      combined: [],
+      boundary,
+      ...(movedAssets.length > 0 ? { moved_assets: movedAssets } : {}),
+    });
+    try {
+      const res = await fetch(`http://localhost:8000/bases/${baseId}/polygon`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          boundary: normalized.placement.boundary,
+          center_lat: normalized.baseTemplate.center_lat,
+          center_lng: normalized.baseTemplate.center_lng,
+          base_name: baseTemplate.location_name || baseTemplate.name,
+          base_size: baseTemplate.size,
+          location_name: baseTemplate.location_name,
+          protected_assets: isPolygonDrivenCustomBase(baseTemplate)
+            ? []
+            : normalized.baseTemplate.protected_assets,
+          terrain: isPolygonDrivenCustomBase(baseTemplate)
+            ? []
+            : normalized.baseTemplate.terrain,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setSavePerimStatus("error");
+      } else {
+        setSavePerimStatus("saved");
+        setTimeout(() => setSavePerimStatus("idle"), 3000);
+      }
+    } catch {
+      setSavePerimStatus("error");
+    }
+  }, [assetPositions, perimVertices, baseTemplate]);
 
   // Active selection info for palette
   const activeItem =
@@ -2146,6 +2200,39 @@ export default function PlacementScreen({
           }}
         >
           BACK
+        </button>
+
+        <button
+          onClick={handleSavePerimeter}
+          disabled={GENERIC_BASE_IDS.has(baseTemplate.id) || savePerimStatus === "saving"}
+          title={GENERIC_BASE_IDS.has(baseTemplate.id) ? "Cannot save generic templates" : "Save boundary to preset file"}
+          style={{
+            padding: "8px 20px",
+            background: "transparent",
+            border: `1px solid ${
+              savePerimStatus === "saved" ? COLORS.success :
+              savePerimStatus === "error" ? COLORS.danger :
+              GENERIC_BASE_IDS.has(baseTemplate.id) ? COLORS.border :
+              COLORS.accent
+            }`,
+            borderRadius: 6,
+            color: savePerimStatus === "saved" ? COLORS.success :
+                   savePerimStatus === "error" ? COLORS.danger :
+                   GENERIC_BASE_IDS.has(baseTemplate.id) ? COLORS.muted :
+                   COLORS.accent,
+            fontSize: 13,
+            fontWeight: 500,
+            fontFamily: "'Inter', sans-serif",
+            cursor: GENERIC_BASE_IDS.has(baseTemplate.id) || savePerimStatus === "saving" ? "not-allowed" : "pointer",
+            opacity: GENERIC_BASE_IDS.has(baseTemplate.id) ? 0.4 : 1,
+            letterSpacing: 1,
+            textTransform: "uppercase",
+          }}
+        >
+          {savePerimStatus === "saving" ? "Saving..." :
+           savePerimStatus === "saved" ? "Saved!" :
+           savePerimStatus === "error" ? "Save Failed" :
+           "Save Perimeter"}
         </button>
 
         <button
