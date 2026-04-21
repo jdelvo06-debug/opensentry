@@ -25,8 +25,11 @@ import StudyLibrary from "./components/StudyLibrary";
 import StudyModule from "./components/StudyModule";
 import BaseDefenseArchitect from "./components/BaseDefenseArchitect";
 import { buildDeBeamFromFiringEvent } from "./utils/deEngagement";
-import { customPresetIdForName, slugifyBaseName } from "./utils/baseSlug";
 import { buildGenericCustomBase } from "./utils/customLocationBase";
+import {
+  loadBaseTemplateWithBrowserOverride,
+  loadSavedSearchBaseTemplate,
+} from "./utils/browserBasePresets";
 import {
   normalizeLoadedBaseTemplate,
   recenterCustomBase,
@@ -863,12 +866,10 @@ export default function App() {
 
     if (customLocation) {
       try {
-        const slug = slugifyBaseName(customLocation.name);
-        const customPresetId = customPresetIdForName(customLocation.name);
-        const customPresetRes = await fetch(`${import.meta.env.BASE_URL}data/bases/${customPresetId}.json`);
+        const savedSearchPreset = await loadSavedSearchBaseTemplate(customLocation.name);
 
-        if (customPresetRes.ok) {
-          const savedPreset = normalizeLoadedBaseTemplate(await customPresetRes.json() as BaseTemplate);
+        if (savedSearchPreset) {
+          const savedPreset = normalizeLoadedBaseTemplate(savedSearchPreset);
           setBaseTemplate(savedPreset);
           setMissionBaseCenter({
             lat: savedPreset.center_lat,
@@ -878,23 +879,6 @@ export default function App() {
           setMaxSensors(savedPreset.max_sensors);
           setMaxEffectors(savedPreset.max_effectors);
         } else {
-          const legacyPresetRes = await fetch(`${import.meta.env.BASE_URL}data/bases/${slug}.json`);
-          if (legacyPresetRes.ok) {
-            const legacyPreset = await legacyPresetRes.json() as BaseTemplate;
-            if (legacyPreset.location_name) {
-              const savedPreset = normalizeLoadedBaseTemplate(legacyPreset);
-              setBaseTemplate(savedPreset);
-              setMissionBaseCenter({
-                lat: savedPreset.center_lat,
-                lng: savedPreset.center_lng,
-                zoom: savedPreset.default_zoom,
-              });
-              setMaxSensors(savedPreset.max_sensors);
-              setMaxEffectors(savedPreset.max_effectors);
-              return;
-            }
-          }
-
           const customBase: BaseTemplate = stripCustomBaseScaffold(
             buildGenericCustomBase(customLocation, "custom_location"),
           );
@@ -914,8 +898,9 @@ export default function App() {
     } else {
       // Fetch base template for the loadout screen limits
       try {
-        const res = await fetch(`${import.meta.env.BASE_URL}data/bases/${selBaseId}.json`);
-        const data = normalizeLoadedBaseTemplate(await res.json() as BaseTemplate);
+        const loadedBase = await loadBaseTemplateWithBrowserOverride(selBaseId);
+        if (!loadedBase) throw new Error(`Base not found: ${selBaseId}`);
+        const data = normalizeLoadedBaseTemplate(loadedBase);
         setBaseTemplate(data);
         setMissionBaseCenter({
           lat: data.center_lat,
@@ -1495,10 +1480,11 @@ export default function App() {
 
     try {
       const [baseRes, scenarioRes] = await Promise.all([
-        fetch(`${import.meta.env.BASE_URL}data/bases/${baseId}.json`),
+        loadBaseTemplateWithBrowserOverride(baseId),
         fetch(`${import.meta.env.BASE_URL}data/scenarios/${scenarioId}.json`),
       ]);
-      const base = normalizeLoadedBaseTemplate(await baseRes.json() as BaseTemplate);
+      if (!baseRes) throw new Error(`Base not found: ${baseId}`);
+      const base = normalizeLoadedBaseTemplate(baseRes);
       const scenarioData = await scenarioRes.json();
       setBaseTemplate(base);
       setMissionBaseCenter({

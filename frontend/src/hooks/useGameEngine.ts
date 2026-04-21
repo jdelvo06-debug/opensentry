@@ -46,6 +46,7 @@ import {
   handleEndMission,
 } from "@opensentry/game/actions";
 import { normalizeLoadedBaseTemplate } from "../utils/recenterCustomBase";
+import { loadBaseTemplateWithBrowserOverride } from "../utils/browserBasePresets";
 
 // Re-export the same interfaces used by useWebSocket
 export interface ConnectOptions {
@@ -164,8 +165,8 @@ export function useGameEngine(onMessage: MessageHandler) {
             }
             if (!resolvedBaseId) return null;
             try {
-              const baseRes = await fetch(`${import.meta.env.BASE_URL}data/bases/${resolvedBaseId}.json`);
-              if (baseRes.ok) return normalizeLoadedBaseTemplate(await baseRes.json() as BaseTemplate);
+              const baseRes = await loadBaseTemplateWithBrowserOverride(resolvedBaseId);
+              if (baseRes) return normalizeLoadedBaseTemplate(baseRes);
               console.warn(`[OpenSentry Engine] Base template not found: ${resolvedBaseId}`);
             } catch (err) {
               console.warn(`[OpenSentry Engine] Failed to load base template:`, err);

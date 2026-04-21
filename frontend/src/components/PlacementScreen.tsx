@@ -27,6 +27,10 @@ import {
   getBaseCenter,
 } from "../utils/coordinates";
 import { customPresetIdForName } from "../utils/baseSlug";
+import {
+  saveBrowserBasePreset,
+  shouldAttemptBackendPresetSave,
+} from "../utils/browserBasePresets";
 import { isPolygonDrivenCustomBase, recenterCustomBase } from "../utils/recenterCustomBase";
 
 import "leaflet/dist/leaflet.css";
@@ -805,34 +809,52 @@ export default function PlacementScreen({
       boundary,
       ...(movedAssets.length > 0 ? { moved_assets: movedAssets } : {}),
     });
+    const persistedTemplate: BaseTemplate = {
+      ...normalized.baseTemplate,
+      id: baseId,
+      name: baseTemplate.location_name || normalized.baseTemplate.name,
+      location_name: baseTemplate.location_name ?? normalized.baseTemplate.location_name,
+      protected_assets: isPolygonDrivenCustomBase(baseTemplate)
+        ? []
+        : normalized.baseTemplate.protected_assets,
+      terrain: isPolygonDrivenCustomBase(baseTemplate)
+        ? []
+        : normalized.baseTemplate.terrain,
+    };
+    const savedLocally = saveBrowserBasePreset(baseId, persistedTemplate);
     try {
-      const res = await fetch(`http://localhost:8000/bases/${baseId}/polygon`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          boundary: normalized.placement.boundary,
-          center_lat: normalized.baseTemplate.center_lat,
-          center_lng: normalized.baseTemplate.center_lng,
-          base_name: baseTemplate.location_name || baseTemplate.name,
-          base_size: baseTemplate.size,
-          location_name: baseTemplate.location_name,
-          protected_assets: isPolygonDrivenCustomBase(baseTemplate)
-            ? []
-            : normalized.baseTemplate.protected_assets,
-          terrain: isPolygonDrivenCustomBase(baseTemplate)
-            ? []
-            : normalized.baseTemplate.terrain,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok || data.error) {
+      if (shouldAttemptBackendPresetSave()) {
+        const res = await fetch(`http://localhost:8000/bases/${baseId}/polygon`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            boundary: normalized.placement.boundary,
+            center_lat: normalized.baseTemplate.center_lat,
+            center_lng: normalized.baseTemplate.center_lng,
+            base_name: baseTemplate.location_name || baseTemplate.name,
+            base_size: baseTemplate.size,
+            location_name: baseTemplate.location_name,
+            protected_assets: persistedTemplate.protected_assets,
+            terrain: persistedTemplate.terrain,
+          }),
+        });
+        const data = await res.json();
+        if ((!res.ok || data.error) && !savedLocally) {
+          setSavePerimStatus("error");
+          return;
+        }
+      }
+      if (!savedLocally && !shouldAttemptBackendPresetSave()) {
         setSavePerimStatus("error");
       } else {
         setSavePerimStatus("saved");
         setTimeout(() => setSavePerimStatus("idle"), 3000);
       }
     } catch {
-      setSavePerimStatus("error");
+      setSavePerimStatus(savedLocally ? "saved" : "error");
+      if (savedLocally) {
+        setTimeout(() => setSavePerimStatus("idle"), 3000);
+      }
     }
   }, [assetPositions, perimVertices, baseTemplate]);
 

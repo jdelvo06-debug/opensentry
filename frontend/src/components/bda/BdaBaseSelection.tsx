@@ -4,8 +4,12 @@ import type { BaseInfo, BaseTemplate } from "../../types";
 import { COLORS } from "./constants";
 import { useLocationSearch, type LocationSearchResult } from "../../hooks/useLocationSearch";
 import { type AliasEntry } from "../../utils/resolvePreset";
-import { customPresetIdForName, slugifyBaseName } from "../../utils/baseSlug";
+import { slugifyBaseName } from "../../utils/baseSlug";
 import { buildGenericCustomBase } from "../../utils/customLocationBase";
+import {
+  loadBaseTemplateWithBrowserOverride,
+  loadSavedSearchBaseTemplate,
+} from "../../utils/browserBasePresets";
 import {
   normalizeLoadedBaseTemplate,
   stripCustomBaseScaffold,
@@ -66,12 +70,9 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
 
   const handleSelectCard = useCallback(
     (baseId: string) => {
-      fetch(`${import.meta.env.BASE_URL}data/bases/${baseId}.json`)
-        .then((res) => {
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          return res.json();
-        })
-        .then((template: BaseTemplate) => {
+      loadBaseTemplateWithBrowserOverride(baseId)
+        .then((template) => {
+          if (!template) throw new Error(`Base not found: ${baseId}`);
           onSelectBase(baseId, normalizeLoadedBaseTemplate(template));
         })
         .catch((err) => {
@@ -89,25 +90,12 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
     async (result: LocationSearchResult) => {
       try {
         const slug = slugifyBaseName(result.name);
-        const customPresetId = customPresetIdForName(result.name);
-        const customPresetRes = await fetch(`${import.meta.env.BASE_URL}data/bases/${customPresetId}.json`);
+        const savedTemplate = await loadSavedSearchBaseTemplate(result.name);
 
-        if (customPresetRes.ok) {
-          const template = normalizeLoadedBaseTemplate(await customPresetRes.json() as BaseTemplate);
+        if (savedTemplate) {
+          const template = normalizeLoadedBaseTemplate(savedTemplate);
           onSelectBase(template.id || slug, template);
         } else {
-          const legacyPresetRes = await fetch(`${import.meta.env.BASE_URL}data/bases/${slug}.json`);
-          if (legacyPresetRes.ok) {
-            const legacyPreset = await legacyPresetRes.json() as BaseTemplate;
-            if (legacyPreset.location_name) {
-              const template = normalizeLoadedBaseTemplate(legacyPreset);
-              onSelectBase(template.id || slug, template);
-              setSearchQuery(result.name);
-              clearResults();
-              return;
-            }
-          }
-
           const customTemplate: BaseTemplate = stripCustomBaseScaffold(
             buildGenericCustomBase(
               { lat: result.lat, lng: result.lng, name: result.name },
