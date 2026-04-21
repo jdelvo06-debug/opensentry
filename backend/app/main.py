@@ -40,6 +40,7 @@ from app.bases import (
     load_base,
     load_equipment_catalog,
     save_base_polygon,
+    get_preset_base_ids,
     GENERIC_TEMPLATE_IDS,
 )
 from app.jackal import update_jackal
@@ -167,6 +168,13 @@ async def save_base_polygon_endpoint(base_id: str, body: dict):
         return JSONResponse(
             status_code=400,
             content={"error": f"Cannot overwrite generic template: {base_id}"},
+        )
+    # Only allow saving to existing preset files — no arbitrary file creation
+    valid_ids = set(get_preset_base_ids())
+    if base_id not in valid_ids:
+        return JSONResponse(
+            status_code=400,
+            content={"error": f"Unknown preset base: {base_id}. Only existing presets can be updated."},
         )
     boundary = body.get("boundary")
     if not isinstance(boundary, list) or len(boundary) < 3:
