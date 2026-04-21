@@ -1,0 +1,108 @@
+{
+  "id": "nellis_afb",
+  "name": "Nellis Air Force Base",
+  "description": "Curated Nellis Air Force Base preset for Las Vegas, Nevada, USA. Simplified aerodrome boundary derived from OSM Way 162570573 (239-node aerodrome boundary), simplified to 15 vertices. Center verified from OSM runway midpoint. Includes the primary 21L/03R and 21R/03L runway axes, main apron and hangar area, flight-line facilities, and broad support zones. Nellis hosts the USAF Warfare Center and Red Flag exercises. ICAO: KLSV.",
+  "size": "large",
+  "center_lat": 36.238966,
+  "center_lng": -115.031695,
+  "default_zoom": 13,
+  "boundary": [
+    [0.4, 1.18],
+    [0.92, 1.4],
+    [1.29, 1.22],
+    [1.56, 0.09],
+    [1.21, -0.54],
+    [0.55, -0.23],
+    [-1.63, -2.36],
+    [-2.3, -1.7],
+    [-1.79, -1.09],
+    [-2.14, -0.59],
+    [-1.89, -0.04],
+    [-1.48, 0.17],
+    [-1.54, 0.86],
+    [0.05, 0.88],
+    [0.3, 1.09]
+  ],
+  "protected_assets": [
+    {
+      "id": "airfield_ops",
+      "name": "Airfield Operations",
+      "x": 0.2,
+      "y": 0.15,
+      "priority": 1
+    },
+    {
+      "id": "main_apron",
+      "name": "Main Apron / Flight Line",
+      "x": 0.65,
+      "y": 0.4,
+      "priority": 2
+    },
+    {
+      "id": "south_support",
+      "name": "South Support Campus",
+      "x": -0.75,
+      "y": -0.65,
+      "priority": 2
+    }
+  ],
+  "terrain": [
+    {
+      "id": "runway_21l03r",
+      "type": "runway",
+      "name": "Runway 21L/03R",
+      "polygon": [[-1.75, 0.95], [-1.9, 0.8], [1.0, 1.7], [1.15, 1.85]],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "runway_21r03l",
+      "type": "runway",
+      "name": "Runway 21R/03L",
+      "polygon": [[-1.5, 1.1], [-1.65, 0.95], [1.2, 1.85], [1.35, 2.0]],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "ops_tower",
+      "type": "tower",
+      "name": "ATC / Ops Tower",
+      "polygon": [[0.15, 0.1], [0.15, 0.2], [0.25, 0.2], [0.25, 0.1]],
+      "blocks_los": false,
+      "height_m": 25.0
+    },
+    {
+      "id": "east_apron_hangars",
+      "type": "building",
+      "name": "East Apron Hangars",
+      "polygon": [[0.5, 0.25], [0.5, 0.75], [1.1, 0.75], [1.1, 0.25]],
+      "blocks_los": true,
+      "height_m": 14.0
+    },
+    {
+      "id": "west_logistics",
+      "type": "building",
+      "name": "West Logistics Area",
+      "polygon": [[-1.6, 0.6], [-1.6, 1.2], [-1.1, 1.2], [-1.1, 0.6]],
+      "blocks_los": true,
+      "height_m": 10.0
+    },
+    {
+      "id": "south_support_blocks",
+      "type": "building",
+      "name": "South Support Blocks",
+      "polygon": [[-1.5, -1.6], [-1.5, -0.9], [-0.65, -0.9], [-0.65, -1.6]],
+      "blocks_los": true,
+      "height_m": 9.0
+    }
+  ],
+  "approach_corridors": [
+    {"name": "Runway NE Approach", "bearing_deg": 30, "width_deg": 18},
+    {"name": "Runway SW Approach", "bearing_deg": 210, "width_deg": 18},
+    {"name": "North Sector", "bearing_deg": 350, "width_deg": 30},
+    {"name": "South Sector", "bearing_deg": 170, "width_deg": 30}
+  ],
+  "max_sensors": 5,
+  "max_effectors": 4,
+  "placement_bounds_km": 2.8
+}
