@@ -92,6 +92,8 @@ interface Props {
   onNext: () => void;
 }
 
+const GENERIC_BASE_IDS = new Set(["small_fob", "medium_airbase", "large_installation"]);
+
 export default function BdaPlacement({
   baseTemplate,
   selectedEquipment,
@@ -104,6 +106,7 @@ export default function BdaPlacement({
 }: Props) {
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [activeDef, setActiveDef] = useState<SystemDef | null>(null);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const uidCounter = useRef(0);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -143,6 +146,32 @@ export default function BdaPlacement({
       })
       .catch(() => { setSearchResults([]); setSearchLoading(false); });
   }, []);
+
+  // ─── Save perimeter ───────────────────────────────────────────────────
+
+  const handleSavePerimeter = useCallback(async () => {
+    setSaveStatus("saving");
+    try {
+      const res = await fetch(`http://localhost:8000/bases/${baseTemplate.id}/polygon`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          boundary,
+          center_lat: baseTemplate.center_lat,
+          center_lng: baseTemplate.center_lng,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setSaveStatus("error");
+      } else {
+        setSaveStatus("saved");
+        setTimeout(() => setSaveStatus("idle"), 3000);
+      }
+    } catch {
+      setSaveStatus("error");
+    }
+  }, [boundary, baseTemplate]);
 
   // ─── Map center ───────────────────────────────────────────────────────
 
@@ -527,6 +556,36 @@ export default function BdaPlacement({
             }}
           >
             &lt; BACK
+          </button>
+          <button
+            onClick={handleSavePerimeter}
+            disabled={GENERIC_BASE_IDS.has(baseTemplate.id) || saveStatus === "saving"}
+            title={GENERIC_BASE_IDS.has(baseTemplate.id) ? "Cannot save generic templates" : "Save boundary to preset file"}
+            style={{
+              padding: "4px 12px",
+              fontSize: 11,
+              fontWeight: 600,
+              background: "transparent",
+              border: `1px solid ${
+                saveStatus === "saved" ? COLORS.success :
+                saveStatus === "error" ? COLORS.danger :
+                GENERIC_BASE_IDS.has(baseTemplate.id) ? COLORS.border :
+                COLORS.accent
+              }`,
+              borderRadius: 4,
+              color: saveStatus === "saved" ? COLORS.success :
+                     saveStatus === "error" ? COLORS.danger :
+                     GENERIC_BASE_IDS.has(baseTemplate.id) ? COLORS.muted :
+                     COLORS.accent,
+              cursor: GENERIC_BASE_IDS.has(baseTemplate.id) || saveStatus === "saving" ? "not-allowed" : "pointer",
+              fontFamily: "inherit",
+              opacity: GENERIC_BASE_IDS.has(baseTemplate.id) ? 0.4 : 1,
+            }}
+          >
+            {saveStatus === "saving" ? "SAVING..." :
+             saveStatus === "saved" ? "SAVED!" :
+             saveStatus === "error" ? "SAVE FAILED" :
+             "SAVE PERIMETER"}
           </button>
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: 1, color: COLORS.text }}>
