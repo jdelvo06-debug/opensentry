@@ -34,8 +34,8 @@
     {
       "id": "main_apron",
       "name": "Main Apron / Flight Line",
-      "x": 0.75,
-      "y": 0.35,
+      "x": 0.69,
+      "y": 0.24,
       "priority": 2
     },
     {
