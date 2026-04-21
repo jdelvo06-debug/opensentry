@@ -1,0 +1,106 @@
+{
+  "id": "al_udeid_ab",
+  "name": "Al Udeid Air Base",
+  "description": "Curated Al Udeid Air Base preset for Doha, Qatar. Simplified polygon derived from OSM Way 245526659 (aeroway=aerodrome boundary). Includes the primary runway, main apron and hangar area, flight-line facilities, and broad support zones for a credible starting layout. Major CENTCOM hub for US operations in the Middle East. ICAO: OTBH.",
+  "size": "large",
+  "center_lat": 25.1192,
+  "center_lng": 51.3161,
+  "default_zoom": 12,
+  "boundary": [
+    [-1.14, -3.03],
+    [-0.91, -3.63],
+    [-0.25, -3.63],
+    [0.20, -3.63],
+    [2.30, -3.63],
+    [2.97, -1.12],
+    [3.75, -0.42],
+    [3.64, 0.19],
+    [3.08, 0.59],
+    [2.97, 1.90],
+    [2.30, 2.10],
+    [1.86, 2.70],
+    [0.64, 3.50],
+    [-0.14, 3.80],
+    [-1.58, 4.11],
+    [-3.80, 2.90],
+    [-4.13, 1.19],
+    [-3.80, 0.39],
+    [-3.58, -0.01],
+    [-2.47, -2.12],
+    [-1.91, -2.12]
+  ],
+  "protected_assets": [
+    {
+      "id": "airfield_ops",
+      "name": "Airfield Operations",
+      "x": 0.2,
+      "y": 0.15,
+      "priority": 1
+    },
+    {
+      "id": "main_apron",
+      "name": "Main Apron / Flight Line",
+      "x": 0.65,
+      "y": 0.4,
+      "priority": 2
+    },
+    {
+      "id": "south_support",
+      "name": "South Support Campus",
+      "x": -0.75,
+      "y": -0.65,
+      "priority": 2
+    }
+  ],
+  "terrain": [
+    {
+      "id": "runway_1331",
+      "type": "runway",
+      "name": "Runway 13/31",
+      "polygon": [[-1.75, 0.95], [-1.9, 0.8], [1.0, 1.7], [1.15, 1.85]],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "ops_tower",
+      "type": "tower",
+      "name": "ATC / Ops Tower",
+      "polygon": [[0.15, 0.1], [0.15, 0.2], [0.25, 0.2], [0.25, 0.1]],
+      "blocks_los": false,
+      "height_m": 25.0
+    },
+    {
+      "id": "east_apron_hangars",
+      "type": "building",
+      "name": "East Apron Hangars",
+      "polygon": [[0.5, 0.25], [0.5, 0.75], [1.1, 0.75], [1.1, 0.25]],
+      "blocks_los": true,
+      "height_m": 14.0
+    },
+    {
+      "id": "west_logistics",
+      "type": "building",
+      "name": "West Logistics Area",
+      "polygon": [[-1.6, 0.6], [-1.6, 1.2], [-1.1, 1.2], [-1.1, 0.6]],
+      "blocks_los": true,
+      "height_m": 10.0
+    },
+    {
+      "id": "south_support_blocks",
+      "type": "building",
+      "name": "South Support Blocks",
+      "polygon": [[-1.5, -1.6], [-1.5, -0.9], [-0.65, -0.9], [-0.65, -1.6]],
+      "blocks_los": true,
+      "height_m": 9.0
+    }
+  ],
+  "approach_corridors": [
+    {"name": "Runway N Approach", "bearing_deg": 350, "width_deg": 18},
+    {"name": "Runway S Approach", "bearing_deg": 170, "width_deg": 18},
+    {"name": "East Sector", "bearing_deg": 80, "width_deg": 30},
+    {"name": "West Sector", "bearing_deg": 260, "width_deg": 30}
+  ],
+  "max_sensors": 5,
+  "max_effectors": 4,
+  "placement_bounds_km": 4.3
+}

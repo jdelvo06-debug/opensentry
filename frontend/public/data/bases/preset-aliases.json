@@ -1,42 +1,223 @@
 [
   {
     "id": "osan_ab",
-    "aliases": ["osan air base", "osan ab", "rkso", "osan airbase", "osan afb", "k-55", "k 55"],
+    "aliases": [
+      "osan air base",
+      "osan ab",
+      "rkso",
+      "osan airbase",
+      "osan afb",
+      "k-55",
+      "k 55"
+    ],
     "baseFile": "osan_ab"
   },
   {
     "id": "aviano_ab",
-    "aliases": ["aviano", "aviano ab", "aviano air base", "lipa", "aviano italy", "aviano airbase", "aviano afb"],
+    "aliases": [
+      "aviano",
+      "aviano ab",
+      "aviano air base",
+      "lipa",
+      "aviano italy",
+      "aviano airbase",
+      "aviano afb"
+    ],
     "baseFile": "aviano_ab"
   },
   {
     "id": "spangdahlem_ab",
-    "aliases": ["spangdahlem", "spangdahlem ab", "spangdahlem air base", "etad", "spangdahlem germany"],
+    "aliases": [
+      "spangdahlem",
+      "spangdahlem ab",
+      "spangdahlem air base",
+      "etad",
+      "spangdahlem germany"
+    ],
     "baseFile": "spangdahlem_ab"
   },
   {
     "id": "mcentire_jngb",
-    "aliases": ["mcentire", "mcentire jngb", "mcentire joint national guard base", "kmmt", "mcentire sc"],
+    "aliases": [
+      "mcentire",
+      "mcentire jngb",
+      "mcentire joint national guard base",
+      "kmmt",
+      "mcentire sc"
+    ],
     "baseFile": "mcentire_jngb"
   },
   {
     "id": "shaw_afb",
-    "aliases": ["shaw", "shaw afb", "shaw air force base", "kssc", "shaw south carolina"],
+    "aliases": [
+      "shaw",
+      "shaw afb",
+      "shaw air force base",
+      "kssc",
+      "shaw south carolina"
+    ],
     "baseFile": "shaw_afb"
   },
   {
     "id": "prince_sultan_ab",
-    "aliases": ["prince sultan", "prince sultan ab", "prince sultan air base", "oeps", "al kharj air base", "al kharj"],
+    "aliases": [
+      "prince sultan",
+      "prince sultan ab",
+      "prince sultan air base",
+      "oeps",
+      "al kharj air base",
+      "al kharj"
+    ],
     "baseFile": "prince_sultan_ab"
   },
   {
     "id": "ramstein_ab",
-    "aliases": ["ramstein", "ramstein ab", "ramstein air base", "etar", "ramstein germany"],
+    "aliases": [
+      "ramstein",
+      "ramstein ab",
+      "ramstein air base",
+      "etar",
+      "ramstein germany"
+    ],
     "baseFile": "ramstein_ab"
   },
   {
     "id": "raf_mildenhall",
-    "aliases": ["raf mildenhall", "mildenhall", "egun", "mildenhall uk"],
+    "aliases": [
+      "raf mildenhall",
+      "mildenhall",
+      "egun",
+      "mildenhall uk"
+    ],
     "baseFile": "raf_mildenhall"
+  },
+  {
+    "id": "barksdale_afb",
+    "aliases": [
+      "barksdale",
+      "barksdale afb",
+      "barksdale air force base",
+      "kbad",
+      "barksdale louisiana"
+    ],
+    "baseFile": "barksdale_afb"
+  },
+  {
+    "id": "lackland_afb",
+    "aliases": [
+      "lackland",
+      "lackland afb",
+      "lackland air force base",
+      "kskf",
+      "joint base san antonio-lackland",
+      "jbsa-lackland",
+      "lackland texas"
+    ],
+    "baseFile": "lackland_afb"
+  },
+  {
+    "id": "scott_afb",
+    "aliases": [
+      "scott",
+      "scott afb",
+      "scott air force base",
+      "kscf",
+      "scott illinois"
+    ],
+    "baseFile": "scott_afb"
+  },
+  {
+    "id": "tyndall_afb",
+    "aliases": [
+      "tyndall",
+      "tyndall afb",
+      "tyndall air force base",
+      "kpam",
+      "tyndall florida"
+    ],
+    "baseFile": "tyndall_afb"
+  },
+  {
+    "id": "kunsan_ab",
+    "aliases": [
+      "kunsan",
+      "kunsan ab",
+      "kunsan air base",
+      "rkjk",
+      "wolf pack",
+      "kunsan korea"
+    ],
+    "baseFile": "kunsan_ab"
+  },
+  {
+    "id": "nellis_afb",
+    "aliases": [
+      "nellis",
+      "nellis afb",
+      "nellis air force base",
+      "klsv",
+      "nellis nevada",
+      "red flag"
+    ],
+    "baseFile": "nellis_afb"
+  },
+  {
+    "id": "kadena_ab",
+    "aliases": [
+      "kadena",
+      "kadena ab",
+      "kadena air base",
+      "rodn",
+      "kadena japan",
+      "kadena okinawa"
+    ],
+    "baseFile": "kadena_ab"
+  },
+  {
+    "id": "al_udeid_ab",
+    "aliases": [
+      "al udeid",
+      "al udeid ab",
+      "al udeid air base",
+      "otbh",
+      "al udeid qatar",
+      "auab"
+    ],
+    "baseFile": "al_udeid_ab"
+  },
+  {
+    "id": "creech_afb",
+    "aliases": [
+      "creech",
+      "creech afb",
+      "creech air force base",
+      "kins",
+      "creech nevada",
+      "indian springs"
+    ],
+    "baseFile": "creech_afb"
+  },
+  {
+    "id": "fort_liberty",
+    "aliases": [
+      "fort liberty",
+      "fort bragg",
+      "kfbg",
+      "fort liberty nc",
+      "fort bragg nc",
+      "pope field"
+    ],
+    "baseFile": "fort_liberty"
+  },
+  {
+    "id": "raf_lakenheath",
+    "aliases": [
+      "raf lakenheath",
+      "lakenheath",
+      "egul",
+      "lakenheath uk",
+      "lakenheath england"
+    ],
+    "baseFile": "raf_lakenheath"
   }
 ]

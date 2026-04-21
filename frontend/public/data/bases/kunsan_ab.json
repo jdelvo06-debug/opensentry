@@ -1,0 +1,258 @@
+{
+  "id": "kunsan_ab",
+  "name": "Kunsan Air Base",
+  "description": "Curated Kunsan Air Base (Wolf Pack) preset for Gunsan, South Korea. Simplified polygon derived from OSM Way 95038648 (aeroway=aerodrome boundary for Gunsan Airport/RKJK). Includes the primary runway, main apron and hangar area, flight-line facilities, and broad support zones for a credible starting layout. ICAO: RKJK.",
+  "size": "medium",
+  "center_lat": 35.9071,
+  "center_lng": 126.6271,
+  "default_zoom": 14,
+  "boundary": [
+    [
+      1.47,
+      0.64
+    ],
+    [
+      1.73,
+      1.49
+    ],
+    [
+      1.13,
+      1.48
+    ],
+    [
+      0.42,
+      0.48
+    ],
+    [
+      -0.87,
+      0.46
+    ],
+    [
+      -1.42,
+      0.19
+    ],
+    [
+      -1.2,
+      -0.34
+    ],
+    [
+      -2.17,
+      -0.05
+    ],
+    [
+      -2.03,
+      -0.54
+    ],
+    [
+      -2.31,
+      -1.13
+    ],
+    [
+      -0.76,
+      -1.29
+    ],
+    [
+      0.97,
+      -1.48
+    ],
+    [
+      1.88,
+      -1.39
+    ],
+    [
+      1.29,
+      -1.17
+    ],
+    [
+      2.31,
+      -1.03
+    ],
+    [
+      1.96,
+      -0.8
+    ],
+    [
+      2.06,
+      -0.38
+    ],
+    [
+      1.72,
+      -0.37
+    ]
+  ],
+  "protected_assets": [
+    {
+      "id": "airfield_ops",
+      "name": "Airfield Operations",
+      "x": 0.2,
+      "y": 0.15,
+      "priority": 1
+    },
+    {
+      "id": "main_apron",
+      "name": "Main Apron / Flight Line",
+      "x": 0.65,
+      "y": 0.4,
+      "priority": 2
+    },
+    {
+      "id": "south_support",
+      "name": "South Support Campus",
+      "x": -0.75,
+      "y": -0.65,
+      "priority": 2
+    }
+  ],
+  "terrain": [
+    {
+      "id": "runway_1836",
+      "type": "runway",
+      "name": "Runway 18/36",
+      "polygon": [
+        [
+          -1.75,
+          0.95
+        ],
+        [
+          -1.9,
+          0.8
+        ],
+        [
+          1.0,
+          1.7
+        ],
+        [
+          1.15,
+          1.85
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "ops_tower",
+      "type": "tower",
+      "name": "ATC / Ops Tower",
+      "polygon": [
+        [
+          0.15,
+          0.1
+        ],
+        [
+          0.15,
+          0.2
+        ],
+        [
+          0.25,
+          0.2
+        ],
+        [
+          0.25,
+          0.1
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 25.0
+    },
+    {
+      "id": "east_apron_hangars",
+      "type": "building",
+      "name": "East Apron Hangars",
+      "polygon": [
+        [
+          0.5,
+          0.25
+        ],
+        [
+          0.5,
+          0.75
+        ],
+        [
+          1.1,
+          0.75
+        ],
+        [
+          1.1,
+          0.25
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 14.0
+    },
+    {
+      "id": "west_logistics",
+      "type": "building",
+      "name": "West Logistics Area",
+      "polygon": [
+        [
+          -1.6,
+          0.6
+        ],
+        [
+          -1.6,
+          1.2
+        ],
+        [
+          -1.1,
+          1.2
+        ],
+        [
+          -1.1,
+          0.6
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 10.0
+    },
+    {
+      "id": "south_support_blocks",
+      "type": "building",
+      "name": "South Support Blocks",
+      "polygon": [
+        [
+          -1.5,
+          -1.6
+        ],
+        [
+          -1.5,
+          -0.9
+        ],
+        [
+          -0.65,
+          -0.9
+        ],
+        [
+          -0.65,
+          -1.6
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 9.0
+    }
+  ],
+  "approach_corridors": [
+    {
+      "name": "Runway N Approach",
+      "bearing_deg": 0,
+      "width_deg": 18
+    },
+    {
+      "name": "Runway S Approach",
+      "bearing_deg": 180,
+      "width_deg": 18
+    },
+    {
+      "name": "East Sector",
+      "bearing_deg": 90,
+      "width_deg": 30
+    },
+    {
+      "name": "West Sector",
+      "bearing_deg": 270,
+      "width_deg": 30
+    }
+  ],
+  "max_sensors": 4,
+  "max_effectors": 3,
+  "placement_bounds_km": 2.3
+}

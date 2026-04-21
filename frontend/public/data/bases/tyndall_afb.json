@@ -1,0 +1,250 @@
+{
+  "id": "tyndall_afb",
+  "name": "Tyndall Air Force Base",
+  "description": "Curated Tyndall Air Force Base preset for the Panama City, Florida, USA area. Simplified polygon derived from OSM Way 33614592 (aeroway=aerodrome boundary). Includes the primary runway, main apron and hangar area, flight-line facilities, and broad support zones for a credible starting layout. ICAO: KPAM.",
+  "size": "large",
+  "center_lat": 30.0683,
+  "center_lng": -85.5757,
+  "default_zoom": 14,
+  "boundary": [
+    [
+      -0.48,
+      1.58
+    ],
+    [
+      -0.91,
+      2.01
+    ],
+    [
+      -1.2,
+      1.7
+    ],
+    [
+      -1.93,
+      0.99
+    ],
+    [
+      -0.74,
+      -0.36
+    ],
+    [
+      0.47,
+      -1.69
+    ],
+    [
+      0.77,
+      -2.0
+    ],
+    [
+      1.17,
+      -1.74
+    ],
+    [
+      1.82,
+      -1.54
+    ],
+    [
+      1.93,
+      -1.53
+    ],
+    [
+      1.91,
+      -1.07
+    ],
+    [
+      1.06,
+      -0.12
+    ],
+    [
+      1.02,
+      0.12
+    ],
+    [
+      1.01,
+      0.66
+    ],
+    [
+      0.59,
+      1.07
+    ],
+    [
+      0.27,
+      0.78
+    ]
+  ],
+  "protected_assets": [
+    {
+      "id": "airfield_ops",
+      "name": "Airfield Operations",
+      "x": 0.2,
+      "y": 0.15,
+      "priority": 1
+    },
+    {
+      "id": "main_apron",
+      "name": "Main Apron / Flight Line",
+      "x": 0.65,
+      "y": 0.4,
+      "priority": 2
+    },
+    {
+      "id": "south_support",
+      "name": "South Support Campus",
+      "x": -0.75,
+      "y": -0.65,
+      "priority": 2
+    }
+  ],
+  "terrain": [
+    {
+      "id": "runway_1230",
+      "type": "runway",
+      "name": "Runway 12/30",
+      "polygon": [
+        [
+          -1.75,
+          0.95
+        ],
+        [
+          -1.9,
+          0.8
+        ],
+        [
+          1.0,
+          1.7
+        ],
+        [
+          1.15,
+          1.85
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "ops_tower",
+      "type": "tower",
+      "name": "ATC / Ops Tower",
+      "polygon": [
+        [
+          0.15,
+          0.1
+        ],
+        [
+          0.15,
+          0.2
+        ],
+        [
+          0.25,
+          0.2
+        ],
+        [
+          0.25,
+          0.1
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 25.0
+    },
+    {
+      "id": "east_apron_hangars",
+      "type": "building",
+      "name": "East Apron Hangars",
+      "polygon": [
+        [
+          0.5,
+          0.25
+        ],
+        [
+          0.5,
+          0.75
+        ],
+        [
+          1.1,
+          0.75
+        ],
+        [
+          1.1,
+          0.25
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 14.0
+    },
+    {
+      "id": "west_logistics",
+      "type": "building",
+      "name": "West Logistics Area",
+      "polygon": [
+        [
+          -1.6,
+          0.6
+        ],
+        [
+          -1.6,
+          1.2
+        ],
+        [
+          -1.1,
+          1.2
+        ],
+        [
+          -1.1,
+          0.6
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 10.0
+    },
+    {
+      "id": "south_support_blocks",
+      "type": "building",
+      "name": "South Support Blocks",
+      "polygon": [
+        [
+          -1.5,
+          -1.6
+        ],
+        [
+          -1.5,
+          -0.9
+        ],
+        [
+          -0.65,
+          -0.9
+        ],
+        [
+          -0.65,
+          -1.6
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 9.0
+    }
+  ],
+  "approach_corridors": [
+    {
+      "name": "Runway NE Approach",
+      "bearing_deg": 30,
+      "width_deg": 18
+    },
+    {
+      "name": "Runway SW Approach",
+      "bearing_deg": 210,
+      "width_deg": 18
+    },
+    {
+      "name": "North Sector",
+      "bearing_deg": 340,
+      "width_deg": 30
+    },
+    {
+      "name": "South Sector",
+      "bearing_deg": 160,
+      "width_deg": 30
+    }
+  ],
+  "max_sensors": 5,
+  "max_effectors": 4,
+  "placement_bounds_km": 2.5
+}
