@@ -7,6 +7,8 @@ interface CustomLocation {
   lat: number;
   lng: number;
   name: string;
+  presetFile?: string | null;
+  presetId?: string | null;
 }
 
 interface Props {
@@ -46,6 +48,8 @@ export default function ScenarioSelect({ onSelect }: Props) {
       lat: result.lat,
       lng: result.lng,
       name: shortName,
+      presetFile: result.presetFile,
+      presetId: result.presetId,
     });
     clearSearchResults();
     setSearchQueryAction(result.name);

@@ -858,7 +858,7 @@ export default function App() {
   const handleScenarioSelect = async (
     selScenarioId: string,
     selBaseId: string,
-    customLocation?: { lat: number; lng: number; name: string },
+    customLocation?: { lat: number; lng: number; name: string; presetFile?: string | null; presetId?: string | null },
   ) => {
     setScenarioId(selScenarioId);
     setBaseId(selBaseId);
@@ -870,6 +870,18 @@ export default function App() {
 
         if (savedSearchPreset) {
           const savedPreset = normalizeLoadedBaseTemplate(savedSearchPreset);
+          setBaseTemplate(savedPreset);
+          setMissionBaseCenter({
+            lat: savedPreset.center_lat,
+            lng: savedPreset.center_lng,
+            zoom: savedPreset.default_zoom,
+          });
+          setMaxSensors(savedPreset.max_sensors);
+          setMaxEffectors(savedPreset.max_effectors);
+        } else if (customLocation.presetFile) {
+          const curatedPreset = await loadBaseTemplateWithBrowserOverride(customLocation.presetFile);
+          if (!curatedPreset) throw new Error(`Curated preset not found: ${customLocation.presetFile}`);
+          const savedPreset = normalizeLoadedBaseTemplate(curatedPreset);
           setBaseTemplate(savedPreset);
           setMissionBaseCenter({
             lat: savedPreset.center_lat,

@@ -95,6 +95,12 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
         if (savedTemplate) {
           const template = normalizeLoadedBaseTemplate(savedTemplate);
           onSelectBase(template.id || slug, template);
+        } else if (result.presetFile) {
+          const curatedTemplate = await loadBaseTemplateWithBrowserOverride(result.presetFile);
+          if (!curatedTemplate) {
+            throw new Error(`Curated preset not found: ${result.presetFile}`);
+          }
+          onSelectBase(result.presetFile, normalizeLoadedBaseTemplate(curatedTemplate));
         } else {
           const customTemplate: BaseTemplate = stripCustomBaseScaffold(
             buildGenericCustomBase(
