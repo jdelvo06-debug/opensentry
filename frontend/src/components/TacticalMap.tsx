@@ -407,11 +407,21 @@ function MapViewController({
   zoom: number;
 }) {
   const map = useMap();
-  const initialized = useRef(false);
+  const previousViewRef = useRef<{
+    lat: number;
+    lng: number;
+    zoom: number;
+  } | null>(null);
+
   useEffect(() => {
-    if (!initialized.current) {
+    const previous = previousViewRef.current;
+    const latChanged = !previous || Math.abs(previous.lat - center[0]) > 0.000001;
+    const lngChanged = !previous || Math.abs(previous.lng - center[1]) > 0.000001;
+    const zoomChanged = !previous || previous.zoom !== zoom;
+
+    if (latChanged || lngChanged || zoomChanged) {
       map.setView(center, zoom);
-      initialized.current = true;
+      previousViewRef.current = { lat: center[0], lng: center[1], zoom };
     }
   }, [map, center, zoom]);
   return null;
@@ -1287,6 +1297,22 @@ export default function TacticalMap({
   const [showSavedLocs, setShowSavedLocs] = useState(false);
   const [savingNewLoc, setSavingNewLoc] = useState(false);
   const [newLocLabel, setNewLocLabel] = useState("");
+
+  useEffect(() => {
+    setBullseyeCenter(baseCenter);
+  }, [baseCenter[0], baseCenter[1]]);
+
+  useEffect(() => {
+    const defaultZoomVal = 13;
+    const locs: SavedLocation[] = [
+      { label: "BASE CENTER", center: [baseLat ?? 33.0, baseLng ?? 44.5], zoom: defaultZoomVal },
+    ];
+    for (const asset of baseAssets) {
+      const pos = gameXYToLatLng(asset.x, asset.y, baseLat ?? 33.0, baseLng ?? 44.5);
+      locs.push({ label: asset.name.toUpperCase(), center: pos, zoom: Math.max(defaultZoomVal, 14) });
+    }
+    setSavedLocations(locs);
+  }, [baseAssets, baseLat, baseLng]);
 
   const baseIcon = useMemo(() => createBaseIcon(), []);
 

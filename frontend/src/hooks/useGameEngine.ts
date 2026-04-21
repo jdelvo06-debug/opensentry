@@ -45,12 +45,14 @@ import {
   handleResumeMission,
   handleEndMission,
 } from "@opensentry/game/actions";
+import { normalizeLoadedBaseTemplate } from "../utils/recenterCustomBase";
 
 // Re-export the same interfaces used by useWebSocket
 export interface ConnectOptions {
   scenarioId: string;
   baseId?: string;
   placement?: PlacementConfig;
+  baseTemplate?: BaseTemplate | null;
   /** When true, placement is scored in debrief (custom mission with PlacementScreen). */
   scorePlacement?: boolean;
 }
@@ -100,6 +102,8 @@ export function useGameEngine(onMessage: MessageHandler) {
           typeof connectOpts === "string" ? undefined : connectOpts.baseId;
         const placement =
           typeof connectOpts === "string" ? undefined : connectOpts.placement;
+        const providedBaseTemplate =
+          typeof connectOpts === "string" ? undefined : connectOpts.baseTemplate;
         const scorePlacement =
           typeof connectOpts === "string" ? false : (connectOpts.scorePlacement ?? false);
 
@@ -155,10 +159,13 @@ export function useGameEngine(onMessage: MessageHandler) {
         const [baseTemplate, catalog] = await Promise.all([
           // Base template
           (async (): Promise<BaseTemplate | null> => {
+            if (providedBaseTemplate) {
+              return normalizeLoadedBaseTemplate(providedBaseTemplate);
+            }
             if (!resolvedBaseId) return null;
             try {
               const baseRes = await fetch(`${import.meta.env.BASE_URL}data/bases/${resolvedBaseId}.json`);
-              if (baseRes.ok) return await baseRes.json();
+              if (baseRes.ok) return normalizeLoadedBaseTemplate(await baseRes.json() as BaseTemplate);
               console.warn(`[OpenSentry Engine] Base template not found: ${resolvedBaseId}`);
             } catch (err) {
               console.warn(`[OpenSentry Engine] Failed to load base template:`, err);

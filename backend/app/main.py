@@ -193,6 +193,9 @@ async def save_base_polygon_endpoint(base_id: str, body: dict):
             body.get("center_lng"),
             base_name=body.get("base_name"),
             base_size=body.get("base_size"),
+            location_name=body.get("location_name"),
+            protected_assets=body.get("protected_assets"),
+            terrain=body.get("terrain"),
         )
         return {"ok": True}
     except Exception as e:

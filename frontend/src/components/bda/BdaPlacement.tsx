@@ -24,6 +24,8 @@ import {
   NUM_RAYS,
 } from "./viewshed";
 import { gameXYToLatLng } from "../../utils/coordinates";
+import { customPresetIdForName } from "../../utils/baseSlug";
+import { isPolygonDrivenCustomBase, recenterCustomBase } from "../../utils/recenterCustomBase";
 
 import MapClickHandler from "./components/MapClickHandler";
 import DraggableSystemMarker from "./components/DraggableSystemMarker";
@@ -153,18 +155,32 @@ export default function BdaPlacement({
     setSaveStatus("saving");
     // Derive a valid base_id from location_name for custom locations
     const baseId = baseTemplate.id === "custom" || baseTemplate.id === "custom_location"
-      ? (baseTemplate.location_name || baseTemplate.name).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").replace(/_+/g, "_")
+      ? customPresetIdForName(baseTemplate.location_name || baseTemplate.name)
       : baseTemplate.id;
+    const normalized = recenterCustomBase(baseTemplate, {
+      base_id: baseId,
+      sensors: [],
+      effectors: [],
+      combined: [],
+      boundary,
+    });
     try {
       const res = await fetch(`http://localhost:8000/bases/${baseId}/polygon`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          boundary,
-          center_lat: baseTemplate.center_lat,
-          center_lng: baseTemplate.center_lng,
-          base_name: baseTemplate.name,
+          boundary: normalized.placement.boundary,
+          center_lat: normalized.baseTemplate.center_lat,
+          center_lng: normalized.baseTemplate.center_lng,
+          base_name: baseTemplate.location_name || baseTemplate.name,
           base_size: baseTemplate.size,
+          location_name: baseTemplate.location_name,
+          protected_assets: isPolygonDrivenCustomBase(baseTemplate)
+            ? []
+            : normalized.baseTemplate.protected_assets,
+          terrain: isPolygonDrivenCustomBase(baseTemplate)
+            ? []
+            : normalized.baseTemplate.terrain,
         }),
       });
       const data = await res.json();

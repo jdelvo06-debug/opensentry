@@ -58,6 +58,9 @@ def save_base_polygon(
     center_lng: float | None,
     base_name: str | None = None,
     base_size: str | None = None,
+    location_name: str | None = None,
+    protected_assets: list | None = None,
+    terrain: list | None = None,
 ) -> None:
     """Write a new boundary polygon back to the frontend preset JSON file.
 
@@ -86,6 +89,12 @@ def save_base_polygon(
         data["center_lat"] = center_lat
     if center_lng is not None:
         data["center_lng"] = center_lng
+    if location_name is not None:
+        data["location_name"] = location_name
+    if isinstance(protected_assets, list):
+        data["protected_assets"] = protected_assets
+    if isinstance(terrain, list):
+        data["terrain"] = terrain
 
     with open(path, "w") as f:
         json.dump(data, f, indent=2)
