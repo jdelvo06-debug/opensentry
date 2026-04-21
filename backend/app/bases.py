@@ -10,6 +10,8 @@ from app.models import BaseTemplate, EquipmentCatalog
 
 BASES_DIR = Path(__file__).parent.parent / "bases"
 EQUIPMENT_DIR = Path(__file__).parent.parent / "equipment"
+# Frontend preset directory — this is where the app loads presets from at runtime
+FRONTEND_BASES_DIR = Path(__file__).parent.parent.parent / "frontend" / "public" / "data" / "bases"
 
 GENERIC_TEMPLATE_IDS = {"small_fob", "medium_airbase", "large_installation"}
 
@@ -40,11 +42,12 @@ def list_bases() -> list[dict]:
 
 
 def get_preset_base_ids() -> list[str]:
-    """Return all preset base IDs from disk, excluding generic templates."""
+    """Return all preset base IDs from the frontend preset directory, excluding generic templates."""
+    scan_dir = FRONTEND_BASES_DIR if FRONTEND_BASES_DIR.exists() else BASES_DIR
     return [
         path.stem
-        for path in sorted(BASES_DIR.glob("*.json"))
-        if path.stem not in GENERIC_TEMPLATE_IDS
+        for path in sorted(scan_dir.glob("*.json"))
+        if path.stem not in GENERIC_TEMPLATE_IDS and path.stem not in ("index", "preset-aliases")
     ]
 
 
@@ -53,23 +56,30 @@ def save_base_polygon(
     boundary: list,
     center_lat: float | None,
     center_lng: float | None,
+    base_name: str | None = None,
+    base_size: str | None = None,
 ) -> None:
-    """Write a new boundary polygon back to the preset JSON file.
+    """Write a new boundary polygon back to the frontend preset JSON file.
 
-    Creates the file from medium_airbase.json if it doesn't exist yet (custom location).
+    Writes to the frontend preset directory (the one the app loads at runtime).
     Always writes a .bak copy before modifying an existing file.
+    For new bases (no existing file), creates from medium_airbase template.
     """
-    path = BASES_DIR / f"{base_id}.json"
+    write_dir = FRONTEND_BASES_DIR if FRONTEND_BASES_DIR.exists() else BASES_DIR
+    path = write_dir / f"{base_id}.json"
     if path.exists():
         shutil.copy2(path, path.with_suffix(".bak"))
         with open(path) as f:
             data = json.load(f)
     else:
-        template_path = BASES_DIR / "medium_airbase.json"
+        # New preset — scaffold from the generic medium_airbase template
+        template_path = write_dir / "medium_airbase.json"
         with open(template_path) as f:
             data = json.load(f)
         data["id"] = base_id
-        data["name"] = base_id.replace("_", " ").title()
+        data["name"] = base_name or base_id.replace("_", " ").title()
+        if base_size:
+            data["size"] = base_size
 
     data["boundary"] = boundary
     if center_lat is not None:

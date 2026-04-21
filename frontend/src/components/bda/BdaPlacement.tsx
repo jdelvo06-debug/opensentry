@@ -151,14 +151,20 @@ export default function BdaPlacement({
 
   const handleSavePerimeter = useCallback(async () => {
     setSaveStatus("saving");
+    // Derive a valid base_id: slug the name if id is "custom"
+    const baseId = baseTemplate.id === "custom"
+      ? baseTemplate.name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "")
+      : baseTemplate.id;
     try {
-      const res = await fetch(`http://localhost:8000/bases/${baseTemplate.id}/polygon`, {
+      const res = await fetch(`http://localhost:8000/bases/${baseId}/polygon`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           boundary,
           center_lat: baseTemplate.center_lat,
           center_lng: baseTemplate.center_lng,
+          base_name: baseTemplate.name,
+          base_size: baseTemplate.size,
         }),
       });
       const data = await res.json();

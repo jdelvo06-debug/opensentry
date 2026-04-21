@@ -35,6 +35,8 @@ from app.actions import (
     handle_release_hold_fire,
     handle_resume_mission,
 )
+import re
+
 from app.bases import (
     list_bases,
     load_base,
@@ -43,6 +45,8 @@ from app.bases import (
     get_preset_base_ids,
     GENERIC_TEMPLATE_IDS,
 )
+
+VALID_BASE_ID_RE = re.compile(r"^[a-z][a-z0-9_]{1,63}$")
 from app.jackal import update_jackal
 from app.detection import calculate_confidence, update_sensors
 from app.drone import create_drone, distance_to_base, update_drone
@@ -169,12 +173,11 @@ async def save_base_polygon_endpoint(base_id: str, body: dict):
             status_code=400,
             content={"error": f"Cannot overwrite generic template: {base_id}"},
         )
-    # Only allow saving to existing preset files — no arbitrary file creation
-    valid_ids = set(get_preset_base_ids())
-    if base_id not in valid_ids:
+    # Validate base_id format: lowercase alphanumeric + underscores, no path traversal
+    if not VALID_BASE_ID_RE.match(base_id):
         return JSONResponse(
             status_code=400,
-            content={"error": f"Unknown preset base: {base_id}. Only existing presets can be updated."},
+            content={"error": f"Invalid base ID: {base_id}. Use lowercase alphanumeric with underscores."},
         )
     boundary = body.get("boundary")
     if not isinstance(boundary, list) or len(boundary) < 3:
@@ -188,6 +191,8 @@ async def save_base_polygon_endpoint(base_id: str, body: dict):
             boundary,
             body.get("center_lat"),
             body.get("center_lng"),
+            base_name=body.get("base_name"),
+            base_size=body.get("base_size"),
         )
         return {"ok": True}
     except Exception as e:
