@@ -4,7 +4,12 @@ This guide explains how to add a new real-world installation preset to the Base 
 
 ## Overview
 
-When a user searches for a location in BDA, the search results are checked against a preset alias index. If a match is found, a **"Preset boundary available"** badge is shown and the curated template is loaded instead of the generic fallback.
+When a user searches for a location in BDA, the search results are checked against a preset alias index. If a match is found, a **"Preset boundary available"** badge is shown in search.
+
+Curated presets and user-saved custom presets now follow separate rules:
+- Curated library presets live at `frontend/public/data/bases/<base_id>.json`
+- User-saved search results live at `frontend/public/data/bases/custom_<slug>.json`
+- Custom saves must never overwrite the curated preset library
 
 Adding a new base requires only two files — no code changes needed.
 
@@ -14,6 +19,7 @@ Adding a new base requires only two files — no code changes needed.
 |------|---------|
 | `frontend/public/data/bases/preset-aliases.json` | Maps search aliases to preset IDs |
 | `frontend/public/data/bases/<base_id>.json` | Curated base template with boundary polygon |
+| `frontend/public/data/bases/custom_<slug>.json` | User-saved custom search result (runtime-generated, do not commit by default) |
 | `frontend/src/components/bda/BdaBaseSelection.tsx` | Search + preset loading logic (do not modify unless fixing a bug) |
 
 ## Step 1 — Add Aliases
@@ -22,12 +28,13 @@ Edit `frontend/public/data/bases/preset-aliases.json` and add an entry:
 
 ```json
 {
-  "presetId": "aviano_ab",
-  "aliases": ["Aviano", "Aviano AB", "Aviano Air Base", "LIPA", "Aviano Italy"]
+  "id": "aviano_ab",
+  "aliases": ["Aviano", "Aviano AB", "Aviano Air Base", "LIPA", "Aviano Italy"],
+  "baseFile": "aviano_ab"
 }
 ```
 
-- `presetId` must match the template filename (without `.json`)
+- `id` and `baseFile` should both match the curated template filename (without `.json`)
 - Aliases are case-insensitive matched against the search text
 - Include: full name, abbreviations, ICAO/IATA codes, common variants
 
@@ -89,6 +96,13 @@ Also do a quick in-app smoke test:
 5. Edit a vertex — confirm editing still works
 6. Launch mission — confirm polygon carries through to mission map
 
+For custom search saves, verify separately:
+1. Search a location that is not already in the curated library
+2. Confirm it starts from a generic editable polygon
+3. Save the perimeter
+4. Refresh and re-search it in Custom Mission and BDA
+5. Confirm the saved file is loaded from `custom_<slug>.json`
+
 ## Step 4 — Commit and PR
 
 ```bash
@@ -108,4 +122,5 @@ gh issue close <issue_number> --comment "..."
 - Preset polygons are training approximations, not survey-grade perimeters
 - Sources used should be noted in the template JSON under a `"source"` field if desired
 - Additional bases can be added independently; each is a self-contained PR
-- No code changes to `BdaBaseSelection.tsx` are needed for new presets
+- Runtime-generated custom presets should not be committed unless you are intentionally promoting them into a curated workflow
+- No code changes to `BdaBaseSelection.tsx` are needed for new curated presets

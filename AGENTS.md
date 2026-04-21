@@ -263,6 +263,8 @@ These are Codex subagent types, not custom-built tools. They run as part of the 
 - **PR #13–#22** — 20 curated base presets + custom mission handoff fixes
 - **4-sided default perimeter** with midpoint add / right-click remove
 - **Custom mission handoff** uses live edited boundary, not stale template
+- **Custom search save flow** — searched locations now start from a generic editable polygon, save to `custom_<slug>.json`, and reload consistently in both Custom Mission and BDA without overwriting curated presets
+- **Mission map stability fix** — live mission map now preserves the selected center and no longer fights user pan/zoom on every tick
 - **62/62 frontend tests passing**
 
 ## WIP (on `wip/preset-generation-script` branch)
