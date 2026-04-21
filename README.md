@@ -12,7 +12,7 @@
 
 > 🗺️ **Train at your actual base.** Drop a pin anywhere on Earth — real satellite imagery loads automatically. Set your perimeter, place your sensors, and run scenarios on terrain your operators actually defend. Not a demo airfield. Your location.
 
-**Version:** v1.10.1 | **Status:** Active development
+**Version:** v1.12.0 | **Status:** Active development
 
 ---
 
@@ -109,6 +109,7 @@ UAS and drone contacts are never ATC-authorized — only manned aircraft can rec
 - **Directed energy split** — `DE-LASER-3km` for precision single-target kills and `DE-HPM-3km` for area effects against swarms. Each system has distinct visuals, recharge timing, and ROE tradeoffs.
 - **Weapon pre-slew / aim time** — Directed energy systems can orient onto a target before it enters range, then fire after a short slew/aim delay once commanded in-range.
 - **📍 20 curated base presets** — Search by name or ICAO code for real installations. Curated boundaries load automatically — Osan, Aviano, Shaw, Ramstein, RAF Mildenhall, RAF Lakenheath, Al Udeid, Creech, Fort Liberty, Nellis, Kadena, Barksdale, Lackland, Scott, Tyndall, Kunsan, Prince Sultan, Spangdahlem, McEntire, and more coming.
+- **💾 Saved custom locations** — Search any location, shape the perimeter you actually want, save it, and get the same boundary back on revisit in both Custom Mission and Base Defense Architect. User-saved searches are stored separately from the curated preset library.
 - **Real-world satellite maps** via Leaflet.js — OpenStreetMap + CartoDB imagery, global coverage
 - **Pre-mission ROE briefing** — review Rules of Engagement before each scenario
 - **ATC coordination mechanic** — UNKNOWN contacts require IFF clearance before engagement
@@ -230,7 +231,7 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 - [x] DE LOS scoped to BDA/custom placement only — standard scenarios skip LOS checks
 - [x] 49/49 unit tests passing — DE dwell/resolution, camera proximity slewing, tactical-map cone routing
 
-### Current main (post-v1.11.0)
+### Completed (v1.11.0)
 - [x] **PR #9** — EW realism pass: Shahed / OW-UAS is now kinetic-only in doctrine and effectiveness tables
 - [x] RF jammer gating — RF effects require `rf_emitting`; non-emitting fixed-wing tracks surface as **PNT DEGRADED** instead of looking untouched
 - [x] Shenobi scope tightened — protocol manipulation now applies only to commercial quad and micro control-link targets
@@ -249,6 +250,13 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 - [x] Custom mission handoff uses live edited boundary (not stale template)
 - [x] `placement_bounds_km` derived from edited polygon
 - [x] **20 curated base presets** in preset library (8 high quality, 12 need re-verification)
+
+### Completed (v1.12.0)
+- [x] Custom searched locations now start from a generic editable polygon instead of reusing curated scaffold data
+- [x] Saved custom search results reload consistently in both Custom Mission and Base Defense Architect
+- [x] User-saved presets are namespaced as `custom_<slug>.json`, preventing overwrites of curated base presets
+- [x] Live mission launch now preserves the selected custom location center instead of falling back to the generic Iraq debug center
+- [x] Mission map pan/zoom no longer gets reset on every render tick
 
 ### WIP (on `wip/preset-generation-script` branch)
 - `scripts/generate-preset.py` — deterministic OSM-based preset generator

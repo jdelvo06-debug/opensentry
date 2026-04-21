@@ -1,4 +1,4 @@
-# AGENTS.md — OpenSentry Project Guide (Updated 2026-04-19)
+# AGENTS.md — OpenSentry Project Guide (Updated 2026-04-21)
 
 ## What Is This?
 OpenSentry is a **free, browser-based C-UAS training simulator** designed to teach military operators the **DTID kill chain** (Detect → Track → Identify → Defeat). It's built to emulate real-world C-UAS command and control systems. No clearance required — purely training.
@@ -258,7 +258,12 @@ These are Codex subagent types, not custom-built tools. They run as part of the 
 - **DE LOS scoped to BDA only** — directed energy line-of-sight enforcement skipped in standard scenarios, applied only in Base Defense Architect / custom placement
 - **49/49 tests passing** — DE dwell/resolution timing tests added; live browser QA verified RF/PNT jammer, DE laser, and HPM
 
-## Current main (post-v1.11.0)
+## Shipped in v1.12.0 (2026-04-21)
+- **Custom search save flow** — searched locations now start from a generic editable polygon, save to `custom_<slug>.json`, and reload consistently in both Custom Mission and BDA without overwriting curated presets
+- **Mission launch center fix** — live mission export now preserves the selected custom location instead of falling back to the generic Iraq debug center
+- **Mission map stability fix** — live mission map now preserves user pan/zoom instead of snapping back on every render tick
+
+## Current main (post-v1.12.0)
 - **PR #9 realism pass** — Shahed / OW-UAS is kinetic-only in doctrine and effectiveness tables
 - **PR #13–#22** — 20 curated base presets + custom mission handoff fixes
 - **4-sided default perimeter** with midpoint add / right-click remove

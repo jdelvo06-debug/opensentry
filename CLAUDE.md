@@ -262,7 +262,12 @@ These are Claude Code subagent types, not custom-built tools. They run as part o
 - **DE LOS scoped to BDA only** — Directed energy line-of-sight enforcement skipped in standard scenarios (where users can't place systems based on terrain), applied only in Base Defense Architect / custom placement missions
 - **49/49 tests passing** — DE dwell/resolution timing tests added and passing; live browser QA confirmed RF/PNT jammer, DE laser, and HPM engagement all working correctly
 
-## Current main (post-v1.10.1)
+## Shipped in v1.12.0 (2026-04-21)
+- **Custom search save flow** — searched locations now start from a generic editable polygon, save to `custom_<slug>.json`, and reload consistently in both Custom Mission and BDA without overwriting curated presets
+- **Mission launch center fix** — live mission export now preserves the selected custom location instead of falling back to the generic Iraq debug center
+- **Mission map stability fix** — tactical map pan/zoom no longer gets reset on every render tick during a running mission
+
+## Current main (post-v1.12.0)
 - **PR #9 realism pass** — Shahed / OW-UAS is kinetic-only in doctrine and effectiveness tables
 - **RF/PNT split surfaced cleanly** — non-emitting fixed-wing targets now show `PNT DEGRADED` instead of appearing jammer-immune
 - **Shenobi/NEXUS scope tightened** — protocol manipulation now only applies to commercial quad and micro targets with supported library matches
