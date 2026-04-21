@@ -101,6 +101,7 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
               name: `Custom (${result.name})`,
               center_lat: result.lat,
               center_lng: result.lng,
+              location_name: result.name,
             };
             onSelectBase("custom", customTemplate);
           }

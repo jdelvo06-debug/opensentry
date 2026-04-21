@@ -787,9 +787,9 @@ export default function PlacementScreen({
 
   const handleSavePerimeter = useCallback(async () => {
     setSavePerimStatus("saving");
-    // Derive a valid base_id from the name for custom locations
+    // Derive a valid base_id from location_name for custom locations
     const baseId = baseTemplate.id === "custom" || baseTemplate.id === "custom_location"
-      ? baseTemplate.name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").replace(/_+/g, "_")
+      ? (baseTemplate.location_name || baseTemplate.name).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").replace(/_+/g, "_")
       : baseTemplate.id;
     const boundary: number[][] = perimVertices.map(v => [v.x, v.y]);
     try {

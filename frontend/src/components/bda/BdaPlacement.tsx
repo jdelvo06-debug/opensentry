@@ -151,9 +151,9 @@ export default function BdaPlacement({
 
   const handleSavePerimeter = useCallback(async () => {
     setSaveStatus("saving");
-    // Derive a valid base_id from the name for custom locations
+    // Derive a valid base_id from location_name for custom locations
     const baseId = baseTemplate.id === "custom" || baseTemplate.id === "custom_location"
-      ? baseTemplate.name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").replace(/_+/g, "_")
+      ? (baseTemplate.location_name || baseTemplate.name).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").replace(/_+/g, "_")
       : baseTemplate.id;
     try {
       const res = await fetch(`http://localhost:8000/bases/${baseId}/polygon`, {

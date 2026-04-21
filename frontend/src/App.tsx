@@ -874,6 +874,7 @@ export default function App() {
             center_lat: customLocation.lat,
             center_lng: customLocation.lng,
             default_zoom: 15,
+            location_name: customLocation.name,
           };
           setBaseTemplate(customBase);
           setMaxSensors(customBase.max_sensors);
