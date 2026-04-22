@@ -575,19 +575,24 @@ export default function ScenarioSelect({ onSelect }: Props) {
             </div>
           </div>
 
-          {/* Continue button — fixed at bottom, always visible */}
+          {/* Bottom bar with Continue button */}
           <div
             style={{
-              position: "sticky",
-              bottom: 0,
-              background: "#0d1117",
-              borderTop: "1px solid #30363d",
-              padding: "16px 0 24px",
+              width: "100%",
+              maxWidth: 960,
+              padding: "16px 24px 32px",
               display: "flex",
-              justifyContent: "center",
-              zIndex: 10,
+              justifyContent: "flex-end",
+              alignItems: "center",
+              gap: 16,
+              flexShrink: 0,
             }}
           >
+            {canContinue && (
+              <span style={{ fontSize: 12, color: "#8b949e", letterSpacing: 0.5 }}>
+                Ready to continue
+              </span>
+            )}
             <button
               disabled={!canContinue}
               onClick={() => {
@@ -600,18 +605,17 @@ export default function ScenarioSelect({ onSelect }: Props) {
                 }
               }}
               style={{
-                padding: "14px 64px",
-                fontSize: 15,
-                fontWeight: 700,
+                padding: "10px 32px",
+                fontSize: 13,
+                fontWeight: 600,
                 fontFamily: "'Inter', sans-serif",
-                letterSpacing: 1.5,
-                border: "none",
-                borderRadius: 8,
+                letterSpacing: 1,
+                border: canContinue ? "1px solid #58a6ff" : "1px solid #30363d",
+                borderRadius: 6,
                 cursor: canContinue ? "pointer" : "default",
-                background: canContinue ? "#58a6ff" : "#30363d",
+                background: canContinue ? "#58a6ff" : "transparent",
                 color: canContinue ? "#0d1117" : "#484f58",
-                transition: "background 0.15s, color 0.15s",
-                boxShadow: canContinue ? "0 4px 24px #58a6ff44" : "none",
+                transition: "all 0.15s",
               }}
             >
               CONTINUE →
