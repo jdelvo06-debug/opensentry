@@ -309,5 +309,31 @@
       "vliegbasis volkel"
     ],
     "baseFile": "volkel_ab"
+  },
+  {
+    "id": "souda_bay",
+    "aliases": [
+      "souda bay",
+      "souda",
+      "nsa souda bay",
+      "lgsa",
+      "souda bay crete",
+      "souda bay greece",
+      "chania"
+    ],
+    "baseFile": "souda_bay"
+  },
+  {
+    "id": "lajes_field",
+    "aliases": [
+      "lajes",
+      "lajes field",
+      "lajes ab",
+      "lpla",
+      "lajes azores",
+      "lajes portugal",
+      "base aerea 4"
+    ],
+    "baseFile": "lajes_field"
   }
 ]

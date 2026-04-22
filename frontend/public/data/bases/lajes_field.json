@@ -1,0 +1,241 @@
+{
+  "id": "lajes_field",
+  "name": "Lajes Field",
+  "description": "Curated Lajes Field preset for Terceira Island, Azores, Portugal, using a simplified open-source aerodrome footprint derived from OSM Relation 17833457 (Base Aerea No. 4). Mid-Atlantic refueling and transit hub. Single 3,314m runway 15/33. Portuguese Air Force Base No. 4 with USAF 65th Air Base Group. ICAO: LPLA.",
+  "size": "medium",
+  "center_lat": 38.765428,
+  "center_lng": -27.088684,
+  "default_zoom": 14,
+  "boundary": [
+    [
+      -0.05,
+      -0.89
+    ],
+    [
+      -0.56,
+      -0.56
+    ],
+    [
+      -0.39,
+      -0.31
+    ],
+    [
+      -1.5,
+      1.04
+    ],
+    [
+      -2.02,
+      1.1
+    ],
+    [
+      -1.67,
+      1.18
+    ],
+    [
+      -1.74,
+      1.36
+    ],
+    [
+      -1.35,
+      1.63
+    ],
+    [
+      -0.78,
+      1.2
+    ],
+    [
+      -0.09,
+      1.22
+    ],
+    [
+      0.06,
+      0.52
+    ],
+    [
+      0.28,
+      0.62
+    ],
+    [
+      0.59,
+      0.32
+    ],
+    [
+      0.44,
+      0.23
+    ],
+    [
+      0.65,
+      0.25
+    ],
+    [
+      1.56,
+      -0.69
+    ],
+    [
+      1.17,
+      -0.84
+    ],
+    [
+      1.27,
+      -1.37
+    ],
+    [
+      0.82,
+      -1.73
+    ],
+    [
+      -0.01,
+      -0.77
+    ]
+  ],
+  "protected_assets": [
+    {
+      "id": "airfield_ops",
+      "name": "Airfield Operations",
+      "x": 0.4,
+      "y": 0.0,
+      "priority": 1
+    },
+    {
+      "id": "main_apron",
+      "name": "Main Apron / Ramp",
+      "x": 0.3,
+      "y": -0.3,
+      "priority": 2
+    },
+    {
+      "id": "support_area",
+      "name": "USAF Support Campus",
+      "x": 0.7,
+      "y": -0.2,
+      "priority": 2
+    }
+  ],
+  "terrain": [
+    {
+      "id": "runway_1533",
+      "type": "runway",
+      "name": "Runway 15/33",
+      "polygon": [
+        [
+          -0.34,
+          1.21
+        ],
+        [
+          -0.51,
+          1.11
+        ],
+        [
+          0.94,
+          -1.41
+        ],
+        [
+          1.11,
+          -1.31
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "atc_tower",
+      "type": "tower",
+      "name": "ATC Tower",
+      "polygon": [
+        [
+          0.36,
+          -0.04
+        ],
+        [
+          0.44,
+          -0.04
+        ],
+        [
+          0.44,
+          0.04
+        ],
+        [
+          0.36,
+          0.04
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 25.0
+    },
+    {
+      "id": "main_hangars",
+      "type": "building",
+      "name": "Main Hangars",
+      "polygon": [
+        [
+          0.26,
+          -0.09
+        ],
+        [
+          0.14,
+          -0.16
+        ],
+        [
+          0.34,
+          -0.51
+        ],
+        [
+          0.46,
+          -0.44
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 14.0
+    },
+    {
+      "id": "fuel_storage",
+      "type": "building",
+      "name": "Fuel Storage / POL",
+      "polygon": [
+        [
+          0.64,
+          -0.33
+        ],
+        [
+          0.76,
+          -0.33
+        ],
+        [
+          0.76,
+          -0.08
+        ],
+        [
+          0.64,
+          -0.08
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 9.0
+    }
+  ],
+  "approach_corridors": [
+    {
+      "name": "Runway SE Approach",
+      "bearing_deg": 150,
+      "width_deg": 18
+    },
+    {
+      "name": "Runway NW Approach",
+      "bearing_deg": 330,
+      "width_deg": 18
+    },
+    {
+      "name": "North Sector",
+      "bearing_deg": 30,
+      "width_deg": 30
+    },
+    {
+      "name": "South Sector",
+      "bearing_deg": 210,
+      "width_deg": 30
+    }
+  ],
+  "max_sensors": 4,
+  "max_effectors": 3,
+  "placement_bounds_km": 2.1
+}
