@@ -223,5 +223,181 @@
       "lakenheath england"
     ],
     "baseFile": "raf_lakenheath"
+  },
+  {
+    "id": "langley_afb",
+    "aliases": [
+      "Langley",
+      "Langley AFB",
+      "Langley Air Force Base",
+      "KLFI",
+      "LFI",
+      "Joint Base Langley-Eustis"
+    ],
+    "baseFile": "langley_afb"
+  },
+  {
+    "id": "andersen_afb",
+    "aliases": [
+      "Andersen",
+      "Andersen AFB",
+      "Andersen Air Force Base",
+      "PGUA",
+      "Andersen Guam"
+    ],
+    "baseFile": "andersen_afb"
+  },
+  {
+    "id": "incirlik_ab",
+    "aliases": [
+      "Incirlik",
+      "Incirlik AB",
+      "Incirlik Air Base",
+      "LTAG",
+      "Incirlik Turkey"
+    ],
+    "baseFile": "incirlik_ab"
+  },
+  {
+    "id": "raf_fairford",
+    "aliases": [
+      "raf fairford",
+      "fairford",
+      "egva",
+      "fairford uk",
+      "fairford england"
+    ],
+    "baseFile": "raf_fairford"
+  },
+  {
+    "id": "moron_ab",
+    "aliases": [
+      "moron",
+      "morón",
+      "moron ab",
+      "morón ab",
+      "moron air base",
+      "morón air base",
+      "lemo",
+      "moron spain",
+      "morón spain"
+    ],
+    "baseFile": "moron_ab"
+  },
+  {
+    "id": "geilenkirchen_ab",
+    "aliases": [
+      "geilenkirchen",
+      "geilenkirchen ab",
+      "geilenkirchen air base",
+      "nato geilenkirchen",
+      "etng",
+      "geilenkirchen germany",
+      "awacs base"
+    ],
+    "baseFile": "geilenkirchen_ab"
+  },
+  {
+    "id": "volkel_ab",
+    "aliases": [
+      "volkel",
+      "volkel ab",
+      "volkel air base",
+      "volkel airbase",
+      "ehvk",
+      "volkel netherlands",
+      "vliegbasis volkel"
+    ],
+    "baseFile": "volkel_ab"
+  },
+  {
+    "id": "souda_bay",
+    "aliases": [
+      "souda bay",
+      "souda",
+      "nsa souda bay",
+      "lgsa",
+      "souda bay crete",
+      "souda bay greece",
+      "chania"
+    ],
+    "baseFile": "souda_bay"
+  },
+  {
+    "id": "lajes_field",
+    "aliases": [
+      "lajes",
+      "lajes field",
+      "lajes ab",
+      "lpla",
+      "lajes azores",
+      "lajes portugal",
+      "base aerea 4"
+    ],
+    "baseFile": "lajes_field"
+  },
+  {
+    "id": "yokota_ab",
+    "aliases": [
+      "yokota",
+      "yokota ab",
+      "yokota air base",
+      "rjty",
+      "yokota japan",
+      "yokota tokyo"
+    ],
+    "baseFile": "yokota_ab"
+  },
+  {
+    "id": "misawa_ab",
+    "aliases": [
+      "misawa",
+      "misawa ab",
+      "misawa air base",
+      "rjsm",
+      "misawa japan",
+      "misawa aomori"
+    ],
+    "baseFile": "misawa_ab"
+  },
+  {
+    "id": "jb_pearl_harbor_hickam",
+    "aliases": [
+      "hickam",
+      "hickam afb",
+      "hickam air force base",
+      "jbphh",
+      "pearl harbor hickam",
+      "phik",
+      "phnl",
+      "joint base pearl harbor hickam",
+      "hickam hawaii"
+    ],
+    "baseFile": "jb_pearl_harbor_hickam"
+  },
+  {
+    "id": "eielson_afb",
+    "aliases": [
+      "eielson",
+      "eielson afb",
+      "eielson air force base",
+      "paei",
+      "eielson alaska"
+    ],
+    "baseFile": "eielson_afb"
+  },
+  {
+    "id": "jb_elmendorf_richardson",
+    "aliases": [
+      "elmendorf",
+      "jber",
+      "jb elmendorf-richardson",
+      "elmendorf afb",
+      "elmendorf air force base",
+      "paed",
+      "elmendorf alaska",
+      "richardson"
+    ],
+    "baseFile": "jb_elmendorf_richardson"
   }
 ]

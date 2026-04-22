@@ -39,6 +39,13 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
 
   const [presetAliases, setPresetAliases] = useState<AliasEntry[]>([]);
 
+  const [baseFilter, setBaseFilter] = useState("");
+
+  const sortedBases = [...bases].sort((a, b) => a.name.localeCompare(b.name));
+  const filteredBases = baseFilter.trim()
+    ? sortedBases.filter((b) => b.name.toLowerCase().includes(baseFilter.toLowerCase()) || b.id.toLowerCase().includes(baseFilter.toLowerCase()))
+    : sortedBases;
+
   const { query: searchQuery, setQuery: setSearchQuery, results: annotatedResults, loading: searchLoading, clearResults } = useLocationSearch(presetAliases);
 
   // ─── Load base index + preset aliases ───────────────────────────────────────
@@ -170,108 +177,43 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
     <div style={containerStyle}>
       {/* Body */}
       <div style={bodyStyle}>
-        {/* Base template cards */}
-        <div style={sectionTitleStyle}>Select Base Template</div>
+        {/* Quick search filter */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, maxWidth: 480 }}>
+          <span style={{ fontSize: 16, color: COLORS.muted, flexShrink: 0 }}>&#128269;</span>
+          <input
+            type="text"
+            value={baseFilter}
+            onChange={(e) => setBaseFilter(e.target.value)}
+            placeholder="Filter bases..."
+            style={{
+              flex: 1,
+              padding: "8px 12px",
+              background: COLORS.card,
+              border: `1px solid ${COLORS.border}`,
+              borderRadius: 6,
+              color: COLORS.text,
+              fontSize: 13,
+              fontFamily: "'Inter', sans-serif",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+          />
+          {baseFilter && (
+            <button
+              onClick={() => setBaseFilter("")}
+              style={{ background: "none", border: "none", color: COLORS.muted, cursor: "pointer", fontSize: 16, padding: 0 }}
+            >
+              &#10005;
+            </button>
+          )}
+        </div>
 
-        {basesLoading && (
-          <div style={{ color: COLORS.muted, fontSize: 13, marginBottom: 16 }}>
-            Loading base templates...
-          </div>
-        )}
-
-        {basesError && (
-          <div style={{ color: COLORS.danger, fontSize: 13, marginBottom: 16 }}>
-            Failed to load bases: {basesError}
-          </div>
-        )}
-
-        {!basesLoading && !basesError && (
-          <div style={gridStyle}>
-            {bases.map((base) => {
-              const isSelected = selectedBaseId === base.id;
-              const sizeColor = getSizeColor(base.size);
-              return (
-                <button
-                  key={base.id}
-                  onClick={() => handleSelectCard(base.id)}
-                  style={{
-                    background: COLORS.card,
-                    border: `1px solid ${isSelected ? COLORS.accent : COLORS.border}`,
-                    borderRadius: 8,
-                    padding: "14px 16px",
-                    textAlign: "left",
-                    cursor: "pointer",
-                    color: COLORS.text,
-                    fontFamily: "'Inter', sans-serif",
-                    transition: "border-color 0.15s",
-                    outline: isSelected ? `1px solid ${COLORS.accent}` : "none",
-                  }}
-                >
-                  {/* Header row */}
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginBottom: 6,
-                    }}
-                  >
-                    <span style={{ fontWeight: 700, fontSize: 14 }}>{base.name}</span>
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        letterSpacing: 1,
-                        textTransform: "uppercase",
-                        color: sizeColor,
-                        border: `1px solid ${sizeColor}`,
-                        borderRadius: 3,
-                        padding: "2px 6px",
-                      }}
-                    >
-                      {base.size}
-                    </span>
-                  </div>
-
-                  {/* Description */}
-                  <div
-                    style={{
-                      fontSize: 12,
-                      color: COLORS.muted,
-                      lineHeight: 1.5,
-                      marginBottom: 10,
-                    }}
-                  >
-                    {base.description}
-                  </div>
-
-                  {/* Counts */}
-                  <div style={{ display: "flex", gap: 16 }}>
-                    <span style={{ fontSize: 11, color: COLORS.muted }}>
-                      <span style={{ color: COLORS.text, fontWeight: 600 }}>
-                        {base.max_sensors}
-                      </span>{" "}
-                      sensors
-                    </span>
-                    <span style={{ fontSize: 11, color: COLORS.muted }}>
-                      <span style={{ color: COLORS.text, fontWeight: 600 }}>
-                        {base.max_effectors}
-                      </span>{" "}
-                      effectors
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Geo search section */}
-        <div style={sectionTitleStyle}>Custom Location Search</div>
+        {/* Custom Location Search — always at top */}
+        <div style={sectionTitleStyle}>Custom Location</div>
         <div style={{ marginBottom: 24, position: "relative", maxWidth: 480 }}>
           <input
             type="text"
-            placeholder="Search location (e.g., Shaw AFB, Lugoff SC)..."
+            placeholder="Search any location (e.g., Shaw AFB, Lugoff SC)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
@@ -358,6 +300,111 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
             </div>
           )}
         </div>
+
+        {/* Base template cards */}
+        <div style={sectionTitleStyle}>Select Base Template</div>
+
+        {basesLoading && (
+          <div style={{ color: COLORS.muted, fontSize: 13, marginBottom: 16 }}>
+            Loading base templates...
+          </div>
+        )}
+
+        {basesError && (
+          <div style={{ color: COLORS.danger, fontSize: 13, marginBottom: 16 }}>
+            Failed to load bases: {basesError}
+          </div>
+        )}
+
+        {!basesLoading && !basesError && (
+          <>
+            {baseFilter.trim() && filteredBases.length === 0 && (
+              <div style={{ fontSize: 13, color: COLORS.muted, marginBottom: 16 }}>
+                No bases match "{baseFilter}"
+              </div>
+            )}
+            <div style={gridStyle}>
+              {filteredBases.map((base) => {
+              const isSelected = selectedBaseId === base.id;
+              const sizeColor = getSizeColor(base.size);
+              return (
+                <button
+                  key={base.id}
+                  onClick={() => handleSelectCard(base.id)}
+                  style={{
+                    background: COLORS.card,
+                    border: `1px solid ${isSelected ? COLORS.accent : COLORS.border}`,
+                    borderRadius: 8,
+                    padding: "14px 16px",
+                    textAlign: "left",
+                    cursor: "pointer",
+                    color: COLORS.text,
+                    fontFamily: "'Inter', sans-serif",
+                    transition: "border-color 0.15s",
+                    outline: isSelected ? `1px solid ${COLORS.accent}` : "none",
+                  }}
+                >
+                  {/* Header row */}
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: 6,
+                    }}
+                  >
+                    <span style={{ fontWeight: 700, fontSize: 14 }}>{base.name}</span>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        letterSpacing: 1,
+                        textTransform: "uppercase",
+                        color: sizeColor,
+                        border: `1px solid ${sizeColor}`,
+                        borderRadius: 3,
+                        padding: "2px 6px",
+                      }}
+                    >
+                      {base.size}
+                    </span>
+                  </div>
+
+                  {/* Description */}
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: COLORS.muted,
+                      lineHeight: 1.5,
+                      marginBottom: 10,
+                    }}
+                  >
+                    {base.description}
+                  </div>
+
+                  {/* Counts */}
+                  <div style={{ display: "flex", gap: 16 }}>
+                    <span style={{ fontSize: 11, color: COLORS.muted }}>
+                      <span style={{ color: COLORS.text, fontWeight: 600 }}>
+                        {base.max_sensors}
+                      </span>{" "}
+                      sensors
+                    </span>
+                    <span style={{ fontSize: 11, color: COLORS.muted }}>
+                      <span style={{ color: COLORS.text, fontWeight: 600 }}>
+                        {base.max_effectors}
+                      </span>{" "}
+                      effectors
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+            </div>
+          </>
+        )}
+
+        {/* Geo search section — REMOVED: moved to top as Custom Location */}
       </div>
 
       {/* Bottom navigation bar */}
@@ -386,14 +433,16 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
           style={{
             background: selectedBaseId !== null ? COLORS.accent : COLORS.border,
             border: "none",
-            borderRadius: 6,
-            padding: "9px 18px",
-            fontSize: 12,
+            borderRadius: 8,
+            padding: "12px 40px",
+            fontSize: 14,
             fontWeight: 700,
-            letterSpacing: 0.5,
+            letterSpacing: 1,
             color: selectedBaseId !== null ? COLORS.bg : COLORS.muted,
             fontFamily: "'Inter', sans-serif",
             cursor: selectedBaseId !== null ? "pointer" : "not-allowed",
+            boxShadow: selectedBaseId !== null ? `0 4px 24px ${COLORS.accent}44` : "none",
+            transition: "background 0.15s",
           }}
         >
           SELECT EQUIPMENT →

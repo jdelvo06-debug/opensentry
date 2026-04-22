@@ -84,6 +84,13 @@ export default function ScenarioSelect({ onSelect }: Props) {
       .catch(() => { /* optional */ });
   }, []);
 
+  const [baseFilter, setBaseFilter] = useState("");
+
+  const sortedBases = [...bases].sort((a, b) => a.name.localeCompare(b.name));
+  const filteredBases = baseFilter.trim()
+    ? sortedBases.filter((b) => b.name.toLowerCase().includes(baseFilter.toLowerCase()) || b.id.toLowerCase().includes(baseFilter.toLowerCase()))
+    : sortedBases;
+
   const canContinue = selectedScenario !== null && selectedBase !== null
     && (selectedBase !== "custom_location" || customLocation !== null);
 
@@ -249,7 +256,7 @@ export default function ScenarioSelect({ onSelect }: Props) {
             </div>
 
             {/* Bases column */}
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12, minHeight: 0 }}>
               <div
                 style={{
                   fontSize: 11,
@@ -261,84 +268,43 @@ export default function ScenarioSelect({ onSelect }: Props) {
               >
                 BASE TEMPLATES
               </div>
-              {bases.map((b) => {
-                const isSelected = selectedBase === b.id;
-                const sizeColor =
-                  SIZE_COLORS[b.size.toLowerCase()] || "#8b949e";
-                return (
-                  <div
-                    key={b.id}
-                    onClick={() => { setSelectedBase(b.id); setCustomLocation(null); setSearchQueryAction(""); clearSearchResults(); }}
-                    style={{
-                      background: "#161b22",
-                      border: isSelected
-                        ? "1px solid #58a6ff"
-                        : "1px solid #30363d",
-                      borderRadius: 8,
-                      padding: 16,
-                      cursor: "pointer",
-                      transition: "border-color 0.15s",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        marginBottom: 8,
-                      }}
-                    >
-                      <span style={{ fontSize: 15, fontWeight: 600 }}>
-                        {b.name}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 600,
-                          fontFamily: "'JetBrains Mono', monospace",
-                          letterSpacing: 1,
-                          padding: "2px 8px",
-                          borderRadius: 10,
-                          background: `${sizeColor}18`,
-                          border: `1px solid ${sizeColor}55`,
-                          color: sizeColor,
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        {b.size}
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 13,
-                        color: "#8b949e",
-                        lineHeight: 1.5,
-                        marginBottom: 10,
-                      }}
-                    >
-                      {b.description}
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 12,
-                        fontSize: 11,
-                        color: "#8b949e",
-                        fontFamily: "'JetBrains Mono', monospace",
-                      }}
-                    >
-                      <span>
-                        Sensors: <span style={{ color: "#e6edf3" }}>{b.max_sensors}</span>
-                      </span>
-                      <span>
-                        Effectors: <span style={{ color: "#e6edf3" }}>{b.max_effectors}</span>
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
 
-              {/* Custom Location option */}
+              {/* Quick search filter */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 14, color: "#8b949e", flexShrink: 0 }}>&#128269;</span>
+                <input
+                  type="text"
+                  value={baseFilter}
+                  onChange={(e) => setBaseFilter(e.target.value)}
+                  placeholder="Filter bases..."
+                  style={{
+                    flex: 1,
+                    padding: "6px 10px",
+                    background: "#0d1117",
+                    border: "1px solid #30363d",
+                    borderRadius: 6,
+                    color: "#e6edf3",
+                    fontSize: 12,
+                    fontFamily: "'Inter', sans-serif",
+                    outline: "none",
+                  }}
+                  onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "#58a6ff"; }}
+                  onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "#30363d"; }}
+                />
+                {baseFilter && (
+                  <button
+                    onClick={() => setBaseFilter("")}
+                    style={{ background: "none", border: "none", color: "#8b949e", cursor: "pointer", fontSize: 16, padding: 0 }}
+                  >
+                    &#10005;
+                  </button>
+                )}
+              </div>
+
+              {/* Scrollable base list */}
+              <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 12, paddingRight: 4 }}>
+
+              {/* Custom Location card — always first */}
               <div
                 onClick={() => setSelectedBase("custom_location")}
                 style={{
@@ -361,7 +327,7 @@ export default function ScenarioSelect({ onSelect }: Props) {
                   }}
                 >
                   <span style={{ fontSize: 15, fontWeight: 600 }}>
-                    Custom Location
+                    🔍 Custom Location
                   </span>
                   <span
                     style={{
@@ -395,7 +361,7 @@ export default function ScenarioSelect({ onSelect }: Props) {
                 {selectedBase === "custom_location" && (
                   <div style={{ position: "relative" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 14, color: "#8b949e", flexShrink: 0 }}>&#128269;</span>
+                      <span style={{ fontSize: 14, color: "#8b949e", flexShrink: 0 }}>&#127758;</span>
                       <input
                         type="text"
                         value={searchQuery}
@@ -522,11 +488,111 @@ export default function ScenarioSelect({ onSelect }: Props) {
                   </span>
                 </div>
               </div>
+
+              {/* Preset base cards */}
+              {filteredBases.map((b) => {
+                const isSelected = selectedBase === b.id;
+                const sizeColor =
+                  SIZE_COLORS[b.size.toLowerCase()] || "#8b949e";
+                return (
+                  <div
+                    key={b.id}
+                    onClick={() => { setSelectedBase(b.id); setCustomLocation(null); setSearchQueryAction(""); clearSearchResults(); }}
+                    style={{
+                      background: "#161b22",
+                      border: isSelected
+                        ? "1px solid #58a6ff"
+                        : "1px solid #30363d",
+                      borderRadius: 8,
+                      padding: 16,
+                      cursor: "pointer",
+                      transition: "border-color 0.15s",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: 8,
+                      }}
+                    >
+                      <span style={{ fontSize: 15, fontWeight: 600 }}>
+                        {b.name}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 600,
+                          fontFamily: "'JetBrains Mono', monospace",
+                          letterSpacing: 1,
+                          padding: "2px 8px",
+                          borderRadius: 10,
+                          background: `${sizeColor}18`,
+                          border: `1px solid ${sizeColor}55`,
+                          color: sizeColor,
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        {b.size}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        color: "#8b949e",
+                        lineHeight: 1.5,
+                        marginBottom: 10,
+                      }}
+                    >
+                      {b.description}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 12,
+                        fontSize: 11,
+                        color: "#8b949e",
+                        fontFamily: "'JetBrains Mono', monospace",
+                      }}
+                    >
+                      <span>
+                        Sensors: <span style={{ color: "#e6edf3" }}>{b.max_sensors}</span>
+                      </span>
+                      <span>
+                        Effectors: <span style={{ color: "#e6edf3" }}>{b.max_effectors}</span>
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* filter info */}
+              {baseFilter.trim() && filteredBases.length === 0 && (
+                <div style={{ fontSize: 12, color: "#8b949e", padding: "8px 0" }}>No bases match "{baseFilter}"</div>
+              )}
+            </div>
             </div>
           </div>
 
-          {/* Continue button */}
-          <div style={{ padding: "32px 0 48px" }}>
+          {/* Bottom bar with Continue button */}
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 960,
+              padding: "16px 24px 32px",
+              display: "flex",
+              justifyContent: "flex-end",
+              alignItems: "center",
+              gap: 16,
+              flexShrink: 0,
+            }}
+          >
+            {canContinue && (
+              <span style={{ fontSize: 12, color: "#8b949e", letterSpacing: 0.5 }}>
+                Ready to continue
+              </span>
+            )}
             <button
               disabled={!canContinue}
               onClick={() => {
@@ -539,20 +605,20 @@ export default function ScenarioSelect({ onSelect }: Props) {
                 }
               }}
               style={{
-                padding: "12px 48px",
-                fontSize: 14,
+                padding: "10px 32px",
+                fontSize: 13,
                 fontWeight: 600,
                 fontFamily: "'Inter', sans-serif",
-                letterSpacing: 1.5,
-                border: "none",
-                borderRadius: 8,
+                letterSpacing: 1,
+                border: canContinue ? "1px solid #58a6ff" : "1px solid #30363d",
+                borderRadius: 6,
                 cursor: canContinue ? "pointer" : "default",
-                background: canContinue ? "#58a6ff" : "#30363d",
+                background: canContinue ? "#58a6ff" : "transparent",
                 color: canContinue ? "#0d1117" : "#484f58",
-                transition: "background 0.15s, color 0.15s",
+                transition: "all 0.15s",
               }}
             >
-              CONTINUE
+              CONTINUE →
             </button>
           </div>
         </>

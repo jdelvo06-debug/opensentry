@@ -1,0 +1,309 @@
+{
+  "id": "souda_bay",
+  "name": "NSA Souda Bay",
+  "description": "Curated Naval Support Activity Souda Bay preset for Crete, Greece, using a simplified open-source aerodrome footprint derived from OSM Way 246454281 (Chania/Souda Bay airfield). Shared runway with Chania International Airport. US Navy and NATO Mediterranean support hub. ICAO: LGSA.",
+  "size": "medium",
+  "center_lat": 35.529632,
+  "center_lng": 24.148721,
+  "default_zoom": 14,
+  "boundary": [
+    [
+      2.2,
+      -0.61
+    ],
+    [
+      2.05,
+      -0.66
+    ],
+    [
+      1.95,
+      -0.9
+    ],
+    [
+      1.62,
+      -0.76
+    ],
+    [
+      1.05,
+      -0.85
+    ],
+    [
+      0.96,
+      -1.15
+    ],
+    [
+      0.68,
+      -1.1
+    ],
+    [
+      0.68,
+      -0.92
+    ],
+    [
+      0.43,
+      -1.01
+    ],
+    [
+      0.17,
+      -1.0
+    ],
+    [
+      -0.39,
+      -0.78
+    ],
+    [
+      -0.44,
+      -0.87
+    ],
+    [
+      -0.48,
+      -0.74
+    ],
+    [
+      -1.54,
+      -0.32
+    ],
+    [
+      -1.66,
+      -0.17
+    ],
+    [
+      -1.88,
+      0.51
+    ],
+    [
+      -1.71,
+      1.11
+    ],
+    [
+      -1.65,
+      1.08
+    ],
+    [
+      -1.61,
+      1.19
+    ],
+    [
+      -1.27,
+      1.06
+    ],
+    [
+      -1.23,
+      1.14
+    ],
+    [
+      -1.09,
+      1.1
+    ],
+    [
+      -0.97,
+      1.24
+    ],
+    [
+      -0.44,
+      0.97
+    ],
+    [
+      -0.39,
+      1.09
+    ],
+    [
+      -0.21,
+      1.02
+    ],
+    [
+      -0.35,
+      0.69
+    ],
+    [
+      0.1,
+      0.52
+    ],
+    [
+      0.29,
+      0.61
+    ],
+    [
+      0.26,
+      0.71
+    ],
+    [
+      0.61,
+      0.74
+    ],
+    [
+      1.23,
+      0.39
+    ],
+    [
+      1.56,
+      0.31
+    ],
+    [
+      1.4,
+      0.11
+    ],
+    [
+      2.2,
+      -0.25
+    ],
+    [
+      2.15,
+      -0.45
+    ],
+    [
+      2.24,
+      -0.49
+    ]
+  ],
+  "protected_assets": [
+    {
+      "id": "airfield_ops",
+      "name": "Airfield Operations",
+      "x": 0.0,
+      "y": -0.2,
+      "priority": 1
+    },
+    {
+      "id": "nsa_facilities",
+      "name": "NSA Souda Bay Complex",
+      "x": -0.6,
+      "y": -0.5,
+      "priority": 2
+    },
+    {
+      "id": "pier_area",
+      "name": "Pier / Waterfront Ops",
+      "x": -0.9,
+      "y": 0.3,
+      "priority": 2
+    }
+  ],
+  "terrain": [
+    {
+      "id": "runway_0927",
+      "type": "runway",
+      "name": "Runway 09/27",
+      "polygon": [
+        [
+          -1.5,
+          -0.13
+        ],
+        [
+          -1.46,
+          -0.35
+        ],
+        [
+          1.3,
+          0.13
+        ],
+        [
+          1.26,
+          0.35
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "atc_tower",
+      "type": "tower",
+      "name": "ATC Tower",
+      "polygon": [
+        [
+          0.01,
+          -0.16
+        ],
+        [
+          0.09,
+          -0.16
+        ],
+        [
+          0.09,
+          -0.08
+        ],
+        [
+          0.01,
+          -0.08
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 25.0
+    },
+    {
+      "id": "main_apron",
+      "type": "building",
+      "name": "Main Apron / Hangars",
+      "polygon": [
+        [
+          -0.36,
+          0.35
+        ],
+        [
+          -0.33,
+          0.17
+        ],
+        [
+          0.16,
+          0.25
+        ],
+        [
+          0.13,
+          0.43
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 14.0
+    },
+    {
+      "id": "nsa_bldgs",
+      "type": "building",
+      "name": "NSA Support Buildings",
+      "polygon": [
+        [
+          -0.5,
+          -0.68
+        ],
+        [
+          -0.3,
+          -0.68
+        ],
+        [
+          -0.3,
+          -0.33
+        ],
+        [
+          -0.5,
+          -0.33
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 10.0
+    }
+  ],
+  "approach_corridors": [
+    {
+      "name": "Runway East Approach",
+      "bearing_deg": 80,
+      "width_deg": 18
+    },
+    {
+      "name": "Runway West Approach",
+      "bearing_deg": 260,
+      "width_deg": 18
+    },
+    {
+      "name": "North Sector",
+      "bearing_deg": 350,
+      "width_deg": 30
+    },
+    {
+      "name": "South Sector (Sea)",
+      "bearing_deg": 170,
+      "width_deg": 30
+    }
+  ],
+  "max_sensors": 4,
+  "max_effectors": 3,
+  "placement_bounds_km": 2.4
+}

@@ -1,0 +1,152 @@
+{
+  "id": "langley_afb",
+  "name": "Langley Air Force Base",
+  "description": "Langley Air Force Base \u2014 Joint Base Langley-Eustis, Virginia (standard footprint)",
+  "size": "medium",
+  "center_lat": 37.087295,
+  "center_lng": -76.35465,
+  "default_zoom": 14,
+  "boundary": [
+    [
+      -1.5,
+      -1.0
+    ],
+    [
+      -1.5,
+      1.0
+    ],
+    [
+      1.5,
+      1.0
+    ],
+    [
+      1.5,
+      -1.0
+    ]
+  ],
+  "protected_assets": [
+    {
+      "id": "atc_tower",
+      "name": "ATC Tower",
+      "x": 0.86,
+      "y": -0.05,
+      "priority": 1
+    },
+    {
+      "id": "flight_line",
+      "name": "Flight Line",
+      "x": 1.16,
+      "y": -0.25,
+      "priority": 2
+    },
+    {
+      "id": "fuel_depot",
+      "name": "Fuel Depot",
+      "x": 0.36,
+      "y": -0.45,
+      "priority": 3
+    }
+  ],
+  "terrain": [
+    {
+      "id": "runway",
+      "type": "runway",
+      "name": "Runway 09/27",
+      "polygon": [
+        [
+          -1.2,
+          -0.15
+        ],
+        [
+          -1.2,
+          0.15
+        ],
+        [
+          1.2,
+          0.15
+        ],
+        [
+          1.2,
+          -0.15
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "atc_tower",
+      "type": "tower",
+      "name": "ATC Tower",
+      "polygon": [
+        [
+          0.1,
+          -0.4
+        ],
+        [
+          0.1,
+          -0.3
+        ],
+        [
+          0.2,
+          -0.3
+        ],
+        [
+          0.2,
+          -0.4
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 25.0
+    },
+    {
+      "id": "hangars",
+      "type": "building",
+      "name": "Hangar Complex",
+      "polygon": [
+        [
+          0.3,
+          -0.4
+        ],
+        [
+          0.3,
+          -0.2
+        ],
+        [
+          0.8,
+          -0.2
+        ],
+        [
+          0.8,
+          -0.4
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 12.0
+    }
+  ],
+  "approach_corridors": [
+    {
+      "name": "Runway East",
+      "bearing_deg": 90,
+      "width_deg": 20
+    },
+    {
+      "name": "Runway West",
+      "bearing_deg": 270,
+      "width_deg": 20
+    },
+    {
+      "name": "North Sector",
+      "bearing_deg": 0,
+      "width_deg": 30
+    },
+    {
+      "name": "South Sector",
+      "bearing_deg": 180,
+      "width_deg": 30
+    }
+  ],
+  "max_sensors": 4,
+  "max_effectors": 3,
+  "placement_bounds_km": 2.5
+}
