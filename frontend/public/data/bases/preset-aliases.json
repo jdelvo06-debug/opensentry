@@ -257,5 +257,31 @@
       "Incirlik Turkey"
     ],
     "baseFile": "incirlik_ab"
+  },
+  {
+    "id": "raf_fairford",
+    "aliases": [
+      "raf fairford",
+      "fairford",
+      "egva",
+      "fairford uk",
+      "fairford england"
+    ],
+    "baseFile": "raf_fairford"
+  },
+  {
+    "id": "moron_ab",
+    "aliases": [
+      "moron",
+      "morón",
+      "moron ab",
+      "morón ab",
+      "moron air base",
+      "morón air base",
+      "lemo",
+      "moron spain",
+      "morón spain"
+    ],
+    "baseFile": "moron_ab"
   }
 ]

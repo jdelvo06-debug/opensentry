@@ -1,0 +1,277 @@
+{
+  "id": "moron_ab",
+  "name": "Mor\u00f3n Air Base",
+  "description": "Curated Mor\u00f3n Air Base preset for Andalusia, Spain, using a simplified open-source aerodrome footprint derived from OSM Way 533433611. Includes the primary runway axis, apron/hangar complex, and support areas for USAF forward operating and aerial refueling missions. ICAO: LEMO.",
+  "size": "medium",
+  "center_lat": 37.16657,
+  "center_lng": -5.604167,
+  "default_zoom": 13,
+  "boundary": [
+    [
+      -2.38,
+      -2.03
+    ],
+    [
+      -1.46,
+      0.53
+    ],
+    [
+      -1.7,
+      0.62
+    ],
+    [
+      -1.32,
+      1.69
+    ],
+    [
+      -1.07,
+      1.6
+    ],
+    [
+      -0.52,
+      3.12
+    ],
+    [
+      0.18,
+      2.87
+    ],
+    [
+      0.34,
+      2.93
+    ],
+    [
+      0.29,
+      2.72
+    ],
+    [
+      0.31,
+      2.25
+    ],
+    [
+      0.44,
+      2.12
+    ],
+    [
+      0.73,
+      2.11
+    ],
+    [
+      1.05,
+      1.73
+    ],
+    [
+      1.01,
+      1.43
+    ],
+    [
+      1.28,
+      1.37
+    ],
+    [
+      1.36,
+      1.11
+    ],
+    [
+      1.31,
+      0.99
+    ],
+    [
+      1.44,
+      0.77
+    ],
+    [
+      1.52,
+      0.21
+    ],
+    [
+      1.69,
+      0.02
+    ],
+    [
+      1.66,
+      -0.72
+    ],
+    [
+      2.16,
+      -1.33
+    ],
+    [
+      2.02,
+      -1.47
+    ],
+    [
+      1.96,
+      -2.71
+    ],
+    [
+      -0.74,
+      -1.2
+    ],
+    [
+      -0.87,
+      -1.63
+    ],
+    [
+      -1.27,
+      -1.35
+    ],
+    [
+      -1.61,
+      -1.87
+    ],
+    [
+      -1.76,
+      -2.26
+    ]
+  ],
+  "protected_assets": [
+    {
+      "id": "airfield_ops",
+      "name": "Airfield Operations",
+      "x": -1.15,
+      "y": -0.18,
+      "priority": 1
+    },
+    {
+      "id": "main_apron",
+      "name": "Main Apron / Hangar Complex",
+      "x": -1.55,
+      "y": -0.65,
+      "priority": 2
+    },
+    {
+      "id": "fuel_farm",
+      "name": "Fuel / Support Area",
+      "x": -0.95,
+      "y": 0.5,
+      "priority": 2
+    }
+  ],
+  "terrain": [
+    {
+      "id": "runway_0220",
+      "type": "runway",
+      "name": "Runway 02/20",
+      "polygon": [
+        [
+          -2.29,
+          -2.04
+        ],
+        [
+          -2.08,
+          -2.12
+        ],
+        [
+          -0.71,
+          1.64
+        ],
+        [
+          -0.92,
+          1.72
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "atc_tower",
+      "type": "tower",
+      "name": "ATC Tower",
+      "polygon": [
+        [
+          -1.19,
+          -0.12
+        ],
+        [
+          -1.11,
+          -0.12
+        ],
+        [
+          -1.11,
+          -0.04
+        ],
+        [
+          -1.19,
+          -0.04
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 24.0
+    },
+    {
+      "id": "main_hangars",
+      "type": "building",
+      "name": "Main Hangars",
+      "polygon": [
+        [
+          -1.75,
+          -0.9
+        ],
+        [
+          -1.56,
+          -0.97
+        ],
+        [
+          -1.35,
+          -0.4
+        ],
+        [
+          -1.54,
+          -0.33
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 14.0
+    },
+    {
+      "id": "fuel_storage",
+      "type": "building",
+      "name": "Fuel Storage",
+      "polygon": [
+        [
+          -1.1,
+          0.35
+        ],
+        [
+          -0.93,
+          0.29
+        ],
+        [
+          -0.8,
+          0.65
+        ],
+        [
+          -0.97,
+          0.71
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 9.0
+    }
+  ],
+  "approach_corridors": [
+    {
+      "name": "Runway North Approach",
+      "bearing_deg": 20,
+      "width_deg": 18
+    },
+    {
+      "name": "Runway South Approach",
+      "bearing_deg": 200,
+      "width_deg": 18
+    },
+    {
+      "name": "East Sector",
+      "bearing_deg": 90,
+      "width_deg": 30
+    },
+    {
+      "name": "West Sector",
+      "bearing_deg": 270,
+      "width_deg": 30
+    }
+  ],
+  "max_sensors": 4,
+  "max_effectors": 3,
+  "placement_bounds_km": 3.3
+}
