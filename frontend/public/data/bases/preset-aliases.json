@@ -74,6 +74,18 @@
     "baseFile": "barksdale_afb"
   },
   {
+    "id": "beale_afb",
+    "aliases": [
+      "beale",
+      "beale afb",
+      "beale air force base",
+      "kbab",
+      "9th rw",
+      "u-2"
+    ],
+    "baseFile": "beale_afb"
+  },
+  {
     "id": "cannon_afb",
     "aliases": [
       "cannon",
@@ -112,6 +124,18 @@
     "baseFile": "davis_monthan_afb"
   },
   {
+    "id": "dyess_afb",
+    "aliases": [
+      "dyess",
+      "dyess afb",
+      "dyess air force base",
+      "kdys",
+      "7th bw",
+      "b-1b"
+    ],
+    "baseFile": "dyess_afb"
+  },
+  {
     "id": "eielson_afb",
     "aliases": [
       "eielson",
@@ -121,6 +145,17 @@
       "eielson alaska"
     ],
     "baseFile": "eielson_afb"
+  },
+  {
+    "id": "ellsworth_afb",
+    "aliases": [
+      "ellsworth",
+      "ellsworth afb",
+      "ellsworth air force base",
+      "krca",
+      "28th bw"
+    ],
+    "baseFile": "ellsworth_afb"
   },
   {
     "id": "fort_liberty",
@@ -146,6 +181,17 @@
       "awacs base"
     ],
     "baseFile": "geilenkirchen_ab"
+  },
+  {
+    "id": "holloman_afb",
+    "aliases": [
+      "holloman",
+      "holloman afb",
+      "holloman air force base",
+      "khmo",
+      "49th wing"
+    ],
+    "baseFile": "holloman_afb"
   },
   {
     "id": "incirlik_ab",
@@ -342,6 +388,19 @@
     "baseFile": "nellis_afb"
   },
   {
+    "id": "offutt_afb",
+    "aliases": [
+      "offutt",
+      "offutt afb",
+      "offutt air force base",
+      "koff",
+      "55th wing",
+      "usstratcom",
+      "nightwatch"
+    ],
+    "baseFile": "offutt_afb"
+  },
+  {
     "id": "osan_ab",
     "aliases": [
       "osan air base",
@@ -421,6 +480,17 @@
     "baseFile": "scott_afb"
   },
   {
+    "id": "seymour_johnson_afb",
+    "aliases": [
+      "seymour johnson",
+      "seymour johnson afb",
+      "kgssb",
+      "4th fw",
+      "strike eagle"
+    ],
+    "baseFile": "seymour_johnson_afb"
+  },
+  {
     "id": "shaw_afb",
     "aliases": [
       "shaw",
@@ -478,6 +548,18 @@
       "vliegbasis volkel"
     ],
     "baseFile": "volkel_ab"
+  },
+  {
+    "id": "whiteman_afb",
+    "aliases": [
+      "whiteman",
+      "whiteman afb",
+      "whiteman air force base",
+      "kszl",
+      "509th bw",
+      "b-2"
+    ],
+    "baseFile": "whiteman_afb"
   },
   {
     "id": "yokota_ab",

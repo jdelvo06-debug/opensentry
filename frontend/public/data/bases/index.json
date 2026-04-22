@@ -48,6 +48,14 @@
     "max_effectors": 4
   },
   {
+    "id": "beale_afb",
+    "name": "Beale AFB",
+    "description": "9th Reconnaissance Wing, U-2 and RQ-4 ISR ops.",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
     "id": "cannon_afb",
     "name": "Cannon AFB",
     "description": "Cannon Air Force Base, New Mexico. 27th Special Operations Wing, AFSOC.",
@@ -72,9 +80,25 @@
     "max_effectors": 4
   },
   {
+    "id": "dyess_afb",
+    "name": "Dyess AFB",
+    "description": "7th Bomb Wing, B-1B Lancer and C-130J.",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
+  },
+  {
     "id": "eielson_afb",
     "name": "Eielson AFB",
     "description": "Eielson Air Force Base, Alaska. Home of the 354th Fighter Wing (F-35A and F-16 Aggressor squadrons). Features North Amer",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
+  },
+  {
+    "id": "ellsworth_afb",
+    "name": "Ellsworth AFB",
+    "description": "28th Bomb Wing, B-1B Lancer bomber ops.",
     "size": "large",
     "max_sensors": 5,
     "max_effectors": 4
@@ -91,6 +115,14 @@
     "id": "geilenkirchen_ab",
     "name": "Geilenkirchen AB",
     "description": "Curated NATO Air Base Geilenkirchen preset for North Rhine-Westphalia, Germany, using a simplified open-source aerodrome",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "holloman_afb",
+    "name": "Holloman AFB",
+    "description": "49th Wing, F-16 and MQ-9 Reaper ops.",
     "size": "medium",
     "max_sensors": 4,
     "max_effectors": 3
@@ -240,6 +272,14 @@
     "max_effectors": 4
   },
   {
+    "id": "offutt_afb",
+    "name": "Offutt AFB",
+    "description": "USSTRATCOM HQ, 55th Wing, RC-135 and E-4B.",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
+  },
+  {
     "id": "osan_ab",
     "name": "Osan Air Base",
     "description": "Curated Osan Air Base preset for Pyeongtaek, South Korea, using a simplified open-source aerodrome footprint instead of ",
@@ -296,6 +336,14 @@
     "max_effectors": 3
   },
   {
+    "id": "seymour_johnson_afb",
+    "name": "Seymour Johnson AFB",
+    "description": "4th Fighter Wing, F-15E Strike Eagle ops.",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
     "id": "shaw_afb",
     "name": "Shaw Air Force Base",
     "description": "Curated Shaw Air Force Base preset for Sumter, South Carolina, USA, using a simplified open-source aerodrome footprint d",
@@ -331,6 +379,14 @@
     "id": "volkel_ab",
     "name": "Volkel Air Base",
     "description": "Curated Volkel Air Base preset for North Brabant, Netherlands, using a simplified open-source aerodrome footprint derive",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "whiteman_afb",
+    "name": "Whiteman AFB",
+    "description": "509th Bomb Wing, B-2 Spirit stealth bomber ops.",
     "size": "medium",
     "max_sensors": 4,
     "max_effectors": 3

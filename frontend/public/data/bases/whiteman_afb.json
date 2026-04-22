@@ -1,0 +1,243 @@
+{
+  "id": "whiteman_afb",
+  "name": "Whiteman AFB",
+  "description": "Whiteman Air Force Base, Missouri. Home of the 509th Bomb Wing. B-2 Spirit stealth bomber operations. ICAO: KSZL.",
+  "size": "medium",
+  "center_lat": 38.724595,
+  "center_lng": -93.553308,
+  "default_zoom": 14,
+  "boundary": [
+    [
+      2.24,
+      -2.03
+    ],
+    [
+      2.2,
+      -1.21
+    ],
+    [
+      2.15,
+      -1.2
+    ],
+    [
+      2.12,
+      -0.82
+    ],
+    [
+      2.12,
+      -0.4
+    ],
+    [
+      2.65,
+      -0.37
+    ],
+    [
+      2.65,
+      -0.29
+    ],
+    [
+      2.83,
+      -0.27
+    ],
+    [
+      2.77,
+      0.06
+    ],
+    [
+      2.87,
+      0.06
+    ],
+    [
+      2.85,
+      0.44
+    ],
+    [
+      3.65,
+      0.5
+    ],
+    [
+      3.59,
+      1.66
+    ],
+    [
+      1.97,
+      1.58
+    ],
+    [
+      1.81,
+      1.66
+    ],
+    [
+      1.62,
+      1.88
+    ],
+    [
+      1.54,
+      1.92
+    ],
+    [
+      1.41,
+      1.94
+    ],
+    [
+      -2.3,
+      1.75
+    ],
+    [
+      -2.39,
+      1.72
+    ],
+    [
+      -2.47,
+      1.57
+    ],
+    [
+      -2.38,
+      -0.5
+    ],
+    [
+      -2.4,
+      -0.6
+    ],
+    [
+      -2.33,
+      -0.65
+    ],
+    [
+      -2.25,
+      -0.66
+    ],
+    [
+      -1.24,
+      -0.61
+    ],
+    [
+      -1.17,
+      -0.66
+    ],
+    [
+      -1.08,
+      -2.1
+    ],
+    [
+      -1.04,
+      -2.19
+    ],
+    [
+      -0.93,
+      -2.24
+    ],
+    [
+      0.14,
+      -2.16
+    ],
+    [
+      0.39,
+      -2.12
+    ]
+  ],
+  "protected_assets": [
+    {
+      "id": "airfield_ops",
+      "name": "Airfield Operations",
+      "x": 0.0,
+      "y": -0.18,
+      "priority": 1
+    },
+    {
+      "id": "main_apron",
+      "name": "Main Apron / Flight Line",
+      "x": 0.45,
+      "y": 0.25,
+      "priority": 2
+    },
+    {
+      "id": "support_area",
+      "name": "Support Area",
+      "x": -0.65,
+      "y": -0.45,
+      "priority": 2
+    }
+  ],
+  "terrain": [
+    {
+      "id": "runway",
+      "type": "runway",
+      "name": "Main Runway",
+      "polygon": [
+        [
+          -1.8,
+          -0.08
+        ],
+        [
+          -1.8,
+          0.08
+        ],
+        [
+          1.8,
+          0.08
+        ],
+        [
+          1.8,
+          -0.08
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "atc_tower",
+      "type": "tower",
+      "name": "ATC Tower",
+      "polygon": [
+        [
+          -0.15,
+          -0.15
+        ],
+        [
+          -0.15,
+          -0.05
+        ],
+        [
+          -0.05,
+          -0.05
+        ],
+        [
+          -0.05,
+          -0.15
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 45
+    }
+  ],
+  "approach_corridors": [
+    {
+      "name": "Approach North",
+      "angle": 0,
+      "width": 30
+    },
+    {
+      "name": "Approach South",
+      "angle": 180,
+      "width": 30
+    },
+    {
+      "name": "Approach East",
+      "angle": 90,
+      "width": 20
+    },
+    {
+      "name": "Approach West",
+      "angle": 270,
+      "width": 20
+    }
+  ],
+  "max_sensors": 4,
+  "max_effectors": 3,
+  "placement_bounds_km": 1.6,
+  "icao": "KSZL",
+  "country": "US",
+  "source": "OSM way 474894666",
+  "area_km2": 18.4
+}
