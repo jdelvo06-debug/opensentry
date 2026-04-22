@@ -283,5 +283,31 @@
       "morón spain"
     ],
     "baseFile": "moron_ab"
+  },
+  {
+    "id": "geilenkirchen_ab",
+    "aliases": [
+      "geilenkirchen",
+      "geilenkirchen ab",
+      "geilenkirchen air base",
+      "nato geilenkirchen",
+      "etng",
+      "geilenkirchen germany",
+      "awacs base"
+    ],
+    "baseFile": "geilenkirchen_ab"
+  },
+  {
+    "id": "volkel_ab",
+    "aliases": [
+      "volkel",
+      "volkel ab",
+      "volkel air base",
+      "volkel airbase",
+      "ehvk",
+      "volkel netherlands",
+      "vliegbasis volkel"
+    ],
+    "baseFile": "volkel_ab"
   }
 ]

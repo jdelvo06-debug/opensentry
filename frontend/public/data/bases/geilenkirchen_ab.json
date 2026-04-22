@@ -1,0 +1,285 @@
+{
+  "id": "geilenkirchen_ab",
+  "name": "Geilenkirchen AB",
+  "description": "Curated NATO Air Base Geilenkirchen preset for North Rhine-Westphalia, Germany, using a simplified open-source aerodrome footprint derived from OSM Way 24908316. Home of the NATO E-3A AWACS Component. Single 3,050m runway 09/27. ICAO: ETNG.",
+  "size": "medium",
+  "center_lat": 50.960659,
+  "center_lng": 6.043625,
+  "default_zoom": 14,
+  "boundary": [
+    [
+      1.7,
+      -0.35
+    ],
+    [
+      1.07,
+      -0.65
+    ],
+    [
+      0.89,
+      -0.87
+    ],
+    [
+      0.97,
+      -1.0
+    ],
+    [
+      0.4,
+      -1.45
+    ],
+    [
+      0.16,
+      -1.28
+    ],
+    [
+      -0.69,
+      -1.38
+    ],
+    [
+      -0.76,
+      -1.25
+    ],
+    [
+      -0.75,
+      -0.88
+    ],
+    [
+      -0.83,
+      -0.78
+    ],
+    [
+      -0.67,
+      -0.6
+    ],
+    [
+      -0.78,
+      -0.37
+    ],
+    [
+      -1.49,
+      -0.39
+    ],
+    [
+      -1.67,
+      -0.11
+    ],
+    [
+      -1.93,
+      -0.08
+    ],
+    [
+      -1.93,
+      0.14
+    ],
+    [
+      -1.58,
+      0.57
+    ],
+    [
+      -1.19,
+      0.52
+    ],
+    [
+      -1.0,
+      0.85
+    ],
+    [
+      -0.86,
+      0.82
+    ],
+    [
+      -0.67,
+      1.14
+    ],
+    [
+      -0.3,
+      0.9
+    ],
+    [
+      0.05,
+      1.42
+    ],
+    [
+      0.33,
+      1.21
+    ],
+    [
+      0.74,
+      1.65
+    ],
+    [
+      0.83,
+      1.4
+    ],
+    [
+      0.75,
+      1.28
+    ],
+    [
+      1.02,
+      1.06
+    ],
+    [
+      0.92,
+      0.6
+    ],
+    [
+      1.51,
+      0.29
+    ],
+    [
+      1.51,
+      0.07
+    ]
+  ],
+  "protected_assets": [
+    {
+      "id": "awacs_ops",
+      "name": "AWACS Operations",
+      "x": 0.0,
+      "y": -0.1,
+      "priority": 1
+    },
+    {
+      "id": "main_apron",
+      "name": "Main Apron / Flight Line",
+      "x": -0.2,
+      "y": 0.4,
+      "priority": 2
+    },
+    {
+      "id": "support_area",
+      "name": "NATO Support Campus",
+      "x": -0.8,
+      "y": 0.0,
+      "priority": 2
+    }
+  ],
+  "terrain": [
+    {
+      "id": "runway_0927",
+      "type": "runway",
+      "name": "Runway 09/27",
+      "polygon": [
+        [
+          -1.85,
+          0.22
+        ],
+        [
+          -1.85,
+          -0.02
+        ],
+        [
+          1.45,
+          -0.02
+        ],
+        [
+          1.45,
+          0.22
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "atc_tower",
+      "type": "tower",
+      "name": "ATC Tower",
+      "polygon": [
+        [
+          -0.14,
+          -0.06
+        ],
+        [
+          -0.06,
+          -0.06
+        ],
+        [
+          -0.06,
+          0.02
+        ],
+        [
+          -0.14,
+          0.02
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 25.0
+    },
+    {
+      "id": "awacs_hangars",
+      "type": "building",
+      "name": "AWACS Hangars",
+      "polygon": [
+        [
+          -0.5,
+          0.5
+        ],
+        [
+          -0.5,
+          0.3
+        ],
+        [
+          0.1,
+          0.3
+        ],
+        [
+          0.1,
+          0.5
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 15.0
+    },
+    {
+      "id": "north_support",
+      "type": "building",
+      "name": "North Support Buildings",
+      "polygon": [
+        [
+          -1.03,
+          0.12
+        ],
+        [
+          -1.03,
+          -0.12
+        ],
+        [
+          -0.58,
+          -0.12
+        ],
+        [
+          -0.58,
+          0.12
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 10.0
+    }
+  ],
+  "approach_corridors": [
+    {
+      "name": "Runway East Approach",
+      "bearing_deg": 90,
+      "width_deg": 18
+    },
+    {
+      "name": "Runway West Approach",
+      "bearing_deg": 270,
+      "width_deg": 18
+    },
+    {
+      "name": "North Sector",
+      "bearing_deg": 350,
+      "width_deg": 30
+    },
+    {
+      "name": "South Sector",
+      "bearing_deg": 170,
+      "width_deg": 30
+    }
+  ],
+  "max_sensors": 4,
+  "max_effectors": 3,
+  "placement_bounds_km": 2.0
+}
