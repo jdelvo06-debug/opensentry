@@ -1,227 +1,27 @@
 {
   "id": "langley_afb",
   "name": "Langley Air Force Base",
-  "description": "Langley AFB, Hampton, VA \u2014 home of the 1st Fighter Wing, F-22 Raptor operations",
+  "description": "Langley Air Force Base \u2014 Joint Base Langley-Eustis, Virginia (standard footprint)",
   "size": "medium",
   "center_lat": 37.087295,
   "center_lng": -76.35465,
   "default_zoom": 14,
   "boundary": [
     [
-      -2.83,
-      -1.3
-    ],
-    [
-      -2.48,
-      -1.63
-    ],
-    [
-      -2.67,
-      -1.7
-    ],
-    [
-      -2.83,
-      -1.3
-    ],
-    [
-      -0.9,
-      1.86
-    ],
-    [
-      -1.15,
-      2.62
-    ],
-    [
-      -2.03,
-      2.17
-    ],
-    [
-      -2.21,
-      -0.75
-    ],
-    [
-      -1.93,
-      -0.79
-    ],
-    [
-      -1.73,
-      -0.35
-    ],
-    [
-      -1.92,
-      0.06
-    ],
-    [
-      -1.95,
-      0.1
-    ],
-    [
-      -2.02,
-      0.05
-    ],
-    [
-      -2.14,
-      0.23
-    ],
-    [
-      -2.0,
-      0.24
-    ],
-    [
-      -1.8,
-      0.25
-    ],
-    [
-      -1.76,
-      0.24
-    ],
-    [
-      -1.75,
-      0.29
-    ],
-    [
-      -1.74,
-      0.47
-    ],
-    [
-      -1.72,
-      0.62
-    ],
-    [
-      -1.72,
-      0.71
-    ],
-    [
-      -2.28,
-      0.89
-    ],
-    [
-      -2.5,
-      1.0
-    ],
-    [
-      -2.03,
-      2.17
-    ],
-    [
-      -1.19,
-      -2.55
-    ],
-    [
-      -2.43,
-      -1.56
-    ],
-    [
-      -2.36,
-      -1.46
-    ],
-    [
-      -2.42,
-      -1.42
-    ],
-    [
-      -2.44,
-      -1.35
-    ],
-    [
-      -2.46,
-      -1.3
-    ],
-    [
-      -2.53,
-      -1.13
-    ],
-    [
-      -2.57,
-      -1.05
-    ],
-    [
-      -2.59,
+      -1.5,
       -1.0
     ],
     [
-      -2.21,
-      -0.75
+      -1.5,
+      1.0
     ],
     [
-      -1.1,
-      -2.58
+      1.5,
+      1.0
     ],
     [
-      -1.11,
-      -2.6
-    ],
-    [
-      -1.19,
-      -2.55
-    ],
-    [
-      -1.1,
-      -2.58
-    ],
-    [
-      -1.06,
-      -2.58
-    ],
-    [
-      -1.02,
-      -2.57
-    ],
-    [
-      -0.98,
-      -2.51
-    ],
-    [
-      1.23,
-      -0.93
-    ],
-    [
-      1.59,
-      0.37
-    ],
-    [
-      0.12,
-      1.86
-    ],
-    [
-      -0.9,
-      1.86
-    ],
-    [
-      1.23,
-      -0.93
-    ],
-    [
-      1.13,
-      -1.01
-    ],
-    [
-      -2.83,
-      -1.06
-    ],
-    [
-      -2.91,
-      -1.26
-    ],
-    [
-      -2.84,
-      -1.27
-    ],
-    [
-      -2.76,
-      -1.07
-    ],
-    [
-      -2.83,
-      -1.06
-    ],
-    [
-      -0.98,
-      -2.51
-    ],
-    [
-      -0.05,
-      -1.5
+      1.5,
+      -1.0
     ]
   ],
   "protected_assets": [
@@ -249,179 +49,79 @@
   ],
   "terrain": [
     {
-      "id": "hangar_1",
-      "type": "building",
-      "name": "Hangar 1",
-      "polygon": [
-        [
-          1.01,
-          -0.35
-        ],
-        [
-          1.01,
-          -0.15
-        ],
-        [
-          1.21,
-          -0.15
-        ],
-        [
-          1.21,
-          -0.35
-        ]
-      ],
-      "blocks_los": true,
-      "height_m": 12.0
-    },
-    {
-      "id": "hangar_2",
-      "type": "building",
-      "name": "Hangar 2",
-      "polygon": [
-        [
-          1.26,
-          -0.35
-        ],
-        [
-          1.26,
-          -0.15
-        ],
-        [
-          1.46,
-          -0.15
-        ],
-        [
-          1.46,
-          -0.35
-        ]
-      ],
-      "blocks_los": true,
-      "height_m": 12.0
-    },
-    {
-      "id": "atc_bldg",
-      "type": "tower",
-      "name": "ATC Tower",
-      "polygon": [
-        [
-          0.83,
-          -0.08
-        ],
-        [
-          0.83,
-          -0.02
-        ],
-        [
-          0.89,
-          -0.02
-        ],
-        [
-          0.89,
-          -0.08
-        ]
-      ],
-      "blocks_los": false,
-      "height_m": 20.0
-    },
-    {
       "id": "runway",
       "type": "runway",
       "name": "Runway 09/27",
       "polygon": [
         [
-          0.16,
-          -0.28
+          -1.2,
+          -0.15
         ],
         [
-          0.16,
-          -0.22
+          -1.2,
+          0.15
         ],
         [
-          1.56,
-          -0.22
+          1.2,
+          0.15
         ],
         [
-          1.56,
-          -0.28
+          1.2,
+          -0.15
         ]
       ],
       "blocks_los": false,
       "height_m": 0.0
     },
     {
-      "id": "fuel_tanks",
-      "type": "building",
-      "name": "Fuel Storage",
+      "id": "atc_tower",
+      "type": "tower",
+      "name": "ATC Tower",
       "polygon": [
         [
-          0.31,
-          -0.5
-        ],
-        [
-          0.31,
+          0.1,
           -0.4
         ],
         [
-          0.41,
+          0.1,
+          -0.3
+        ],
+        [
+          0.2,
+          -0.3
+        ],
+        [
+          0.2,
+          -0.4
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 25.0
+    },
+    {
+      "id": "hangars",
+      "type": "building",
+      "name": "Hangar Complex",
+      "polygon": [
+        [
+          0.3,
           -0.4
         ],
         [
-          0.41,
-          -0.5
+          0.3,
+          -0.2
+        ],
+        [
+          0.8,
+          -0.2
+        ],
+        [
+          0.8,
+          -0.4
         ]
       ],
       "blocks_los": true,
-      "height_m": 8.0
-    },
-    {
-      "id": "ops_bldg",
-      "type": "building",
-      "name": "Operations Building",
-      "polygon": [
-        [
-          0.71,
-          -0.0
-        ],
-        [
-          0.71,
-          0.1
-        ],
-        [
-          1.01,
-          0.1
-        ],
-        [
-          1.01,
-          -0.0
-        ]
-      ],
-      "blocks_los": true,
-      "height_m": 5.0
-    },
-    {
-      "id": "tree_line_south",
-      "type": "treeline",
-      "name": "Southern Treeline",
-      "polygon": [
-        [
-          0.26,
-          -0.65
-        ],
-        [
-          0.26,
-          -0.6
-        ],
-        [
-          0.86,
-          -0.6
-        ],
-        [
-          0.86,
-          -0.65
-        ]
-      ],
-      "blocks_los": true,
-      "height_m": 8.0
+      "height_m": 12.0
     }
   ],
   "approach_corridors": [
@@ -436,17 +136,17 @@
       "width_deg": 20
     },
     {
-      "name": "North Approach",
+      "name": "North Sector",
       "bearing_deg": 0,
-      "width_deg": 40
+      "width_deg": 30
     },
     {
-      "name": "South Approach",
+      "name": "South Sector",
       "bearing_deg": 180,
-      "width_deg": 40
+      "width_deg": 30
     }
   ],
   "max_sensors": 4,
   "max_effectors": 3,
-  "placement_bounds_km": 3.1
+  "placement_bounds_km": 2.5
 }
