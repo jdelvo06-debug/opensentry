@@ -235,5 +235,27 @@
       "Joint Base Langley-Eustis"
     ],
     "baseFile": "langley_afb"
+  },
+  {
+    "id": "andersen_afb",
+    "aliases": [
+      "Andersen",
+      "Andersen AFB",
+      "Andersen Air Force Base",
+      "PGUA",
+      "Andersen Guam"
+    ],
+    "baseFile": "andersen_afb"
+  },
+  {
+    "id": "incirlik_ab",
+    "aliases": [
+      "Incirlik",
+      "Incirlik AB",
+      "Incirlik Air Base",
+      "LTAG",
+      "Incirlik Turkey"
+    ],
+    "baseFile": "incirlik_ab"
   }
 ]

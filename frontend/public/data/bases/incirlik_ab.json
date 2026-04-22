@@ -1,0 +1,292 @@
+{
+  "id": "incirlik_ab",
+  "name": "Incirlik Air Base",
+  "description": "Incirlik AB, Turkey \u2014 39th Air Base Wing, strategic NATO hub",
+  "size": "medium",
+  "center_lat": 37.002408,
+  "center_lng": 35.42288,
+  "default_zoom": 14,
+  "boundary": [
+    [
+      -2.62,
+      -1.26
+    ],
+    [
+      -2.71,
+      0.61
+    ],
+    [
+      -1.09,
+      1.35
+    ],
+    [
+      -0.59,
+      0.86
+    ],
+    [
+      0.32,
+      0.7
+    ],
+    [
+      1.18,
+      1.27
+    ],
+    [
+      1.1,
+      1.73
+    ],
+    [
+      1.51,
+      1.86
+    ],
+    [
+      1.72,
+      2.66
+    ],
+    [
+      3.03,
+      1.02
+    ],
+    [
+      2.38,
+      0.55
+    ],
+    [
+      1.96,
+      -0.76
+    ],
+    [
+      0.94,
+      -1.01
+    ],
+    [
+      0.68,
+      -1.96
+    ]
+  ],
+  "protected_assets": [
+    {
+      "id": "atc_tower",
+      "name": "ATC Tower",
+      "x": 0.28,
+      "y": 0.15,
+      "priority": 1
+    },
+    {
+      "id": "flight_line",
+      "name": "Flight Line",
+      "x": 0.58,
+      "y": -0.05,
+      "priority": 2
+    },
+    {
+      "id": "fuel_depot",
+      "name": "Fuel Depot",
+      "x": -0.22,
+      "y": -0.25,
+      "priority": 3
+    }
+  ],
+  "terrain": [
+    {
+      "id": "hangar_1",
+      "type": "building",
+      "name": "Hangar 1",
+      "polygon": [
+        [
+          0.43,
+          -0.15
+        ],
+        [
+          0.43,
+          0.05
+        ],
+        [
+          0.63,
+          0.05
+        ],
+        [
+          0.63,
+          -0.15
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 12.0
+    },
+    {
+      "id": "hangar_2",
+      "type": "building",
+      "name": "Hangar 2",
+      "polygon": [
+        [
+          0.68,
+          -0.15
+        ],
+        [
+          0.68,
+          0.05
+        ],
+        [
+          0.88,
+          0.05
+        ],
+        [
+          0.88,
+          -0.15
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 12.0
+    },
+    {
+      "id": "atc_bldg",
+      "type": "tower",
+      "name": "ATC Tower",
+      "polygon": [
+        [
+          0.25,
+          0.12
+        ],
+        [
+          0.25,
+          0.18
+        ],
+        [
+          0.31,
+          0.18
+        ],
+        [
+          0.31,
+          0.12
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 20.0
+    },
+    {
+      "id": "runway",
+      "type": "runway",
+      "name": "Runway 09/27",
+      "polygon": [
+        [
+          -0.42,
+          -0.08
+        ],
+        [
+          -0.42,
+          -0.02
+        ],
+        [
+          0.98,
+          -0.02
+        ],
+        [
+          0.98,
+          -0.08
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "fuel_tanks",
+      "type": "building",
+      "name": "Fuel Storage",
+      "polygon": [
+        [
+          -0.27,
+          -0.3
+        ],
+        [
+          -0.27,
+          -0.2
+        ],
+        [
+          -0.17,
+          -0.2
+        ],
+        [
+          -0.17,
+          -0.3
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 8.0
+    },
+    {
+      "id": "ops_bldg",
+      "type": "building",
+      "name": "Operations Building",
+      "polygon": [
+        [
+          0.13,
+          0.2
+        ],
+        [
+          0.13,
+          0.3
+        ],
+        [
+          0.43,
+          0.3
+        ],
+        [
+          0.43,
+          0.2
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 5.0
+    },
+    {
+      "id": "tree_line_south",
+      "type": "treeline",
+      "name": "Southern Treeline",
+      "polygon": [
+        [
+          -0.32,
+          -0.45
+        ],
+        [
+          -0.32,
+          -0.4
+        ],
+        [
+          0.28,
+          -0.4
+        ],
+        [
+          0.28,
+          -0.45
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 8.0
+    }
+  ],
+  "approach_corridors": [
+    {
+      "name": "Runway East",
+      "bearing_deg": 90,
+      "width_deg": 20
+    },
+    {
+      "name": "Runway West",
+      "bearing_deg": 270,
+      "width_deg": 20
+    },
+    {
+      "name": "North Approach",
+      "bearing_deg": 0,
+      "width_deg": 40
+    },
+    {
+      "name": "South Approach",
+      "bearing_deg": 180,
+      "width_deg": 40
+    }
+  ],
+  "max_sensors": 4,
+  "max_effectors": 3,
+  "placement_bounds_km": 3.2
+}
