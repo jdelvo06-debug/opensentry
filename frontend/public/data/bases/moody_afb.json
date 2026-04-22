@@ -1,0 +1,35 @@
+{
+  "id": "moody_afb",
+  "name": "Moody AFB",
+  "description": "Moody Air Force Base, Georgia. Home of the 23rd Wing (Flying Tigers). A-10C Warthog close air support and HC-130J combat search and rescue operations. ICAO: KVAD.",
+  "size": "medium",
+  "max_sensors": 4,
+  "max_effectors": 3,
+  "center": [
+    30.97,
+    -83.195
+  ],
+  "boundary": [
+    [
+      30.961,
+      -83.21
+    ],
+    [
+      30.961,
+      -83.18
+    ],
+    [
+      30.979,
+      -83.18
+    ],
+    [
+      30.979,
+      -83.21
+    ]
+  ],
+  "area_km2": 5.7,
+  "source": "approximate (no OSM aerodrome boundary)",
+  "icao": "KVAD",
+  "country": "US",
+  "note": "Boundary is approximate box \u2014 could be improved with satellite tracing."
+}

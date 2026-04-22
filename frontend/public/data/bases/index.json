@@ -48,12 +48,28 @@
     "max_effectors": 4
   },
   {
+    "id": "cannon_afb",
+    "name": "Cannon AFB",
+    "description": "Cannon Air Force Base, New Mexico. 27th Special Operations Wing, AFSOC.",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
     "id": "creech_afb",
     "name": "Creech Air Force Base",
     "description": "Curated Creech Air Force Base preset for Indian Springs, Nevada, USA, using a simplified open-source aerodrome footprint",
     "size": "medium",
     "max_sensors": 4,
     "max_effectors": 3
+  },
+  {
+    "id": "davis_monthan_afb",
+    "name": "Davis-Monthan AFB",
+    "description": "Davis-Monthan Air Force Base, Arizona. 355th Wing, A-10C Warthog, AMARG boneyard.",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "eielson_afb",
@@ -176,12 +192,28 @@
     "max_effectors": 3
   },
   {
+    "id": "moody_afb",
+    "name": "Moody AFB",
+    "description": "Moody Air Force Base, Georgia. 23rd Wing (Flying Tigers), A-10C and HC-130J.",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
     "id": "moron_ab",
     "name": "Mor\u00f3n Air Base",
     "description": "Curated Mor\u00f3n Air Base preset for Andalusia, Spain, using a simplified open-source aerodrome footprint derived from OSM ",
     "size": "medium",
     "max_sensors": 4,
     "max_effectors": 3
+  },
+  {
+    "id": "mountain_home_afb",
+    "name": "Mountain Home AFB",
+    "description": "Mountain Home Air Force Base, Idaho. 366th Fighter Wing, F-15E Strike Eagle hub.",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "muwaffaq_salti_ab",

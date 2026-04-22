@@ -1,16 +1,53 @@
 [
   {
-    "id": "osan_ab",
+    "id": "al_dhafra_ab",
     "aliases": [
-      "osan air base",
-      "osan ab",
-      "rkso",
-      "osan airbase",
-      "osan afb",
-      "k-55",
-      "k 55"
+      "al dhafra",
+      "dhafra",
+      "omam",
+      "al dhafra ab",
+      "al dhafra air base",
+      "380th aew",
+      "dhafra air base"
     ],
-    "baseFile": "osan_ab"
+    "baseFile": "al_dhafra_ab"
+  },
+  {
+    "id": "al_udeid_ab",
+    "aliases": [
+      "al udeid",
+      "al udeid ab",
+      "al udeid air base",
+      "otbh",
+      "al udeid qatar",
+      "auab"
+    ],
+    "baseFile": "al_udeid_ab"
+  },
+  {
+    "id": "ali_al_salem_ab",
+    "aliases": [
+      "ali al salem",
+      "al salem",
+      "salem",
+      "okas",
+      "ali al salem ab",
+      "ali al salem air base",
+      "camp salem",
+      "a Salem"
+    ],
+    "baseFile": "ali_al_salem_ab"
+  },
+  {
+    "id": "andersen_afb",
+    "aliases": [
+      "Andersen",
+      "Andersen AFB",
+      "Andersen Air Force Base",
+      "PGUA",
+      "Andersen Guam"
+    ],
+    "baseFile": "andersen_afb"
   },
   {
     "id": "aviano_ab",
@@ -26,72 +63,6 @@
     "baseFile": "aviano_ab"
   },
   {
-    "id": "spangdahlem_ab",
-    "aliases": [
-      "spangdahlem",
-      "spangdahlem ab",
-      "spangdahlem air base",
-      "etad",
-      "spangdahlem germany"
-    ],
-    "baseFile": "spangdahlem_ab"
-  },
-  {
-    "id": "mcentire_jngb",
-    "aliases": [
-      "mcentire",
-      "mcentire jngb",
-      "mcentire joint national guard base",
-      "kmmt",
-      "mcentire sc"
-    ],
-    "baseFile": "mcentire_jngb"
-  },
-  {
-    "id": "shaw_afb",
-    "aliases": [
-      "shaw",
-      "shaw afb",
-      "shaw air force base",
-      "kssc",
-      "shaw south carolina"
-    ],
-    "baseFile": "shaw_afb"
-  },
-  {
-    "id": "prince_sultan_ab",
-    "aliases": [
-      "prince sultan",
-      "prince sultan ab",
-      "prince sultan air base",
-      "oeps",
-      "al kharj air base",
-      "al kharj"
-    ],
-    "baseFile": "prince_sultan_ab"
-  },
-  {
-    "id": "ramstein_ab",
-    "aliases": [
-      "ramstein",
-      "ramstein ab",
-      "ramstein air base",
-      "etar",
-      "ramstein germany"
-    ],
-    "baseFile": "ramstein_ab"
-  },
-  {
-    "id": "raf_mildenhall",
-    "aliases": [
-      "raf mildenhall",
-      "mildenhall",
-      "egun",
-      "mildenhall uk"
-    ],
-    "baseFile": "raf_mildenhall"
-  },
-  {
     "id": "barksdale_afb",
     "aliases": [
       "barksdale",
@@ -103,39 +74,130 @@
     "baseFile": "barksdale_afb"
   },
   {
-    "id": "lackland_afb",
+    "id": "cannon_afb",
     "aliases": [
-      "lackland",
-      "lackland afb",
-      "lackland air force base",
-      "kskf",
-      "joint base san antonio-lackland",
-      "jbsa-lackland",
-      "lackland texas"
+      "cannon",
+      "cannon afb",
+      "cannon air force base",
+      "kcvs",
+      "27th sow",
+      "afsoc"
     ],
-    "baseFile": "lackland_afb"
+    "baseFile": "cannon_afb"
   },
   {
-    "id": "scott_afb",
+    "id": "creech_afb",
     "aliases": [
-      "scott",
-      "scott afb",
-      "scott air force base",
-      "kscf",
-      "scott illinois"
+      "creech",
+      "creech afb",
+      "creech air force base",
+      "kins",
+      "creech nevada",
+      "indian springs"
     ],
-    "baseFile": "scott_afb"
+    "baseFile": "creech_afb"
   },
   {
-    "id": "tyndall_afb",
+    "id": "davis_monthan_afb",
     "aliases": [
-      "tyndall",
-      "tyndall afb",
-      "tyndall air force base",
-      "kpam",
-      "tyndall florida"
+      "davis-monthan",
+      "davis monthan",
+      "dma",
+      "kdma",
+      "davis-monthan afb",
+      "dmonthan",
+      "amarg",
+      "boneyard"
     ],
-    "baseFile": "tyndall_afb"
+    "baseFile": "davis_monthan_afb"
+  },
+  {
+    "id": "eielson_afb",
+    "aliases": [
+      "eielson",
+      "eielson afb",
+      "eielson air force base",
+      "paei",
+      "eielson alaska"
+    ],
+    "baseFile": "eielson_afb"
+  },
+  {
+    "id": "fort_liberty",
+    "aliases": [
+      "fort liberty",
+      "fort bragg",
+      "kfbg",
+      "fort liberty nc",
+      "fort bragg nc",
+      "pope field"
+    ],
+    "baseFile": "fort_liberty"
+  },
+  {
+    "id": "geilenkirchen_ab",
+    "aliases": [
+      "geilenkirchen",
+      "geilenkirchen ab",
+      "geilenkirchen air base",
+      "nato geilenkirchen",
+      "etng",
+      "geilenkirchen germany",
+      "awacs base"
+    ],
+    "baseFile": "geilenkirchen_ab"
+  },
+  {
+    "id": "incirlik_ab",
+    "aliases": [
+      "Incirlik",
+      "Incirlik AB",
+      "Incirlik Air Base",
+      "LTAG",
+      "Incirlik Turkey"
+    ],
+    "baseFile": "incirlik_ab"
+  },
+  {
+    "id": "jb_elmendorf_richardson",
+    "aliases": [
+      "elmendorf",
+      "jber",
+      "jb elmendorf-richardson",
+      "elmendorf afb",
+      "elmendorf air force base",
+      "paed",
+      "elmendorf alaska",
+      "richardson"
+    ],
+    "baseFile": "jb_elmendorf_richardson"
+  },
+  {
+    "id": "jb_pearl_harbor_hickam",
+    "aliases": [
+      "hickam",
+      "hickam afb",
+      "hickam air force base",
+      "jbphh",
+      "pearl harbor hickam",
+      "phik",
+      "phnl",
+      "joint base pearl harbor hickam",
+      "hickam hawaii"
+    ],
+    "baseFile": "jb_pearl_harbor_hickam"
+  },
+  {
+    "id": "kadena_ab",
+    "aliases": [
+      "kadena",
+      "kadena ab",
+      "kadena air base",
+      "rodn",
+      "kadena japan",
+      "kadena okinawa"
+    ],
+    "baseFile": "kadena_ab"
   },
   {
     "id": "kunsan_ab",
@@ -154,75 +216,30 @@
     "baseFile": "kunsan_ab"
   },
   {
-    "id": "nellis_afb",
+    "id": "lackland_afb",
     "aliases": [
-      "nellis",
-      "nellis afb",
-      "nellis air force base",
-      "klsv",
-      "nellis nevada",
-      "red flag"
+      "lackland",
+      "lackland afb",
+      "lackland air force base",
+      "kskf",
+      "joint base san antonio-lackland",
+      "jbsa-lackland",
+      "lackland texas"
     ],
-    "baseFile": "nellis_afb"
+    "baseFile": "lackland_afb"
   },
   {
-    "id": "kadena_ab",
+    "id": "lajes_field",
     "aliases": [
-      "kadena",
-      "kadena ab",
-      "kadena air base",
-      "rodn",
-      "kadena japan",
-      "kadena okinawa"
+      "lajes",
+      "lajes field",
+      "lajes ab",
+      "lpla",
+      "lajes azores",
+      "lajes portugal",
+      "base aerea 4"
     ],
-    "baseFile": "kadena_ab"
-  },
-  {
-    "id": "al_udeid_ab",
-    "aliases": [
-      "al udeid",
-      "al udeid ab",
-      "al udeid air base",
-      "otbh",
-      "al udeid qatar",
-      "auab"
-    ],
-    "baseFile": "al_udeid_ab"
-  },
-  {
-    "id": "creech_afb",
-    "aliases": [
-      "creech",
-      "creech afb",
-      "creech air force base",
-      "kins",
-      "creech nevada",
-      "indian springs"
-    ],
-    "baseFile": "creech_afb"
-  },
-  {
-    "id": "fort_liberty",
-    "aliases": [
-      "fort liberty",
-      "fort bragg",
-      "kfbg",
-      "fort liberty nc",
-      "fort bragg nc",
-      "pope field"
-    ],
-    "baseFile": "fort_liberty"
-  },
-  {
-    "id": "raf_lakenheath",
-    "aliases": [
-      "raf lakenheath",
-      "lakenheath",
-      "egul",
-      "lakenheath uk",
-      "lakenheath england"
-    ],
-    "baseFile": "raf_lakenheath"
+    "baseFile": "lajes_field"
   },
   {
     "id": "langley_afb",
@@ -237,37 +254,39 @@
     "baseFile": "langley_afb"
   },
   {
-    "id": "andersen_afb",
+    "id": "mcentire_jngb",
     "aliases": [
-      "Andersen",
-      "Andersen AFB",
-      "Andersen Air Force Base",
-      "PGUA",
-      "Andersen Guam"
+      "mcentire",
+      "mcentire jngb",
+      "mcentire joint national guard base",
+      "kmmt",
+      "mcentire sc"
     ],
-    "baseFile": "andersen_afb"
+    "baseFile": "mcentire_jngb"
   },
   {
-    "id": "incirlik_ab",
+    "id": "misawa_ab",
     "aliases": [
-      "Incirlik",
-      "Incirlik AB",
-      "Incirlik Air Base",
-      "LTAG",
-      "Incirlik Turkey"
+      "misawa",
+      "misawa ab",
+      "misawa air base",
+      "rjsm",
+      "misawa japan",
+      "misawa aomori"
     ],
-    "baseFile": "incirlik_ab"
+    "baseFile": "misawa_ab"
   },
   {
-    "id": "raf_fairford",
+    "id": "moody_afb",
     "aliases": [
-      "raf fairford",
-      "fairford",
-      "egva",
-      "fairford uk",
-      "fairford england"
+      "moody",
+      "moody afb",
+      "moody air force base",
+      "kvad",
+      "flying tigers",
+      "23rd wing"
     ],
-    "baseFile": "raf_fairford"
+    "baseFile": "moody_afb"
   },
   {
     "id": "moron_ab",
@@ -285,30 +304,132 @@
     "baseFile": "moron_ab"
   },
   {
-    "id": "geilenkirchen_ab",
+    "id": "mountain_home_afb",
     "aliases": [
-      "geilenkirchen",
-      "geilenkirchen ab",
-      "geilenkirchen air base",
-      "nato geilenkirchen",
-      "etng",
-      "geilenkirchen germany",
-      "awacs base"
+      "mountain home",
+      "mountain home afb",
+      "mountain home air force base",
+      "kmuo",
+      "gunfighters",
+      "366th fw"
     ],
-    "baseFile": "geilenkirchen_ab"
+    "baseFile": "mountain_home_afb"
   },
   {
-    "id": "volkel_ab",
+    "id": "muwaffaq_salti_ab",
     "aliases": [
-      "volkel",
-      "volkel ab",
-      "volkel air base",
-      "volkel airbase",
-      "ehvk",
-      "volkel netherlands",
-      "vliegbasis volkel"
+      "muwaffaq salti",
+      "salti",
+      "msab",
+      "ojai",
+      "azraq",
+      "muwaffaq salti ab",
+      "muwaffaq salti air base",
+      "azraq air base"
     ],
-    "baseFile": "volkel_ab"
+    "baseFile": "muwaffaq_salti_ab"
+  },
+  {
+    "id": "nellis_afb",
+    "aliases": [
+      "nellis",
+      "nellis afb",
+      "nellis air force base",
+      "klsv",
+      "nellis nevada",
+      "red flag"
+    ],
+    "baseFile": "nellis_afb"
+  },
+  {
+    "id": "osan_ab",
+    "aliases": [
+      "osan air base",
+      "osan ab",
+      "rkso",
+      "osan airbase",
+      "osan afb",
+      "k-55",
+      "k 55"
+    ],
+    "baseFile": "osan_ab"
+  },
+  {
+    "id": "prince_sultan_ab",
+    "aliases": [
+      "prince sultan",
+      "prince sultan ab",
+      "prince sultan air base",
+      "oeps",
+      "al kharj air base",
+      "al kharj"
+    ],
+    "baseFile": "prince_sultan_ab"
+  },
+  {
+    "id": "raf_fairford",
+    "aliases": [
+      "raf fairford",
+      "fairford",
+      "egva",
+      "fairford uk",
+      "fairford england"
+    ],
+    "baseFile": "raf_fairford"
+  },
+  {
+    "id": "raf_lakenheath",
+    "aliases": [
+      "raf lakenheath",
+      "lakenheath",
+      "egul",
+      "lakenheath uk",
+      "lakenheath england"
+    ],
+    "baseFile": "raf_lakenheath"
+  },
+  {
+    "id": "raf_mildenhall",
+    "aliases": [
+      "raf mildenhall",
+      "mildenhall",
+      "egun",
+      "mildenhall uk"
+    ],
+    "baseFile": "raf_mildenhall"
+  },
+  {
+    "id": "ramstein_ab",
+    "aliases": [
+      "ramstein",
+      "ramstein ab",
+      "ramstein air base",
+      "etar",
+      "ramstein germany"
+    ],
+    "baseFile": "ramstein_ab"
+  },
+  {
+    "id": "scott_afb",
+    "aliases": [
+      "scott",
+      "scott afb",
+      "scott air force base",
+      "kscf",
+      "scott illinois"
+    ],
+    "baseFile": "scott_afb"
+  },
+  {
+    "id": "shaw_afb",
+    "aliases": [
+      "shaw",
+      "shaw afb",
+      "shaw air force base",
+      "kssc",
+      "shaw south carolina"
+    ],
+    "baseFile": "shaw_afb"
   },
   {
     "id": "souda_bay",
@@ -324,17 +445,39 @@
     "baseFile": "souda_bay"
   },
   {
-    "id": "lajes_field",
+    "id": "spangdahlem_ab",
     "aliases": [
-      "lajes",
-      "lajes field",
-      "lajes ab",
-      "lpla",
-      "lajes azores",
-      "lajes portugal",
-      "base aerea 4"
+      "spangdahlem",
+      "spangdahlem ab",
+      "spangdahlem air base",
+      "etad",
+      "spangdahlem germany"
     ],
-    "baseFile": "lajes_field"
+    "baseFile": "spangdahlem_ab"
+  },
+  {
+    "id": "tyndall_afb",
+    "aliases": [
+      "tyndall",
+      "tyndall afb",
+      "tyndall air force base",
+      "kpam",
+      "tyndall florida"
+    ],
+    "baseFile": "tyndall_afb"
+  },
+  {
+    "id": "volkel_ab",
+    "aliases": [
+      "volkel",
+      "volkel ab",
+      "volkel air base",
+      "volkel airbase",
+      "ehvk",
+      "volkel netherlands",
+      "vliegbasis volkel"
+    ],
+    "baseFile": "volkel_ab"
   },
   {
     "id": "yokota_ab",
@@ -347,98 +490,5 @@
       "yokota tokyo"
     ],
     "baseFile": "yokota_ab"
-  },
-  {
-    "id": "misawa_ab",
-    "aliases": [
-      "misawa",
-      "misawa ab",
-      "misawa air base",
-      "rjsm",
-      "misawa japan",
-      "misawa aomori"
-    ],
-    "baseFile": "misawa_ab"
-  },
-  {
-    "id": "jb_pearl_harbor_hickam",
-    "aliases": [
-      "hickam",
-      "hickam afb",
-      "hickam air force base",
-      "jbphh",
-      "pearl harbor hickam",
-      "phik",
-      "phnl",
-      "joint base pearl harbor hickam",
-      "hickam hawaii"
-    ],
-    "baseFile": "jb_pearl_harbor_hickam"
-  },
-  {
-    "id": "eielson_afb",
-    "aliases": [
-      "eielson",
-      "eielson afb",
-      "eielson air force base",
-      "paei",
-      "eielson alaska"
-    ],
-    "baseFile": "eielson_afb"
-  },
-  {
-    "id": "jb_elmendorf_richardson",
-    "aliases": [
-      "elmendorf",
-      "jber",
-      "jb elmendorf-richardson",
-      "elmendorf afb",
-      "elmendorf air force base",
-      "paed",
-      "elmendorf alaska",
-      "richardson"
-    ],
-    "baseFile": "jb_elmendorf_richardson"
-  },
-  {
-    "id": "ali_al_salem_ab",
-    "aliases": [
-      "ali al salem",
-      "al salem",
-      "salem",
-      "okas",
-      "ali al salem ab",
-      "ali al salem air base",
-      "camp salem",
-      "a Salem"
-    ],
-    "baseFile": "ali_al_salem_ab"
-  },
-  {
-    "id": "al_dhafra_ab",
-    "aliases": [
-      "al dhafra",
-      "dhafra",
-      "omam",
-      "al dhafra ab",
-      "al dhafra air base",
-      "380th aew",
-      "dhafra air base"
-    ],
-    "baseFile": "al_dhafra_ab"
-  },
-  {
-    "id": "muwaffaq_salti_ab",
-    "aliases": [
-      "muwaffaq salti",
-      "salti",
-      "msab",
-      "ojai",
-      "azraq",
-      "muwaffaq salti ab",
-      "muwaffaq salti air base",
-      "azraq air base"
-    ],
-    "baseFile": "muwaffaq_salti_ab"
   }
 ]

@@ -1,0 +1,35 @@
+{
+  "id": "cannon_afb",
+  "name": "Cannon AFB",
+  "description": "Cannon Air Force Base, New Mexico. Home of the 27th Special Operations Wing. AC-130J, MC-130J, CV-22B, and MQ-9 operations under AFSOC. ICAO: KCVS.",
+  "size": "medium",
+  "max_sensors": 4,
+  "max_effectors": 3,
+  "center": [
+    34.383,
+    -103.322
+  ],
+  "boundary": [
+    [
+      34.372,
+      -103.338
+    ],
+    [
+      34.372,
+      -103.306
+    ],
+    [
+      34.394,
+      -103.306
+    ],
+    [
+      34.394,
+      -103.338
+    ]
+  ],
+  "area_km2": 7.2,
+  "source": "approximate (no OSM aerodrome boundary)",
+  "icao": "KCVS",
+  "country": "US",
+  "note": "Boundary is approximate box \u2014 could be improved with satellite tracing."
+}
