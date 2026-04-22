@@ -1,5 +1,269 @@
 [
   {
+    "id": "al_udeid_ab",
+    "name": "Al Udeid Air Base",
+    "description": "Curated Al Udeid Air Base preset for Doha, Qatar. Simplified polygon derived from OSM Way 245526659 (aeroway=aerodrome b",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
+  },
+  {
+    "id": "andersen_afb",
+    "name": "Andersen Air Force Base",
+    "description": "Andersen AFB, Guam \u2014 strategic Pacific bomber hub, home of the 36th Wing",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
+  },
+  {
+    "id": "barksdale_afb",
+    "name": "Barksdale Air Force Base",
+    "description": "Curated Barksdale Air Force Base preset for Bossier City, Louisiana, USA. Simplified polygon derived from OSM runway 15/",
+    "size": "large",
+    "max_sensors": 6,
+    "max_effectors": 4
+  },
+  {
+    "id": "eielson_afb",
+    "name": "Eielson AFB",
+    "description": "Eielson Air Force Base, Alaska. Home of the 354th Fighter Wing (F-35A and F-16 Aggressor squadrons). Features North Amer",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
+  },
+  {
+    "id": "fort_liberty",
+    "name": "Fort Liberty (Pope Army Airfield)",
+    "description": "Curated Fort Liberty preset for North Carolina, USA, using a simplified open-source aerodrome footprint derived from OSM",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
+  },
+  {
+    "id": "jb_elmendorf_richardson",
+    "name": "JB Elmendorf-Richardson",
+    "description": "Curated Joint Base Elmendorf-Richardson preset for Anchorage, Alaska, using a simplified open-source aerodrome footprint",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
+  },
+  {
+    "id": "jb_pearl_harbor_hickam",
+    "name": "JB Pearl Harbor-Hickam",
+    "description": "Curated Joint Base Pearl Harbor-Hickam preset for Honolulu, Hawaii, using a simplified open-source aerodrome footprint d",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
+  },
+  {
+    "id": "kadena_ab",
+    "name": "Kadena Air Base",
+    "description": "Curated Kadena Air Base preset for Okinawa, Japan. Simplified polygon derived from the OSM aerodrome relation for Kadena",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
+  },
+  {
+    "id": "nellis_afb",
+    "name": "Nellis Air Force Base",
+    "description": "Curated Nellis Air Force Base preset for Las Vegas, Nevada, USA. Simplified aerodrome boundary derived from OSM Way 1625",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
+  },
+  {
+    "id": "prince_sultan_ab",
+    "name": "Prince Sultan Air Base",
+    "description": "Curated Prince Sultan Air Base preset for Al Kharj, Saudi Arabia, using a simplified open-source aerodrome footprint der",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
+  },
+  {
+    "id": "tyndall_afb",
+    "name": "Tyndall Air Force Base",
+    "description": "Curated Tyndall Air Force Base preset for the Panama City, Florida, USA area. Simplified polygon derived from OSM Way 33",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
+  },
+  {
+    "id": "aviano_ab",
+    "name": "Aviano Air Base",
+    "description": "Curated Aviano Air Base preset for the Friuli-Venezia Giulia region of northeastern Italy, using a simplified open-sourc",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "creech_afb",
+    "name": "Creech Air Force Base",
+    "description": "Curated Creech Air Force Base preset for Indian Springs, Nevada, USA, using a simplified open-source aerodrome footprint",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "geilenkirchen_ab",
+    "name": "Geilenkirchen AB",
+    "description": "Curated NATO Air Base Geilenkirchen preset for North Rhine-Westphalia, Germany, using a simplified open-source aerodrome",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "incirlik_ab",
+    "name": "Incirlik Air Base",
+    "description": "Incirlik AB, Turkey \u2014 39th Air Base Wing, strategic NATO hub",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "kunsan_ab",
+    "name": "Kunsan Air Base",
+    "description": "Curated Kunsan Air Base (Wolf Pack) preset for Gunsan, South Korea. Simplified polygon derived from OSM Way 95038648 (ae",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "lackland_afb",
+    "name": "Lackland Air Force Base",
+    "description": "Curated Lackland Air Force Base preset for San Antonio, Texas, USA (Joint Base San Antonio-Lackland), using a simplified",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "lajes_field",
+    "name": "Lajes Field",
+    "description": "Curated Lajes Field preset for Terceira Island, Azores, Portugal, using a simplified open-source aerodrome footprint der",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "langley_afb",
+    "name": "Langley Air Force Base",
+    "description": "Langley Air Force Base \u2014 Joint Base Langley-Eustis, Virginia (standard footprint)",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "mcentire_jngb",
+    "name": "McEntire Joint National Guard Base",
+    "description": "Curated McEntire Joint National Guard Base preset for Richland County, South Carolina, USA, using a simplified open-sour",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "misawa_ab",
+    "name": "Misawa AB",
+    "description": "Curated Misawa Air Base preset for Aomori Prefecture, Japan, using a simplified open-source aerodrome footprint derived ",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "moron_ab",
+    "name": "Mor\u00f3n Air Base",
+    "description": "Curated Mor\u00f3n Air Base preset for Andalusia, Spain, using a simplified open-source aerodrome footprint derived from OSM ",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "souda_bay",
+    "name": "NSA Souda Bay",
+    "description": "Curated Naval Support Activity Souda Bay preset for Crete, Greece, using a simplified open-source aerodrome footprint de",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "osan_ab",
+    "name": "Osan Air Base",
+    "description": "Curated Osan Air Base preset for Pyeongtaek, South Korea, using a simplified open-source aerodrome footprint instead of ",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "raf_fairford",
+    "name": "RAF Fairford",
+    "description": "Curated RAF Fairford preset for Gloucestershire, United Kingdom, using a simplified open-source aerodrome footprint deri",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "raf_lakenheath",
+    "name": "RAF Lakenheath",
+    "description": "Curated RAF Lakenheath preset for Suffolk, United Kingdom, using a simplified open-source aerodrome footprint derived fr",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "raf_mildenhall",
+    "name": "RAF Mildenhall",
+    "description": "Curated RAF Mildenhall preset for Suffolk, United Kingdom, using a simplified open-source aerodrome footprint derived fr",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "ramstein_ab",
+    "name": "Ramstein Air Base",
+    "description": "Curated Ramstein Air Base preset for Ramstein-Miesenbach, Germany, using a simplified open-source aerodrome footprint de",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "scott_afb",
+    "name": "Scott Air Force Base",
+    "description": "Curated Scott Air Force Base preset for the MidAmerica St. Louis Airport area, Illinois, USA. Simplified polygon derived",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "shaw_afb",
+    "name": "Shaw Air Force Base",
+    "description": "Curated Shaw Air Force Base preset for Sumter, South Carolina, USA, using a simplified open-source aerodrome footprint d",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "spangdahlem_ab",
+    "name": "Spangdahlem Air Base",
+    "description": "Curated Spangdahlem Air Base preset for Rhineland-Palatinate, Germany, using a simplified open-source aerodrome footprin",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "volkel_ab",
+    "name": "Volkel Air Base",
+    "description": "Curated Volkel Air Base preset for North Brabant, Netherlands, using a simplified open-source aerodrome footprint derive",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "yokota_ab",
+    "name": "Yokota AB",
+    "description": "Curated Yokota Air Base preset for Fussa, Tokyo, Japan, using a simplified open-source aerodrome footprint derived from ",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
     "id": "large_installation",
     "name": "Large Installation",
     "description": "Major military installation with multiple protected assets and a wide perimeter. Complex terrain requires careful sensor placement.",
