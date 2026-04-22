@@ -426,5 +426,19 @@
       "dhafra air base"
     ],
     "baseFile": "al_dhafra_ab"
+  },
+  {
+    "id": "muwaffaq_salti_ab",
+    "aliases": [
+      "muwaffaq salti",
+      "salti",
+      "msab",
+      "ojai",
+      "azraq",
+      "muwaffaq salti ab",
+      "muwaffaq salti air base",
+      "azraq air base"
+    ],
+    "baseFile": "muwaffaq_salti_ab"
   }
 ]

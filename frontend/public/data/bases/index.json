@@ -184,6 +184,14 @@
     "max_effectors": 3
   },
   {
+    "id": "muwaffaq_salti_ab",
+    "name": "Muwaffaq Salti AB",
+    "description": "Muwaffaq Salti Air Base, Azraq, Jordan. AFCENT F-16 forward operating location in the Levant.",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
     "id": "souda_bay",
     "name": "NSA Souda Bay",
     "description": "Curated Naval Support Activity Souda Bay preset for Crete, Greece, using a simplified open-source aerodrome footprint de",
