@@ -150,28 +150,28 @@
   "approach_corridors": [
     {
       "name": "Approach North",
-      "angle": 0,
-      "width": 30
+      "bearing_deg": 0,
+      "width_deg": 30
     },
     {
       "name": "Approach South",
-      "angle": 180,
-      "width": 30
+      "bearing_deg": 180,
+      "width_deg": 30
     },
     {
       "name": "Approach East",
-      "angle": 90,
-      "width": 20
+      "bearing_deg": 90,
+      "width_deg": 20
     },
     {
       "name": "Approach West",
-      "angle": 270,
-      "width": 20
+      "bearing_deg": 270,
+      "width_deg": 20
     }
   ],
   "max_sensors": 5,
   "max_effectors": 4,
-  "placement_bounds_km": 2.5,
+  "placement_bounds_km": 2.6,
   "icao": "KMUO",
   "country": "US"
 }
