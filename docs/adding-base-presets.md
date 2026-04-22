@@ -71,6 +71,36 @@ Create `frontend/public/data/bases/<base_id>.json` matching the existing templat
 - **Assets/terrain**: keep broad and believable — do not fake precise coordinates
 - **Runway**: include a basic runway polygon if useful; use public reference data
 
+### Easiest tracing workflow: `geojson.io`
+
+If you want a better manual tool than hand-editing boundary numbers, the easiest path is:
+
+1. Open [geojson.io](https://geojson.io/)
+2. Zoom to the base on the satellite layer
+3. Trace the installation perimeter as a single polygon
+4. Save/export the GeoJSON
+5. Import it into the preset with:
+
+```bash
+python3 scripts/import_geojson_preset.py \
+  --preset <base_id> \
+  --geojson /absolute/path/to/<base_id>.geojson
+```
+
+What the importer does:
+- derives a new `center_lat` / `center_lng` from the traced polygon
+- converts the traced polygon into local `[x_km, y_km]` boundary coordinates
+- rebases existing `protected_assets` and `terrain` so they stay in the same real-world place
+- recalculates `placement_bounds_km`
+
+This is currently the easiest "better tool" to integrate into the repo because it needs no paid software and no custom app changes.
+
+### Higher-fidelity options
+
+- **QGIS**: best serious option for tracing + inspection, but more setup
+- **Google Earth Pro**: good for manual tracing, but less repo-friendly than GeoJSON
+- **OSM / Overpass**: useful as a starting footprint, but often too broad or messy by itself
+
 ### Overpass query to get aerodrome boundary
 
 ```bash
