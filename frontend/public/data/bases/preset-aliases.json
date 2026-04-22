@@ -385,5 +385,19 @@
       "eielson alaska"
     ],
     "baseFile": "eielson_afb"
+  },
+  {
+    "id": "jb_elmendorf_richardson",
+    "aliases": [
+      "elmendorf",
+      "jber",
+      "jb elmendorf-richardson",
+      "elmendorf afb",
+      "elmendorf air force base",
+      "paed",
+      "elmendorf alaska",
+      "richardson"
+    ],
+    "baseFile": "jb_elmendorf_richardson"
   }
 ]
