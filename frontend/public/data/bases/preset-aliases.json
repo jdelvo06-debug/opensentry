@@ -223,5 +223,17 @@
       "lakenheath england"
     ],
     "baseFile": "raf_lakenheath"
+  },
+  {
+    "id": "langley_afb",
+    "aliases": [
+      "Langley",
+      "Langley AFB",
+      "Langley Air Force Base",
+      "KLFI",
+      "LFI",
+      "Joint Base Langley-Eustis"
+    ],
+    "baseFile": "langley_afb"
   }
 ]
