@@ -23,6 +23,12 @@ const DEBOUNCE_MS = 300;
 const MIN_QUERY_LENGTH = 2;
 const NOMINATIM_LIMIT = 5;
 
+interface BaseCenterPayload {
+  name?: string;
+  center_lat: number;
+  center_lng: number;
+}
+
 export function useLocationSearch(aliases: AliasEntry[] = []): UseLocationSearchReturn {
   const [query, setQueryState] = useState("");
   const [results, setResults] = useState<LocationSearchResult[]>([]);
@@ -84,6 +90,34 @@ export function useLocationSearch(aliases: AliasEntry[] = []): UseLocationSearch
               presetFile: preset?.baseFile ?? null,
             };
           });
+
+          const directPreset = aliases.length > 0 ? resolvePreset(value, aliases) : null;
+
+          if (
+            directPreset &&
+            !mapped.some((result) => result.presetFile === directPreset.baseFile)
+          ) {
+            try {
+              const presetRes = await fetch(
+                `${import.meta.env.BASE_URL}data/bases/${directPreset.baseFile}.json`,
+                { signal: controller.signal },
+              );
+              if (presetRes.ok) {
+                const presetData = (await presetRes.json()) as BaseCenterPayload;
+                mapped.unshift({
+                  name: presetData.name || directPreset.id,
+                  lat: presetData.center_lat,
+                  lng: presetData.center_lng,
+                  presetId: directPreset.id,
+                  presetFile: directPreset.baseFile,
+                });
+              }
+            } catch (presetErr) {
+              if ((presetErr as Error).name !== "AbortError") {
+                console.warn("[useLocationSearch] Preset fallback load failed:", presetErr);
+              }
+            }
+          }
 
           setResults(mapped);
           setLoading(false);
