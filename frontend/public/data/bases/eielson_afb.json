@@ -1,0 +1,177 @@
+{
+  "id": "eielson_afb",
+  "name": "Eielson AFB",
+  "description": "Eielson Air Force Base, Alaska. Home of the 354th Fighter Wing (F-35A and F-16 Aggressor squadrons). Features North America's second-longest runway at 4,429m (14,530ft), designated 14/32. Key PACAF forward deployment and Red Flag Alaska hub. ICAO: PAEI.",
+  "size": "large",
+  "center_lat": 64.6656,
+  "center_lng": -147.1014,
+  "default_zoom": 13,
+  "boundary": [
+    [
+      -2.0,
+      -1.5
+    ],
+    [
+      -2.0,
+      1.5
+    ],
+    [
+      2.0,
+      1.5
+    ],
+    [
+      2.0,
+      -1.5
+    ]
+  ],
+  "protected_assets": [
+    {
+      "id": "airfield_ops",
+      "name": "Airfield Operations",
+      "x": -0.5,
+      "y": -0.1,
+      "priority": 1
+    },
+    {
+      "id": "main_apron",
+      "name": "Main Apron / Flight Line",
+      "x": -1.0,
+      "y": 0.3,
+      "priority": 2
+    },
+    {
+      "id": "aggressor_sq",
+      "name": "Aggressor Squadron Complex",
+      "x": -0.2,
+      "y": -0.3,
+      "priority": 2
+    }
+  ],
+  "terrain": [
+    {
+      "id": "runway_1432",
+      "type": "runway",
+      "name": "Runway 14/32",
+      "polygon": [
+        [
+          -1.74,
+          1.48
+        ],
+        [
+          -1.97,
+          1.28
+        ],
+        [
+          0.34,
+          -1.48
+        ],
+        [
+          0.57,
+          -1.28
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "atc_tower",
+      "type": "tower",
+      "name": "ATC Tower",
+      "polygon": [
+        [
+          -0.59,
+          -0.09
+        ],
+        [
+          -0.51,
+          -0.09
+        ],
+        [
+          -0.51,
+          -0.01
+        ],
+        [
+          -0.59,
+          -0.01
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 25.0
+    },
+    {
+      "id": "main_hangars",
+      "type": "building",
+      "name": "Main Hangars",
+      "polygon": [
+        [
+          -1.1,
+          0.05
+        ],
+        [
+          -0.9,
+          0.05
+        ],
+        [
+          -0.9,
+          0.65
+        ],
+        [
+          -1.1,
+          0.65
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 14.0
+    },
+    {
+      "id": "support_bldgs",
+      "type": "building",
+      "name": "Support Buildings",
+      "polygon": [
+        [
+          -0.32,
+          -0.5
+        ],
+        [
+          -0.07,
+          -0.5
+        ],
+        [
+          -0.07,
+          -0.1
+        ],
+        [
+          -0.32,
+          -0.1
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 10.0
+    }
+  ],
+  "approach_corridors": [
+    {
+      "name": "Runway NW Approach",
+      "bearing_deg": 320,
+      "width_deg": 18
+    },
+    {
+      "name": "Runway SE Approach",
+      "bearing_deg": 140,
+      "width_deg": 18
+    },
+    {
+      "name": "North Sector",
+      "bearing_deg": 10,
+      "width_deg": 30
+    },
+    {
+      "name": "South Sector",
+      "bearing_deg": 190,
+      "width_deg": 30
+    }
+  ],
+  "max_sensors": 5,
+  "max_effectors": 4,
+  "placement_bounds_km": 2.1
+}

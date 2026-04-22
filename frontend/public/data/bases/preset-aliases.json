@@ -359,5 +359,31 @@
       "misawa aomori"
     ],
     "baseFile": "misawa_ab"
+  },
+  {
+    "id": "jb_pearl_harbor_hickam",
+    "aliases": [
+      "hickam",
+      "hickam afb",
+      "hickam air force base",
+      "jbphh",
+      "pearl harbor hickam",
+      "phik",
+      "phnl",
+      "joint base pearl harbor hickam",
+      "hickam hawaii"
+    ],
+    "baseFile": "jb_pearl_harbor_hickam"
+  },
+  {
+    "id": "eielson_afb",
+    "aliases": [
+      "eielson",
+      "eielson afb",
+      "eielson air force base",
+      "paei",
+      "eielson alaska"
+    ],
+    "baseFile": "eielson_afb"
   }
 ]

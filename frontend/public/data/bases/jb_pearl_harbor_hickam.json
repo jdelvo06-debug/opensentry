@@ -1,0 +1,265 @@
+{
+  "id": "jb_pearl_harbor_hickam",
+  "name": "JB Pearl Harbor-Hickam",
+  "description": "Curated Joint Base Pearl Harbor-Hickam preset for Honolulu, Hawaii, using a simplified open-source aerodrome footprint derived from OSM Relation 2815931 (Daniel K. Inouye International Airport / Hickam AFB complex). PACAF headquarters and 15th Wing. Shared runways with Honolulu International. ICAO: PHIK/PHNL.",
+  "size": "large",
+  "center_lat": 21.318633,
+  "center_lng": -157.926624,
+  "default_zoom": 13,
+  "boundary": [
+    [
+      -2.13,
+      -0.24
+    ],
+    [
+      -1.83,
+      0.45
+    ],
+    [
+      -2.17,
+      0.5
+    ],
+    [
+      -2.15,
+      0.68
+    ],
+    [
+      -2.31,
+      0.75
+    ],
+    [
+      -1.82,
+      1.03
+    ],
+    [
+      -0.75,
+      1.04
+    ],
+    [
+      -0.75,
+      1.26
+    ],
+    [
+      -0.39,
+      1.26
+    ],
+    [
+      -0.38,
+      1.51
+    ],
+    [
+      -0.13,
+      1.56
+    ],
+    [
+      0.02,
+      2.2
+    ],
+    [
+      0.38,
+      2.14
+    ],
+    [
+      0.36,
+      1.85
+    ],
+    [
+      2.54,
+      1.45
+    ],
+    [
+      2.37,
+      0.67
+    ],
+    [
+      0.65,
+      -0.64
+    ],
+    [
+      0.86,
+      -0.89
+    ],
+    [
+      2.0,
+      -0.93
+    ],
+    [
+      2.14,
+      -1.27
+    ],
+    [
+      2.02,
+      -1.61
+    ],
+    [
+      -2.46,
+      -1.64
+    ],
+    [
+      -2.3,
+      -1.62
+    ],
+    [
+      -2.38,
+      -1.26
+    ],
+    [
+      -2.3,
+      -1.01
+    ],
+    [
+      -2.03,
+      -0.99
+    ]
+  ],
+  "protected_assets": [
+    {
+      "id": "airfield_ops",
+      "name": "Airfield Operations",
+      "x": 0.0,
+      "y": -0.05,
+      "priority": 1
+    },
+    {
+      "id": "hickam_apron",
+      "name": "Hickam Apron / Flight Line",
+      "x": -0.1,
+      "y": 0.25,
+      "priority": 2
+    },
+    {
+      "id": "pacaf_hq",
+      "name": "PACAF HQ Complex",
+      "x": -0.5,
+      "y": 0.5,
+      "priority": 1
+    }
+  ],
+  "terrain": [
+    {
+      "id": "runway_8r26l",
+      "type": "runway",
+      "name": "Runway 8R/26L",
+      "polygon": [
+        [
+          -2.09,
+          0.75
+        ],
+        [
+          -2.04,
+          0.49
+        ],
+        [
+          2.29,
+          1.25
+        ],
+        [
+          2.24,
+          1.51
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "atc_tower",
+      "type": "tower",
+      "name": "ATC Tower",
+      "polygon": [
+        [
+          -0.04,
+          -0.09
+        ],
+        [
+          0.04,
+          -0.09
+        ],
+        [
+          0.04,
+          -0.01
+        ],
+        [
+          -0.04,
+          -0.01
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 30.0
+    },
+    {
+      "id": "hickam_hangars",
+      "type": "building",
+      "name": "Hickam Hangar Row",
+      "polygon": [
+        [
+          -0.41,
+          0.35
+        ],
+        [
+          -0.38,
+          0.15
+        ],
+        [
+          0.21,
+          0.25
+        ],
+        [
+          0.18,
+          0.45
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 14.0
+    },
+    {
+      "id": "hq_bldgs",
+      "type": "building",
+      "name": "HQ / Support Buildings",
+      "polygon": [
+        [
+          -0.65,
+          0.25
+        ],
+        [
+          -0.35,
+          0.25
+        ],
+        [
+          -0.35,
+          0.75
+        ],
+        [
+          -0.65,
+          0.75
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 12.0
+    }
+  ],
+  "approach_corridors": [
+    {
+      "name": "Runway East Approach",
+      "bearing_deg": 80,
+      "width_deg": 18
+    },
+    {
+      "name": "Runway West Approach",
+      "bearing_deg": 260,
+      "width_deg": 18
+    },
+    {
+      "name": "North Sector",
+      "bearing_deg": 350,
+      "width_deg": 30
+    },
+    {
+      "name": "South Sector (Sea)",
+      "bearing_deg": 170,
+      "width_deg": 30
+    }
+  ],
+  "max_sensors": 5,
+  "max_effectors": 4,
+  "placement_bounds_km": 2.7
+}
