@@ -335,5 +335,29 @@
       "base aerea 4"
     ],
     "baseFile": "lajes_field"
+  },
+  {
+    "id": "yokota_ab",
+    "aliases": [
+      "yokota",
+      "yokota ab",
+      "yokota air base",
+      "rjty",
+      "yokota japan",
+      "yokota tokyo"
+    ],
+    "baseFile": "yokota_ab"
+  },
+  {
+    "id": "misawa_ab",
+    "aliases": [
+      "misawa",
+      "misawa ab",
+      "misawa air base",
+      "rjsm",
+      "misawa japan",
+      "misawa aomori"
+    ],
+    "baseFile": "misawa_ab"
   }
 ]
