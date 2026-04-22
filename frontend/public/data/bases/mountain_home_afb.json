@@ -3,80 +3,175 @@
   "name": "Mountain Home AFB",
   "description": "Mountain Home Air Force Base, Idaho. Home of the 366th Fighter Wing (Gunfighters). F-15E Strike Eagle training and deployment hub in the western US. ICAO: KMUO.",
   "size": "large",
-  "max_sensors": 5,
-  "max_effectors": 4,
-  "center": [
-    43.04095,
-    -115.866525
-  ],
+  "center_lat": 43.04095,
+  "center_lng": -115.866525,
+  "default_zoom": 14,
   "boundary": [
     [
-      43.057586,
-      -115.894441
+      1.85,
+      -2.26
     ],
     [
-      43.051681,
-      -115.887559
+      1.19,
+      -1.71
     ],
     [
-      43.033203,
-      -115.887788
+      -0.86,
+      -1.72
     ],
     [
-      43.033176,
-      -115.862542
+      -0.86,
+      0.32
     ],
     [
-      43.026883,
-      -115.854889
+      -1.56,
+      0.94
     ],
     [
-      43.0267,
-      -115.850024
+      -1.58,
+      1.34
     ],
     [
-      43.024886,
-      -115.847279
+      -1.78,
+      1.56
     ],
     [
-      43.024836,
-      -115.836563
+      -1.79,
+      2.43
     ],
     [
-      43.038991,
-      -115.836775
+      -0.22,
+      2.41
     ],
     [
-      43.041986,
-      -115.850293
+      0.11,
+      1.32
     ],
     [
-      43.041343,
-      -115.858104
+      0.04,
+      0.68
     ],
     [
-      43.05555,
-      -115.876386
+      1.62,
+      -0.8
     ],
     [
-      43.056851,
-      -115.874476
+      1.77,
+      -0.65
     ],
     [
-      43.059971,
-      -115.880162
+      2.11,
+      -1.11
     ],
     [
-      43.061931,
-      -115.88823
+      2.33,
+      -1.76
     ],
     [
-      43.057586,
-      -115.894441
+      1.85,
+      -2.26
     ]
   ],
-  "area_km2": 19.4,
-  "source": "OSM way 611704312",
+  "protected_assets": [
+    {
+      "id": "airfield_ops",
+      "name": "Airfield Operations",
+      "x": 0.0,
+      "y": -0.18,
+      "priority": 1
+    },
+    {
+      "id": "main_apron",
+      "name": "Main Apron / Flight Line",
+      "x": 0.45,
+      "y": 0.25,
+      "priority": 2
+    },
+    {
+      "id": "support_area",
+      "name": "Support Area",
+      "x": -0.65,
+      "y": -0.45,
+      "priority": 2
+    }
+  ],
+  "terrain": [
+    {
+      "id": "runway",
+      "type": "runway",
+      "name": "Main Runway",
+      "polygon": [
+        [
+          -1.8,
+          -0.08
+        ],
+        [
+          -1.8,
+          0.08
+        ],
+        [
+          1.8,
+          0.08
+        ],
+        [
+          1.8,
+          -0.08
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "atc_tower",
+      "type": "tower",
+      "name": "ATC Tower",
+      "polygon": [
+        [
+          -0.15,
+          -0.15
+        ],
+        [
+          -0.15,
+          -0.05
+        ],
+        [
+          -0.05,
+          -0.05
+        ],
+        [
+          -0.05,
+          -0.15
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 45
+    }
+  ],
+  "approach_corridors": [
+    {
+      "name": "Approach North",
+      "angle": 0,
+      "width": 30
+    },
+    {
+      "name": "Approach South",
+      "angle": 180,
+      "width": 30
+    },
+    {
+      "name": "Approach East",
+      "angle": 90,
+      "width": 20
+    },
+    {
+      "name": "Approach West",
+      "angle": 270,
+      "width": 20
+    }
+  ],
+  "max_sensors": 5,
+  "max_effectors": 4,
+  "placement_bounds_km": 2.5,
   "icao": "KMUO",
   "country": "US"
 }

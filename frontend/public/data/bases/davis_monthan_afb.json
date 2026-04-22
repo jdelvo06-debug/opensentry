@@ -3,32 +3,127 @@
   "name": "Davis-Monthan AFB",
   "description": "Davis-Monthan Air Force Base, Arizona. Home of the 355th Wing and AMARG (309th Aerospace Maintenance and Regeneration Group). A-10C Warthog training and the famous aircraft boneyard. ICAO: KDMA.",
   "size": "large",
-  "max_sensors": 5,
-  "max_effectors": 4,
-  "center": [
-    32.165,
-    -110.845
-  ],
+  "center_lat": 32.165,
+  "center_lng": -110.845,
+  "default_zoom": 14,
   "boundary": [
     [
-      32.155,
-      -110.87
+      -1.11,
+      -2.35
     ],
     [
-      32.155,
-      -110.82
+      -1.11,
+      2.35
     ],
     [
-      32.175,
-      -110.82
+      1.11,
+      2.35
     ],
     [
-      32.175,
-      -110.87
+      1.11,
+      -2.35
     ]
   ],
-  "area_km2": 10.4,
-  "source": "approximate (no OSM aerodrome boundary)",
+  "protected_assets": [
+    {
+      "id": "airfield_ops",
+      "name": "Airfield Operations",
+      "x": 0.0,
+      "y": -0.18,
+      "priority": 1
+    },
+    {
+      "id": "main_apron",
+      "name": "Main Apron / Flight Line",
+      "x": 0.45,
+      "y": 0.25,
+      "priority": 2
+    },
+    {
+      "id": "support_area",
+      "name": "Support Area",
+      "x": -0.65,
+      "y": -0.45,
+      "priority": 2
+    }
+  ],
+  "terrain": [
+    {
+      "id": "runway",
+      "type": "runway",
+      "name": "Main Runway",
+      "polygon": [
+        [
+          -1.8,
+          -0.08
+        ],
+        [
+          -1.8,
+          0.08
+        ],
+        [
+          1.8,
+          0.08
+        ],
+        [
+          1.8,
+          -0.08
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "atc_tower",
+      "type": "tower",
+      "name": "ATC Tower",
+      "polygon": [
+        [
+          -0.15,
+          -0.15
+        ],
+        [
+          -0.15,
+          -0.05
+        ],
+        [
+          -0.05,
+          -0.05
+        ],
+        [
+          -0.05,
+          -0.15
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 45
+    }
+  ],
+  "approach_corridors": [
+    {
+      "name": "Approach North",
+      "angle": 0,
+      "width": 30
+    },
+    {
+      "name": "Approach South",
+      "angle": 180,
+      "width": 30
+    },
+    {
+      "name": "Approach East",
+      "angle": 90,
+      "width": 20
+    },
+    {
+      "name": "Approach West",
+      "angle": 270,
+      "width": 20
+    }
+  ],
+  "max_sensors": 5,
+  "max_effectors": 4,
+  "placement_bounds_km": 2.5,
   "icao": "KDMA",
   "country": "US",
   "note": "Boundary is approximate box \u2014 could be improved with satellite tracing."

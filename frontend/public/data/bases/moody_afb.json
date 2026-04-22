@@ -3,32 +3,127 @@
   "name": "Moody AFB",
   "description": "Moody Air Force Base, Georgia. Home of the 23rd Wing (Flying Tigers). A-10C Warthog close air support and HC-130J combat search and rescue operations. ICAO: KVAD.",
   "size": "medium",
-  "max_sensors": 4,
-  "max_effectors": 3,
-  "center": [
-    30.97,
-    -83.195
-  ],
+  "center_lat": 30.97,
+  "center_lng": -83.195,
+  "default_zoom": 14,
   "boundary": [
     [
-      30.961,
-      -83.21
+      -1.0,
+      -1.43
     ],
     [
-      30.961,
-      -83.18
+      -1.0,
+      1.43
     ],
     [
-      30.979,
-      -83.18
+      1.0,
+      1.43
     ],
     [
-      30.979,
-      -83.21
+      1.0,
+      -1.43
     ]
   ],
-  "area_km2": 5.7,
-  "source": "approximate (no OSM aerodrome boundary)",
+  "protected_assets": [
+    {
+      "id": "airfield_ops",
+      "name": "Airfield Operations",
+      "x": 0.0,
+      "y": -0.18,
+      "priority": 1
+    },
+    {
+      "id": "main_apron",
+      "name": "Main Apron / Flight Line",
+      "x": 0.45,
+      "y": 0.25,
+      "priority": 2
+    },
+    {
+      "id": "support_area",
+      "name": "Support Area",
+      "x": -0.65,
+      "y": -0.45,
+      "priority": 2
+    }
+  ],
+  "terrain": [
+    {
+      "id": "runway",
+      "type": "runway",
+      "name": "Main Runway",
+      "polygon": [
+        [
+          -1.8,
+          -0.08
+        ],
+        [
+          -1.8,
+          0.08
+        ],
+        [
+          1.8,
+          0.08
+        ],
+        [
+          1.8,
+          -0.08
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "atc_tower",
+      "type": "tower",
+      "name": "ATC Tower",
+      "polygon": [
+        [
+          -0.15,
+          -0.15
+        ],
+        [
+          -0.15,
+          -0.05
+        ],
+        [
+          -0.05,
+          -0.05
+        ],
+        [
+          -0.05,
+          -0.15
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 45
+    }
+  ],
+  "approach_corridors": [
+    {
+      "name": "Approach North",
+      "angle": 0,
+      "width": 30
+    },
+    {
+      "name": "Approach South",
+      "angle": 180,
+      "width": 30
+    },
+    {
+      "name": "Approach East",
+      "angle": 90,
+      "width": 20
+    },
+    {
+      "name": "Approach West",
+      "angle": 270,
+      "width": 20
+    }
+  ],
+  "max_sensors": 4,
+  "max_effectors": 3,
+  "placement_bounds_km": 2.0,
   "icao": "KVAD",
   "country": "US",
   "note": "Boundary is approximate box \u2014 could be improved with satellite tracing."

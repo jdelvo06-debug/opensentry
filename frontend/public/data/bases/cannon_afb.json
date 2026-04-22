@@ -3,32 +3,127 @@
   "name": "Cannon AFB",
   "description": "Cannon Air Force Base, New Mexico. Home of the 27th Special Operations Wing. AC-130J, MC-130J, CV-22B, and MQ-9 operations under AFSOC. ICAO: KCVS.",
   "size": "medium",
-  "max_sensors": 4,
-  "max_effectors": 3,
-  "center": [
-    34.383,
-    -103.322
-  ],
+  "center_lat": 34.383,
+  "center_lng": -103.322,
+  "default_zoom": 14,
   "boundary": [
     [
-      34.372,
-      -103.338
+      -1.22,
+      -1.47
     ],
     [
-      34.372,
-      -103.306
+      -1.22,
+      1.47
     ],
     [
-      34.394,
-      -103.306
+      1.22,
+      1.47
     ],
     [
-      34.394,
-      -103.338
+      1.22,
+      -1.47
     ]
   ],
-  "area_km2": 7.2,
-  "source": "approximate (no OSM aerodrome boundary)",
+  "protected_assets": [
+    {
+      "id": "airfield_ops",
+      "name": "Airfield Operations",
+      "x": 0.0,
+      "y": -0.18,
+      "priority": 1
+    },
+    {
+      "id": "main_apron",
+      "name": "Main Apron / Flight Line",
+      "x": 0.45,
+      "y": 0.25,
+      "priority": 2
+    },
+    {
+      "id": "support_area",
+      "name": "Support Area",
+      "x": -0.65,
+      "y": -0.45,
+      "priority": 2
+    }
+  ],
+  "terrain": [
+    {
+      "id": "runway",
+      "type": "runway",
+      "name": "Main Runway",
+      "polygon": [
+        [
+          -1.8,
+          -0.08
+        ],
+        [
+          -1.8,
+          0.08
+        ],
+        [
+          1.8,
+          0.08
+        ],
+        [
+          1.8,
+          -0.08
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "atc_tower",
+      "type": "tower",
+      "name": "ATC Tower",
+      "polygon": [
+        [
+          -0.15,
+          -0.15
+        ],
+        [
+          -0.15,
+          -0.05
+        ],
+        [
+          -0.05,
+          -0.05
+        ],
+        [
+          -0.05,
+          -0.15
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 45
+    }
+  ],
+  "approach_corridors": [
+    {
+      "name": "Approach North",
+      "angle": 0,
+      "width": 30
+    },
+    {
+      "name": "Approach South",
+      "angle": 180,
+      "width": 30
+    },
+    {
+      "name": "Approach East",
+      "angle": 90,
+      "width": 20
+    },
+    {
+      "name": "Approach West",
+      "angle": 270,
+      "width": 20
+    }
+  ],
+  "max_sensors": 4,
+  "max_effectors": 3,
+  "placement_bounds_km": 2.0,
   "icao": "KCVS",
   "country": "US",
   "note": "Boundary is approximate box \u2014 could be improved with satellite tracing."

@@ -3,32 +3,127 @@
   "name": "Muwaffaq Salti AB",
   "description": "Muwaffaq Salti Air Base (MSAB), Azraq, Jordan. Primary AFCENT forward operating location for F-16 deployment in the Levant. Named after Jordanian pilot Muwaffaq Salti. Key US partner force training and regional contingency hub. ICAO: OJAI.",
   "size": "medium",
-  "max_sensors": 4,
-  "max_effectors": 3,
-  "center": [
-    31.823,
-    36.782
-  ],
+  "center_lat": 31.823,
+  "center_lng": 36.782,
+  "default_zoom": 14,
   "boundary": [
     [
-      31.811,
-      36.764
+      -1.33,
+      -1.7
     ],
     [
-      31.811,
-      36.8
+      -1.33,
+      1.7
     ],
     [
-      31.835,
-      36.8
+      1.33,
+      1.7
     ],
     [
-      31.835,
-      36.764
+      1.33,
+      -1.7
     ]
   ],
-  "area_km2": 9.2,
-  "source": "approximate (no OSM aerodrome boundary)",
+  "protected_assets": [
+    {
+      "id": "airfield_ops",
+      "name": "Airfield Operations",
+      "x": 0.0,
+      "y": -0.18,
+      "priority": 1
+    },
+    {
+      "id": "main_apron",
+      "name": "Main Apron / Flight Line",
+      "x": 0.45,
+      "y": 0.25,
+      "priority": 2
+    },
+    {
+      "id": "support_area",
+      "name": "Support Area",
+      "x": -0.65,
+      "y": -0.45,
+      "priority": 2
+    }
+  ],
+  "terrain": [
+    {
+      "id": "runway",
+      "type": "runway",
+      "name": "Main Runway",
+      "polygon": [
+        [
+          -1.8,
+          -0.08
+        ],
+        [
+          -1.8,
+          0.08
+        ],
+        [
+          1.8,
+          0.08
+        ],
+        [
+          1.8,
+          -0.08
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "atc_tower",
+      "type": "tower",
+      "name": "ATC Tower",
+      "polygon": [
+        [
+          -0.15,
+          -0.15
+        ],
+        [
+          -0.15,
+          -0.05
+        ],
+        [
+          -0.05,
+          -0.05
+        ],
+        [
+          -0.05,
+          -0.15
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 45
+    }
+  ],
+  "approach_corridors": [
+    {
+      "name": "Approach North",
+      "angle": 0,
+      "width": 30
+    },
+    {
+      "name": "Approach South",
+      "angle": 180,
+      "width": 30
+    },
+    {
+      "name": "Approach East",
+      "angle": 90,
+      "width": 20
+    },
+    {
+      "name": "Approach West",
+      "angle": 270,
+      "width": 20
+    }
+  ],
+  "max_sensors": 4,
+  "max_effectors": 3,
+  "placement_bounds_km": 2.0,
   "icao": "OJAI",
   "country": "JO",
   "note": "Boundary is approximate box \u2014 no OSM aerodrome way available. Could be improved with satellite tracing."

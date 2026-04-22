@@ -3,84 +3,178 @@
   "name": "Ali Al Salem AB",
   "description": "Ali Al Salem Air Base, Kuwait. Major AFCENT hub for coalition air operations in the CENTCOM AOR. Home to rotating fighter and expeditionary squadrons. Former 386th AEW host. ICAO: OKAS.",
   "size": "large",
-  "max_sensors": 5,
-  "max_effectors": 4,
-  "center": [
-    29.348209,
-    47.519799
-  ],
+  "center_lat": 29.348209,
+  "center_lng": 47.519799,
+  "default_zoom": 14,
   "boundary": [
     [
-      29.345467,
-      47.487095
+      -0.3,
+      -3.16
     ],
     [
-      29.362915,
-      47.499048
+      1.63,
+      -2.01
     ],
     [
-      29.369744,
-      47.508064
+      2.39,
+      -1.14
     ],
     [
-      29.370442,
-      47.511189
+      2.47,
+      -0.83
     ],
     [
-      29.367769,
-      47.520293
+      2.17,
+      0.05
     ],
     [
-      29.359046,
-      47.536927
+      1.2,
+      1.66
     ],
     [
-      29.351145,
-      47.54966
+      0.33,
+      2.89
     ],
     [
-      29.348424,
-      47.550507
+      0.02,
+      2.97
     ],
     [
-      29.334124,
-      47.544891
+      -1.56,
+      2.43
     ],
     [
-      29.327736,
-      47.540639
+      -2.27,
+      2.02
     ],
     [
-      29.333587,
-      47.528744
+      -1.62,
+      0.87
     ],
     [
-      29.32719,
-      47.525225
+      -2.33,
+      0.52
     ],
     [
-      29.328218,
-      47.52265
+      -2.22,
+      0.28
     ],
     [
-      29.331099,
-      47.518272
+      -1.9,
+      -0.15
     ],
     [
-      29.329173,
-      47.517199
+      -2.11,
+      -0.25
     ],
     [
-      29.344437,
-      47.487459
+      -0.42,
+      -3.13
     ],
     [
-      29.345467,
-      47.487095
+      -0.3,
+      -3.16
     ]
   ],
-  "area_km2": 29.5,
-  "source": "OSM way 112321226",
-  "icao": "OKAS",
-  "country": ""
+  "protected_assets": [
+    {
+      "id": "airfield_ops",
+      "name": "Airfield Operations",
+      "x": 0.0,
+      "y": -0.18,
+      "priority": 1
+    },
+    {
+      "id": "main_apron",
+      "name": "Main Apron / Flight Line",
+      "x": 0.45,
+      "y": 0.25,
+      "priority": 2
+    },
+    {
+      "id": "support_area",
+      "name": "Support Area",
+      "x": -0.65,
+      "y": -0.45,
+      "priority": 2
+    }
+  ],
+  "terrain": [
+    {
+      "id": "runway",
+      "type": "runway",
+      "name": "Main Runway",
+      "polygon": [
+        [
+          -1.8,
+          -0.08
+        ],
+        [
+          -1.8,
+          0.08
+        ],
+        [
+          1.8,
+          0.08
+        ],
+        [
+          1.8,
+          -0.08
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "atc_tower",
+      "type": "tower",
+      "name": "ATC Tower",
+      "polygon": [
+        [
+          -0.15,
+          -0.15
+        ],
+        [
+          -0.15,
+          -0.05
+        ],
+        [
+          -0.05,
+          -0.05
+        ],
+        [
+          -0.05,
+          -0.15
+        ]
+      ],
+      "blocks_los": true,
+      "height_m": 45
+    }
+  ],
+  "approach_corridors": [
+    {
+      "name": "Approach North",
+      "angle": 0,
+      "width": 30
+    },
+    {
+      "name": "Approach South",
+      "angle": 180,
+      "width": 30
+    },
+    {
+      "name": "Approach East",
+      "angle": 90,
+      "width": 20
+    },
+    {
+      "name": "Approach West",
+      "angle": 270,
+      "width": 20
+    }
+  ],
+  "max_sensors": 5,
+  "max_effectors": 4,
+  "placement_bounds_km": 2.5,
+  "icao": "OKAS"
 }
