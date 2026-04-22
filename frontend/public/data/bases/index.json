@@ -1,8 +1,24 @@
 [
   {
+    "id": "al_dhafra_ab",
+    "name": "Al Dhafra AB",
+    "description": "Al Dhafra Air Base, UAE. Home of the 380th AEW. Key AFCENT power projection hub for CENTCOM operations.",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
+  },
+  {
     "id": "al_udeid_ab",
     "name": "Al Udeid Air Base",
     "description": "Curated Al Udeid Air Base preset for Doha, Qatar. Simplified polygon derived from OSM Way 245526659 (aeroway=aerodrome b",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
+  },
+  {
+    "id": "ali_al_salem_ab",
+    "name": "Ali Al Salem AB",
+    "description": "Ali Al Salem Air Base, Kuwait. Major AFCENT hub for coalition air operations in the CENTCOM AOR.",
     "size": "large",
     "max_sensors": 5,
     "max_effectors": 4
@@ -16,12 +32,28 @@
     "max_effectors": 4
   },
   {
+    "id": "aviano_ab",
+    "name": "Aviano Air Base",
+    "description": "Curated Aviano Air Base preset for the Friuli-Venezia Giulia region of northeastern Italy, using a simplified open-sourc",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
     "id": "barksdale_afb",
     "name": "Barksdale Air Force Base",
     "description": "Curated Barksdale Air Force Base preset for Bossier City, Louisiana, USA. Simplified polygon derived from OSM runway 15/",
     "size": "large",
     "max_sensors": 6,
     "max_effectors": 4
+  },
+  {
+    "id": "creech_afb",
+    "name": "Creech Air Force Base",
+    "description": "Curated Creech Air Force Base preset for Indian Springs, Nevada, USA, using a simplified open-source aerodrome footprint",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
   },
   {
     "id": "eielson_afb",
@@ -38,6 +70,22 @@
     "size": "large",
     "max_sensors": 5,
     "max_effectors": 4
+  },
+  {
+    "id": "geilenkirchen_ab",
+    "name": "Geilenkirchen AB",
+    "description": "Curated NATO Air Base Geilenkirchen preset for North Rhine-Westphalia, Germany, using a simplified open-source aerodrome",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "incirlik_ab",
+    "name": "Incirlik Air Base",
+    "description": "Incirlik AB, Turkey \u2014 39th Air Base Wing, strategic NATO hub",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
   },
   {
     "id": "jb_elmendorf_richardson",
@@ -62,62 +110,6 @@
     "size": "large",
     "max_sensors": 5,
     "max_effectors": 4
-  },
-  {
-    "id": "nellis_afb",
-    "name": "Nellis Air Force Base",
-    "description": "Curated Nellis Air Force Base preset for Las Vegas, Nevada, USA. Simplified aerodrome boundary derived from OSM Way 1625",
-    "size": "large",
-    "max_sensors": 5,
-    "max_effectors": 4
-  },
-  {
-    "id": "prince_sultan_ab",
-    "name": "Prince Sultan Air Base",
-    "description": "Curated Prince Sultan Air Base preset for Al Kharj, Saudi Arabia, using a simplified open-source aerodrome footprint der",
-    "size": "large",
-    "max_sensors": 5,
-    "max_effectors": 4
-  },
-  {
-    "id": "tyndall_afb",
-    "name": "Tyndall Air Force Base",
-    "description": "Curated Tyndall Air Force Base preset for the Panama City, Florida, USA area. Simplified polygon derived from OSM Way 33",
-    "size": "large",
-    "max_sensors": 5,
-    "max_effectors": 4
-  },
-  {
-    "id": "aviano_ab",
-    "name": "Aviano Air Base",
-    "description": "Curated Aviano Air Base preset for the Friuli-Venezia Giulia region of northeastern Italy, using a simplified open-sourc",
-    "size": "medium",
-    "max_sensors": 4,
-    "max_effectors": 3
-  },
-  {
-    "id": "creech_afb",
-    "name": "Creech Air Force Base",
-    "description": "Curated Creech Air Force Base preset for Indian Springs, Nevada, USA, using a simplified open-source aerodrome footprint",
-    "size": "medium",
-    "max_sensors": 4,
-    "max_effectors": 3
-  },
-  {
-    "id": "geilenkirchen_ab",
-    "name": "Geilenkirchen AB",
-    "description": "Curated NATO Air Base Geilenkirchen preset for North Rhine-Westphalia, Germany, using a simplified open-source aerodrome",
-    "size": "medium",
-    "max_sensors": 4,
-    "max_effectors": 3
-  },
-  {
-    "id": "incirlik_ab",
-    "name": "Incirlik Air Base",
-    "description": "Incirlik AB, Turkey \u2014 39th Air Base Wing, strategic NATO hub",
-    "size": "medium",
-    "max_sensors": 4,
-    "max_effectors": 3
   },
   {
     "id": "kunsan_ab",
@@ -152,9 +144,25 @@
     "max_effectors": 3
   },
   {
+    "id": "large_installation",
+    "name": "Large Installation",
+    "description": "Major military installation with multiple protected assets and a wide perimeter. Complex terrain requires careful sensor placement.",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
+  },
+  {
     "id": "mcentire_jngb",
     "name": "McEntire Joint National Guard Base",
     "description": "Curated McEntire Joint National Guard Base preset for Richland County, South Carolina, USA, using a simplified open-sour",
+    "size": "medium",
+    "max_sensors": 4,
+    "max_effectors": 3
+  },
+  {
+    "id": "medium_airbase",
+    "name": "Medium Airbase",
+    "description": "Regional airbase with runway, hangars, and flight line. ATC tower is the primary protected asset.",
     "size": "medium",
     "max_sensors": 4,
     "max_effectors": 3
@@ -184,12 +192,28 @@
     "max_effectors": 3
   },
   {
+    "id": "nellis_afb",
+    "name": "Nellis Air Force Base",
+    "description": "Curated Nellis Air Force Base preset for Las Vegas, Nevada, USA. Simplified aerodrome boundary derived from OSM Way 1625",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
+  },
+  {
     "id": "osan_ab",
     "name": "Osan Air Base",
     "description": "Curated Osan Air Base preset for Pyeongtaek, South Korea, using a simplified open-source aerodrome footprint instead of ",
     "size": "medium",
     "max_sensors": 4,
     "max_effectors": 3
+  },
+  {
+    "id": "prince_sultan_ab",
+    "name": "Prince Sultan Air Base",
+    "description": "Curated Prince Sultan Air Base preset for Al Kharj, Saudi Arabia, using a simplified open-source aerodrome footprint der",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "raf_fairford",
@@ -240,12 +264,28 @@
     "max_effectors": 3
   },
   {
+    "id": "small_fob",
+    "name": "Small FOB",
+    "description": "Compact forward operating base with tight perimeter. Limited entry points and short sight lines.",
+    "size": "small",
+    "max_sensors": 3,
+    "max_effectors": 2
+  },
+  {
     "id": "spangdahlem_ab",
     "name": "Spangdahlem Air Base",
     "description": "Curated Spangdahlem Air Base preset for Rhineland-Palatinate, Germany, using a simplified open-source aerodrome footprin",
     "size": "medium",
     "max_sensors": 4,
     "max_effectors": 3
+  },
+  {
+    "id": "tyndall_afb",
+    "name": "Tyndall Air Force Base",
+    "description": "Curated Tyndall Air Force Base preset for the Panama City, Florida, USA area. Simplified polygon derived from OSM Way 33",
+    "size": "large",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "volkel_ab",
@@ -262,29 +302,5 @@
     "size": "medium",
     "max_sensors": 4,
     "max_effectors": 3
-  },
-  {
-    "id": "large_installation",
-    "name": "Large Installation",
-    "description": "Major military installation with multiple protected assets and a wide perimeter. Complex terrain requires careful sensor placement.",
-    "size": "large",
-    "max_sensors": 5,
-    "max_effectors": 4
-  },
-  {
-    "id": "medium_airbase",
-    "name": "Medium Airbase",
-    "description": "Regional airbase with runway, hangars, and flight line. ATC tower is the primary protected asset.",
-    "size": "medium",
-    "max_sensors": 4,
-    "max_effectors": 3
-  },
-  {
-    "id": "small_fob",
-    "name": "Small FOB",
-    "description": "Compact forward operating base with tight perimeter. Limited entry points and short sight lines.",
-    "size": "small",
-    "max_sensors": 3,
-    "max_effectors": 2
   }
 ]

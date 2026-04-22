@@ -273,14 +273,14 @@
     "id": "moron_ab",
     "aliases": [
       "moron",
-      "morón",
+      "mor\u00f3n",
       "moron ab",
-      "morón ab",
+      "mor\u00f3n ab",
       "moron air base",
-      "morón air base",
+      "mor\u00f3n air base",
       "lemo",
       "moron spain",
-      "morón spain"
+      "mor\u00f3n spain"
     ],
     "baseFile": "moron_ab"
   },
@@ -399,5 +399,32 @@
       "richardson"
     ],
     "baseFile": "jb_elmendorf_richardson"
+  },
+  {
+    "id": "ali_al_salem_ab",
+    "aliases": [
+      "ali al salem",
+      "al salem",
+      "salem",
+      "okas",
+      "ali al salem ab",
+      "ali al salem air base",
+      "camp salem",
+      "a Salem"
+    ],
+    "baseFile": "ali_al_salem_ab"
+  },
+  {
+    "id": "al_dhafra_ab",
+    "aliases": [
+      "al dhafra",
+      "dhafra",
+      "omam",
+      "al dhafra ab",
+      "al dhafra air base",
+      "380th aew",
+      "dhafra air base"
+    ],
+    "baseFile": "al_dhafra_ab"
   }
 ]

@@ -1,0 +1,86 @@
+{
+  "id": "ali_al_salem_ab",
+  "name": "Ali Al Salem AB",
+  "description": "Ali Al Salem Air Base, Kuwait. Major AFCENT hub for coalition air operations in the CENTCOM AOR. Home to rotating fighter and expeditionary squadrons. Former 386th AEW host. ICAO: OKAS.",
+  "size": "large",
+  "max_sensors": 5,
+  "max_effectors": 4,
+  "center": [
+    29.348209,
+    47.519799
+  ],
+  "boundary": [
+    [
+      29.345467,
+      47.487095
+    ],
+    [
+      29.362915,
+      47.499048
+    ],
+    [
+      29.369744,
+      47.508064
+    ],
+    [
+      29.370442,
+      47.511189
+    ],
+    [
+      29.367769,
+      47.520293
+    ],
+    [
+      29.359046,
+      47.536927
+    ],
+    [
+      29.351145,
+      47.54966
+    ],
+    [
+      29.348424,
+      47.550507
+    ],
+    [
+      29.334124,
+      47.544891
+    ],
+    [
+      29.327736,
+      47.540639
+    ],
+    [
+      29.333587,
+      47.528744
+    ],
+    [
+      29.32719,
+      47.525225
+    ],
+    [
+      29.328218,
+      47.52265
+    ],
+    [
+      29.331099,
+      47.518272
+    ],
+    [
+      29.329173,
+      47.517199
+    ],
+    [
+      29.344437,
+      47.487459
+    ],
+    [
+      29.345467,
+      47.487095
+    ]
+  ],
+  "area_km2": 29.5,
+  "source": "OSM way 112321226",
+  "icao": "OKAS",
+  "country": ""
+}
