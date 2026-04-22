@@ -52,23 +52,6 @@ function createRingLabel(
   });
 }
 
-// ─── Leaflet icon for protected assets ──────────────────────────────────────
-
-function createAssetIcon(priority: number): L.DivIcon {
-  const color =
-    priority === 1
-      ? COLORS.danger
-      : priority === 2
-        ? COLORS.warning
-        : COLORS.muted;
-  return L.divIcon({
-    html: `<div style="font-size:16px;color:${color};text-shadow:0 0 4px rgba(0,0,0,0.8);text-align:center;line-height:1;">&#9733;</div>`,
-    className: "",
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
-  });
-}
-
 // ─── FlyTo component ────────────────────────────────────────────────────────
 
 function MapFlyTo({ lat, lng, zoom }: { lat: number; lng: number; zoom?: number }) {
@@ -532,22 +515,6 @@ export default function BdaPlacement({
     );
   }, [baseTemplate.boundary, baseLat, baseLng]);
 
-  const terrainFeatures = useMemo(() => {
-    if (!baseTemplate.terrain?.length) return [];
-    return baseTemplate.terrain.map((t) => ({
-      ...t,
-      positions: t.polygon.map(([x, y]) => gameXYToLatLng(x, y, baseLat, baseLng)),
-    }));
-  }, [baseTemplate.terrain, baseLat, baseLng]);
-
-  const assetPositions = useMemo(() => {
-    if (!baseTemplate.protected_assets?.length) return [];
-    return baseTemplate.protected_assets.map((a) => ({
-      ...a,
-      position: gameXYToLatLng(a.x, a.y, baseLat, baseLng) as [number, number],
-    }));
-  }, [baseTemplate.protected_assets, baseLat, baseLng]);
-
   const corridorLines = useMemo(() => {
     if (!baseTemplate.approach_corridors?.length) return [];
     const center: [number, number] = [baseLat, baseLng];
@@ -723,30 +690,6 @@ export default function BdaPlacement({
               boundary={boundary}
               onBoundaryChange={onBoundaryChange}
             />
-
-            {/* Terrain features */}
-            {terrainFeatures.map((t) => (
-              <Polygon
-                key={t.id}
-                positions={t.positions}
-                pathOptions={{
-                  color: t.blocks_los ? COLORS.warning : COLORS.muted,
-                  fillColor: t.blocks_los ? COLORS.warning : COLORS.muted,
-                  fillOpacity: t.blocks_los ? 0.15 : 0.08,
-                  weight: 1,
-                }}
-              />
-            ))}
-
-            {/* Protected assets */}
-            {assetPositions.map((a) => (
-              <Marker
-                key={a.id}
-                position={a.position}
-                icon={createAssetIcon(a.priority)}
-                interactive={false}
-              />
-            ))}
 
             {/* Approach corridors */}
             {corridorLines.map((c) => (

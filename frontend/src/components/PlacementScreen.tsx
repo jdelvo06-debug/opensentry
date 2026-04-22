@@ -23,7 +23,6 @@ import type {
 import {
   gameXYToLatLng,
   latLngToGameXY,
-  gamePolygonToLatLng,
   getBaseCenter,
 } from "../utils/coordinates";
 import { customPresetIdForName } from "../utils/baseSlug";
@@ -104,32 +103,8 @@ function createRingLabel(name: string, rangeKm: number, color: string): L.DivIco
   });
 }
 
-const TERRAIN_STYLES: Record<string, { fill: string; stroke: string }> = {
-  building: { fill: "#30363d", stroke: "#484f58" },
-  tower: { fill: "#484f58", stroke: "#8b949e" },
-  berm: { fill: "#2d1f00", stroke: "#6e4b00" },
-  treeline: { fill: "#0d2818", stroke: "#1a5c30" },
-  runway: { fill: "#1c2333", stroke: "#30363d" },
-};
-
-const PRIORITY_COLORS: Record<number, string> = {
-  1: "#f85149",
-  2: "#d29922",
-  3: "#3fb950",
-};
-
 function degToRad(deg: number): number {
   return (deg * Math.PI) / 180;
-}
-
-function polygonCentroid(points: number[][]): [number, number] {
-  let cx = 0;
-  let cy = 0;
-  for (const p of points) {
-    cx += p[0];
-    cy += p[1];
-  }
-  return [cx / points.length, cy / points.length];
 }
 
 // Create sensor icon (circle with type letter)
@@ -189,38 +164,6 @@ function createCombinedIcon(
     className: "",
     iconSize: [28, 28],
     iconAnchor: [14, 14],
-  });
-}
-
-// Create protected asset icon (star)
-function createAssetIcon(
-  priority: number,
-  name: string,
-): L.DivIcon {
-  const color = PRIORITY_COLORS[priority] || COLORS.muted;
-  const html = `<div style="text-align:center;white-space:nowrap;">
-    <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="8,1 9.8,5.8 15,6 11,9.5 12.5,15 8,11.5 3.5,15 5,9.5 1,6 6.2,5.8" fill="${color}" stroke="${color}" stroke-width="0.5"/>
-    </svg>
-    <div style="font:500 9px 'Inter',sans-serif;color:${color};margin-top:1px;">${name}</div>
-    <div style="position:absolute;top:-4px;right:-8px;width:12px;height:12px;border-radius:50%;background:${color};font:600 7px 'JetBrains Mono',monospace;color:#0d1117;display:flex;align-items:center;justify-content:center;">${priority}</div>
-  </div>`;
-  return L.divIcon({
-    html,
-    className: "",
-    iconSize: [60, 32],
-    iconAnchor: [30, 8],
-  });
-}
-
-// Create terrain label
-function createTerrainLabel(name: string): L.DivIcon {
-  const html = `<span style="font:400 9px 'Inter',sans-serif;color:${COLORS.muted};white-space:nowrap;pointer-events:none;">${name}</span>`;
-  return L.divIcon({
-    html,
-    className: "",
-    iconSize: [80, 14],
-    iconAnchor: [40, 7],
   });
 }
 
@@ -517,7 +460,7 @@ export default function PlacementScreen({
   );
 
   // Draggable asset positions
-  const [assetPositions, setAssetPositions] = useState<Record<string, { x: number; y: number }>>(
+  const [assetPositions] = useState<Record<string, { x: number; y: number }>>(
     () => Object.fromEntries(baseTemplate.protected_assets.map(a => [a.id, { x: a.x, y: a.y }]))
   );
 
@@ -878,28 +821,9 @@ export default function PlacementScreen({
       const endX = Math.cos(bearingRad) * boundsKm;
       const endY = Math.sin(bearingRad) * boundsKm;
       const end = gameXYToLatLng(endX, endY, baseLat, baseLng);
-      const labelDist = boundsKm * 0.85;
-      const labelX = Math.cos(bearingRad) * labelDist;
-      const labelY = Math.sin(bearingRad) * labelDist;
-      const labelPos = gameXYToLatLng(labelX, labelY, baseLat, baseLng);
-      return { corridor, end, labelPos };
+      return { corridor, end };
     });
   }, [baseTemplate, baseLat, baseLng]);
-
-  // Terrain polygons as lat/lng
-  const terrainPolygons = useMemo(
-    () =>
-      baseTemplate.terrain.map((t) => ({
-        terrain: t,
-        positions: gamePolygonToLatLng(t.polygon, baseLat, baseLng),
-        centroid: gameXYToLatLng(
-          ...polygonCentroid(t.polygon),
-          baseLat,
-          baseLng,
-        ),
-      })),
-    [baseTemplate.terrain, baseLat, baseLng],
-  );
 
   return (
     <div
@@ -1593,56 +1517,8 @@ export default function PlacementScreen({
               interactive={false}
             />
 
-            {/* Terrain features */}
-            {terrainPolygons.map(({ terrain, positions, centroid }) => {
-              const style =
-                TERRAIN_STYLES[terrain.type] || TERRAIN_STYLES.building;
-              return (
-                <span key={terrain.id}>
-                  <Polygon
-                    positions={positions}
-                    pathOptions={{
-                      color: style.stroke,
-                      fillColor: style.fill,
-                      fillOpacity: 0.8,
-                      weight: 1,
-                    }}
-                  />
-                  <Marker
-                    position={centroid}
-                    icon={createTerrainLabel(terrain.name)}
-                    interactive={false}
-                  />
-                </span>
-              );
-            })}
-
-            {/* Protected assets (draggable) */}
-            {baseTemplate.protected_assets.map((asset) => {
-              const ap = assetPositions[asset.id] || { x: asset.x, y: asset.y };
-              const pos = gameXYToLatLng(ap.x, ap.y, baseLat, baseLng);
-              return (
-                <Marker
-                  key={asset.id}
-                  position={pos}
-                  icon={createAssetIcon(asset.priority, asset.name)}
-                  draggable
-                  eventHandlers={{
-                    dragend: (e: L.LeafletEvent) => {
-                      const latlng = (e.target as L.Marker).getLatLng();
-                      const { x, y } = latLngToGameXY(latlng.lat, latlng.lng, baseLat, baseLng);
-                      setAssetPositions(prev => ({
-                        ...prev,
-                        [asset.id]: { x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100 },
-                      }));
-                    },
-                  }}
-                />
-              );
-            })}
-
             {/* Approach corridors */}
-            {corridorLines.map(({ corridor, end, labelPos }) => (
+            {corridorLines.map(({ corridor, end }) => (
               <span key={corridor.name}>
                 <Polyline
                   positions={[baseCenter, end]}
@@ -1651,11 +1527,6 @@ export default function PlacementScreen({
                     weight: 1,
                     dashArray: "6,6",
                   }}
-                />
-                <Marker
-                  position={labelPos}
-                  icon={createTerrainLabel(corridor.name)}
-                  interactive={false}
                 />
               </span>
             ))}

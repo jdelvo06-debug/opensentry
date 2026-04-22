@@ -1830,7 +1830,6 @@ export default function App() {
           protectedArea={protectedArea}
           trackBlinkStates={trackBlinkStates}
           newContactBanner={newContactBanner}
-          baseAssets={baseTemplate?.protected_assets}
           baseBoundary={placementConfig?.boundary ?? baseTemplate?.boundary}
           activeJammers={activeJammers}
           activeIntercepts={activeIntercepts}

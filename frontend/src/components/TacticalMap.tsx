@@ -11,7 +11,7 @@ import {
   LayersControl,
 } from "react-leaflet";
 import L from "leaflet";
-import type { Affiliation, EffectorStatus, EngagementZones, ProtectedAreaInfo, ProtectedAsset, SensorStatus, TrackData } from "../types";
+import type { Affiliation, EffectorStatus, EngagementZones, ProtectedAreaInfo, SensorStatus, TrackData } from "../types";
 import { gameXYToLatLng } from "../utils/coordinates";
 import RadialActionWheel from "./RadialActionWheel";
 import DeviceWheel from "./DeviceWheel";
@@ -46,7 +46,6 @@ interface Props {
   protectedArea?: ProtectedAreaInfo | null;
   trackBlinkStates?: Record<string, string>;
   newContactBanner?: string | null;
-  baseAssets?: ProtectedAsset[];
   baseBoundary?: number[][];
   activeJammers?: Record<string, number>;
   activeIntercepts?: InterceptAnimationData[];
@@ -1233,7 +1232,6 @@ export default function TacticalMap({
   protectedArea,
   trackBlinkStates = {},
   newContactBanner,
-  baseAssets = [],
   baseBoundary,
   activeJammers = {},
   activeIntercepts = [],
@@ -1283,16 +1281,10 @@ export default function TacticalMap({
   }, [engagementZones, defaultZoom]);
 
   const [savedLocations, setSavedLocations] = useState<SavedLocation[]>(() => {
-    // Pre-populate with base center and protected assets
     const defaultZoomVal = 13;
-    const locs: SavedLocation[] = [
+    return [
       { label: "BASE CENTER", center: [baseLat ?? 33.0, baseLng ?? 44.5], zoom: defaultZoomVal },
     ];
-    for (const asset of baseAssets) {
-      const pos = gameXYToLatLng(asset.x, asset.y, baseLat ?? 33.0, baseLng ?? 44.5);
-      locs.push({ label: asset.name.toUpperCase(), center: pos, zoom: Math.max(defaultZoomVal, 14) });
-    }
-    return locs;
   });
   const [showSavedLocs, setShowSavedLocs] = useState(false);
   const [savingNewLoc, setSavingNewLoc] = useState(false);
@@ -1304,15 +1296,10 @@ export default function TacticalMap({
 
   useEffect(() => {
     const defaultZoomVal = 13;
-    const locs: SavedLocation[] = [
+    setSavedLocations([
       { label: "BASE CENTER", center: [baseLat ?? 33.0, baseLng ?? 44.5], zoom: defaultZoomVal },
-    ];
-    for (const asset of baseAssets) {
-      const pos = gameXYToLatLng(asset.x, asset.y, baseLat ?? 33.0, baseLng ?? 44.5);
-      locs.push({ label: asset.name.toUpperCase(), center: pos, zoom: Math.max(defaultZoomVal, 14) });
-    }
-    setSavedLocations(locs);
-  }, [baseAssets, baseLat, baseLng]);
+    ]);
+  }, [baseLat, baseLng]);
 
   const baseIcon = useMemo(() => createBaseIcon(), []);
 
