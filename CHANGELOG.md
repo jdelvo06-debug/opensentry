@@ -8,11 +8,19 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **GeoJSON preset importer** — Added `scripts/import_geojson_preset.py` so traced `geojson.io` polygons can be converted directly into curated base preset format.
+
+### Changed
+- **Curated perimeter authoring workflow** — Documentation now treats traced/source-derived aerodrome outlines as the default workflow for new shared presets. The older runway-buffer / symmetric oval method is explicitly deprecated.
+- **Curated base quality pass** — Scott, Prince Sultan, Kunsan, Kadena, Nellis, RAF Lakenheath, and Al Udeid were tightened or reworked toward source-derived installation outlines instead of generic runway bubbles.
+- **Repo docs clarified current state** — Agent guides and README now document the real searchable curated preset count (`19`) and the fact that GitHub Pages custom saves are browser-local rather than shared repo state.
+
 ## [1.12.0] — 2026-04-21
 
 ### Added
 - **Saved custom search presets** — Searched locations can now be shaped, saved, and revisited later with the same boundary in both Custom Mission and Base Defense Architect.
-- **Dedicated custom preset namespace** — User-saved searched locations now persist as `custom_<slug>.json`, keeping ad hoc training locations separate from the curated preset library.
+- **Dedicated custom preset namespace** — User-saved searched locations now persist as `custom_<slug>.json` in local/backend flows, keeping ad hoc training locations separate from the curated preset library. On GitHub Pages, equivalent saved locations are browser-local rather than repo-backed.
 
 ### Changed
 - **Custom search fallback flow** — Unmatched searched locations now start from a generic editable polygon instead of inheriting curated scaffold data that may not fit the selected site.

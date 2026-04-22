@@ -4,43 +4,87 @@ Copy-paste this into Claude Code when you're ready to continue.
 
 ---
 
-## Status: v1.11.0 — Preset Library + Custom Mission Fixes (2026-04-20)
+## Status: v1.12.x — Curated Preset Quality Pass + Shared Workflow Cleanup (2026-04-21)
 
-20 curated base presets are in main. Custom mission handoff is fixed. Polygon quality is the current blocker.
+The preset/search/save/load flow is working in both Custom Mission and BDA. The shared preset workflow is now documented and should be treated as authoritative.
 
 ### What's Working
 
-- ✅ 20 curated base presets with preset alias search system
+- ✅ 19 curated searchable base presets are in `main` and wired through `frontend/public/data/bases/preset-aliases.json`
+- ✅ Custom Mission and BDA now share the same search / preset handoff behavior
+- ✅ Generic custom-location flow works: search → edit perimeter → save → revisit
+- ✅ Live mission handoff uses the edited boundary/center instead of the old Iraq fallback
+- ✅ Mission map pan/zoom no longer snaps back every tick
+- ✅ Infrastructure overlay markers/labels were removed to reduce clutter
 - ✅ 4-sided default perimeter with midpoint add / right-click remove
-- ✅ Custom mission handoff uses live edited boundary (not stale template)
-- ✅ `placement_bounds_km` derived from edited polygon dynamically
-- ✅ Shared location search component (BDA + custom mission)
 - ✅ 62/62 frontend tests passing
-- ✅ EW realism pass (PR #9): Shahed kinetic-only, RF/PNT split, Shenobi scoped
 
-### What's Not Working (Current Blocker)
+### Important Reality Check
 
-**Preset polygon quality.** The `generate-preset.py` script on `wip/preset-generation-script` branch has issues:
-1. **OSM relation stitching** — multipolygon members don't always join cleanly, producing mangled polygons (Langley is the worst example)
-2. **Oversized boundary tightening** — `landuse=military` boundaries include housing; crude vertex clipping produces irregular shapes (Barksdale)
-3. **Runway ellipse fallback** — geometrically correct but visually fake
-4. **Need proper geometry library** — `shapely` for polygon intersection, simplification, and ring extraction instead of hand-rolled math
+- GitHub Pages is static hosting. Browser users cannot write shared presets back into the repo.
+- On GitHub Pages, ad hoc custom saves are browser-local only.
+- Shared presets for everyone must be curated into git under `frontend/public/data/bases/<base_id>.json`.
+
+### Authoritative Preset Workflow (Use This)
+
+1. Start from a real aerodrome boundary:
+   - OSM aerodrome way/relation
+   - or a manual trace in `geojson.io`
+2. Convert/import it into preset format:
+   - preferred: `python3 scripts/import_geojson_preset.py --preset <base_id> --geojson /abs/path/file.geojson`
+3. Simplify carefully while preserving the installation shape
+4. Apply only minimal local edits so runway/support geometry stays inside
+5. Verify visually in-app after `npm test` and `npx vite build`
+
+### Deprecated Workflow (Do Not Default To This)
+
+- Do **not** create new curated presets by taking a runway midpoint and drawing a blanket buffer/oval around it
+- Do **not** trust `wip/preset-generation-script` output as merge-ready without a traced/source-derived visual pass
+- Do **not** treat GitHub Pages browser saves as shared repo state
+
+### Current Preset Status
+
+Recently reworked or visually checked in this pass:
+- Osan AB
+- Aviano AB
+- Spangdahlem AB
+- McEntire JNGB
+- Shaw AFB
+- Prince Sultan AB
+- Ramstein AB
+- RAF Mildenhall
+- Barksdale AFB
+- Scott AFB
+- Tyndall AFB
+- Kunsan AB
+- Kadena AB
+- Nellis AFB
+- RAF Lakenheath
+- Al Udeid AB
+
+Still worth re-verifying in a future pass:
+- Creech AFB
+- Fort Liberty
+- Lackland AFB
 
 ### Branch Status
 
 | Branch | Status | Contents |
 |--------|--------|----------|
-| `main` | Clean, deployed | 20 presets, all fixes through PR #22 |
-| `wip/preset-generation-script` | WIP, do not merge | `generate-preset.py`, regenerated polygons, Langley preset |
+| `main` | Clean, deployed | current shared preset library, save/load fixes, traced-outline docs |
+| `wip/preset-generation-script` | WIP, do not merge blindly | experimental `generate-preset.py`, legacy regenerated polygons |
 
 ### What's Next
 
-**Priority 1: Fix polygon generation pipeline**
-- Option A: Add `shapely` dependency to the script for proper polygon ops
-- Option B: Have Codex/Claude Code rewrite the script with proper geometry handling
-- Option C: Let Jeremy manually edit polygons in the app (drag handles work)
+**Priority 1: Continue curated base verification**
+- Finish visual pass on remaining unreviewed curated presets
+- Add new requested bases using the traced/source-derived workflow
 
-**Priority 2: Add remaining bases** (Langley, Andersen, Incirlik, etc.) — blocked on polygon quality
+**Priority 2: Add remaining bases**
+- Langley
+- Andersen
+- Incirlik
+- others as requested
 
 **Priority 3: Fix JACKAL trajectory + action wheel size (Issue #1)**
 
@@ -50,22 +94,26 @@ Copy-paste this into Claude Code when you're ready to continue.
 - Investigate stuck bogey in Lone Wolf
 
 ### Key Design Decisions
-- **4-sided default perimeter** — not 8-sided, user explicitly prefers this
-- **OSM data, not LLM** — GLM consistently gets polygon coordinates wrong. Deterministic script is the right approach; it just needs proper geometry tooling.
-- **Nominatim returns gate addresses** — never use Nominatim for base center coordinates. Always verify against OSM runway data.
+
+- **4-sided default perimeter** — not 8-sided
+- **Shared presets live in git** — curated JSON is the source of truth for everyone
+- **GitHub Pages custom saves are local only** — not a collaborative database
+- **Prefer traced/source-derived outlines** — not runway bubbles
 - **Never merge PRs without Jeremy's explicit approval**
 
 ### Key Files
 
-```
-scripts/generate-preset.py    ← WIP: deterministic OSM preset generator
-frontend/public/data/bases/   ← 20 preset JSONs + preset-aliases.json
+```text
+scripts/import_geojson_preset.py  ← imports traced GeoJSON polygons into curated presets
+scripts/generate-preset.py        ← experimental only; not the default workflow
+frontend/public/data/bases/       ← curated preset JSONs + preset-aliases.json
 frontend/src/components/bda/
-  BdaBaseSelection.tsx         ← preset search + loading logic
-  BdaPlacement.tsx             ← placement map with draggable boundary
-docs/adding-base-presets.md   ← full guide for adding new presets
+  BdaBaseSelection.tsx            ← preset search + loading logic
+  BdaPlacement.tsx                ← placement map with draggable boundary
+docs/adding-base-presets.md       ← authoritative preset authoring guide
+AGENTS.md                         ← current project guide for future coding agents
 ```
 
 ---
 
-*Updated 2026-04-20 after pack 4 merge and script work session.*
+*Updated 2026-04-21 after the curated preset quality/documentation pass.*

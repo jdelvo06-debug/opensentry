@@ -39,8 +39,11 @@ frontend/                   ← React app (the game UI)
     __tests__/              ← vitest unit tests for game engine
   public/data/              ← Static JSON data (served on GitHub Pages)
     scenarios/              ← lone_wolf.json, swarm_attack.json, recon_probe.json, tutorial.json, thermopylae.json, free_play.json + index.json
-    bases/                  ← small_fob.json, medium_airbase.json, large_installation.json + index.json
+    bases/                  ← generic templates + curated presets + preset-aliases.json
     equipment/catalog.json  ← All equipment definitions
+
+scripts/                    ← preset authoring helpers
+  import_geojson_preset.py  ← imports traced GeoJSON polygons into curated presets
 
 src/game/                   ← TypeScript game engine (ported from Python)
   state.ts                  ← All types/interfaces + GameState factory
@@ -145,6 +148,23 @@ This resolves to `/` in local dev and `/opensentry/` on GitHub Pages. **Never us
 
 ---
 
+## Curated Base Presets (Authoritative Workflow — 2026-04-21)
+
+- Shared presets for all users live in git under `frontend/public/data/bases/<base_id>.json` plus `frontend/public/data/bases/preset-aliases.json`.
+- On GitHub Pages, ad hoc custom-location saves are browser-local only. They do **not** write back to the repo. If a searched location should become shared, promote it into a curated preset commit.
+- Default workflow for new curated boundaries:
+  1. Start from a real aerodrome way/relation in OSM, or hand-trace it in `geojson.io`.
+  2. Import/simplify the outline with topology preservation.
+     Preferred path: `python3 scripts/import_geojson_preset.py --preset <base_id> --geojson /abs/path/file.geojson`
+  3. Keep the distinctive installation shape. Expect roughly 18–30 points when needed.
+  4. Apply only minimal local edits so existing runway/apron/support geometry remains inside the polygon.
+  5. Verify visually in-app after `npm test` and `vite build`.
+- Deprecated workflow:
+  - Do **not** generate new curated presets by taking a runway midpoint and applying a blanket buffer/oval around the runway complex.
+  - Do **not** treat output from `wip/preset-generation-script` as merge-ready without a traced visual pass.
+
+---
+
 ## Valid Action Names
 `confirm_track`, `identify`, `engage`, `hold_fire`, `release_hold_fire`, `end_mission`, `slew_camera`, `shenobi_hold`, `shenobi_land_now`, `shenobi_deafen`, `jammer_toggle`, `jam_all`, `cease_jam`, `clear_airspace`, `pause_mission`, `resume_mission`
 
@@ -174,8 +194,8 @@ cd frontend && npm run dev   # uses useGameEngine.ts, fetches /data/ from public
 
 ### Run tests
 ```bash
-cd frontend && npm test      # vitest — 28 game engine unit tests
-cd backend && python -m pytest  # Python backend tests (5 modules)
+cd frontend && npm test      # vitest — 62 frontend/game-engine tests
+cd backend && python -m pytest  # Python backend tests (147 tests / 6 modules)
 ```
 
 ### Deploy
@@ -263,7 +283,7 @@ These are Claude Code subagent types, not custom-built tools. They run as part o
 - **49/49 tests passing** — DE dwell/resolution timing tests added and passing; live browser QA confirmed RF/PNT jammer, DE laser, and HPM engagement all working correctly
 
 ## Shipped in v1.12.0 (2026-04-21)
-- **Custom search save flow** — searched locations now start from a generic editable polygon, save to `custom_<slug>.json`, and reload consistently in both Custom Mission and BDA without overwriting curated presets
+- **Custom search save flow** — searched locations now start from a generic editable polygon, persist as namespaced custom presets (browser-local on Pages), and reload consistently in both Custom Mission and BDA without overwriting curated presets
 - **Mission launch center fix** — live mission export now preserves the selected custom location instead of falling back to the generic Iraq debug center
 - **Mission map stability fix** — tactical map pan/zoom no longer gets reset on every render tick during a running mission
 
@@ -271,10 +291,14 @@ These are Claude Code subagent types, not custom-built tools. They run as part o
 - **PR #9 realism pass** — Shahed / OW-UAS is kinetic-only in doctrine and effectiveness tables
 - **RF/PNT split surfaced cleanly** — non-emitting fixed-wing targets now show `PNT DEGRADED` instead of appearing jammer-immune
 - **Shenobi/NEXUS scope tightened** — protocol manipulation now only applies to commercial quad and micro targets with supported library matches
+- **Curated searchable preset library** — current repo inventory is 19 shared base presets wired through `preset-aliases.json`
+- **Infrastructure overlays removed** — protected-asset / terrain marker clutter is hidden in planning and mission views
+- **Curated perimeter workflow updated** — current default is traced/source-derived aerodrome outlines; recent quality pass reworked Scott, Prince Sultan, Kunsan, Kadena, Nellis, RAF Lakenheath, and Al Udeid away from runway-bubble shapes
+- **GeoJSON importer shipped** — `scripts/import_geojson_preset.py` converts traced polygons into curated preset format
 
 ## Next Session — Priority Work
-1. Fix JACKAL trajectory and reduce action wheel size (Issue #1)
-2. Save/load BDA designs as JSON (share with unit, iterate on layouts)
-3. Add CI test step to GitHub Actions workflow (both vitest and pytest)
-4. Code-split bundle with React.lazy() for heavy components (currently 733 KB)
-5. Investigate stuck bogey in Lone Wolf — still unconfirmed
+1. Continue curated base verification using the traced-outline workflow (remaining: Creech, Fort Liberty, Lackland, and other unreviewed presets)
+2. Fix JACKAL trajectory and reduce action wheel size (Issue #1)
+3. Add remaining bases (Langley, Andersen, Incirlik, etc.) using traced/source-derived outlines instead of runway buffers
+4. Add CI test step to GitHub Actions workflow (both vitest and pytest)
+5. Code-split bundle with React.lazy() for heavy components (currently 733 KB)

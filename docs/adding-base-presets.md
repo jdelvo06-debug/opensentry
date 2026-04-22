@@ -8,10 +8,11 @@ When a user searches for a location in BDA, the search results are checked again
 
 Curated presets and user-saved custom presets now follow separate rules:
 - Curated library presets live at `frontend/public/data/bases/<base_id>.json`
-- User-saved search results live at `frontend/public/data/bases/custom_<slug>.json`
-- Custom saves must never overwrite the curated preset library
+- On GitHub Pages, ad hoc user saves are stored in browser local storage and are **not shared**
+- Local/backend-only save flows may serialize `custom_<slug>.json`, but those are draft artifacts, not the shared source of truth
+- Shared presets must never overwrite the curated preset library
 
-Adding a new base requires only two files — no code changes needed.
+Adding a new shared base normally requires only two repo files plus an optional import step for traced polygons.
 
 ## Files to Know
 
@@ -19,8 +20,33 @@ Adding a new base requires only two files — no code changes needed.
 |------|---------|
 | `frontend/public/data/bases/preset-aliases.json` | Maps search aliases to preset IDs |
 | `frontend/public/data/bases/<base_id>.json` | Curated base template with boundary polygon |
-| `frontend/public/data/bases/custom_<slug>.json` | User-saved custom search result (runtime-generated, do not commit by default) |
+| `scripts/import_geojson_preset.py` | Imports a traced GeoJSON polygon into a curated preset |
 | `frontend/src/components/bda/BdaBaseSelection.tsx` | Search + preset loading logic (do not modify unless fixing a bug) |
+
+## Authoritative Workflow (Use This)
+
+This is the current default for new curated presets:
+
+1. Start from a **real aerodrome boundary**.
+   Sources: OSM aerodrome way/relation or a manual trace in `geojson.io`.
+2. Convert that outline into the preset format.
+   Preferred: import a traced GeoJSON via `scripts/import_geojson_preset.py`.
+3. Simplify carefully.
+   Preserve the distinctive installation shape and corners; do not over-round it.
+4. Make only minimal local edits.
+   Small nudges are fine if existing runway/support geometry clips outside the outline.
+5. Verify in-app.
+   Pages/local smoke test is the final authority, not the raw source data.
+
+### Deprecated Workflow (Do Not Use As Default)
+
+Do **not** author new curated presets by:
+
+- taking a runway midpoint and applying a blanket margin/buffer around it
+- generating a symmetric oval around dual runways
+- merging output from `wip/preset-generation-script` without a visual traced pass
+
+Those methods produced many of the "big circle around the runway" presets we had to clean up.
 
 ## Step 1 — Add Aliases
 
@@ -65,9 +91,9 @@ Create `frontend/public/data/bases/<base_id>.json` matching the existing templat
 
 ### Polygon quality bar
 
-- **Source**: Use OSM Overpass API or Mapcarta for real aerodrome boundaries
-- **Simplify**: aim for 12–20 vertices; preserve key shape, runway axis, and corners
-- **Not a rectangle**: the polygon should follow the real installation footprint
+- **Source preference**: OSM aerodrome way/relation or a hand trace in `geojson.io`
+- **Simplify**: aim for ~18–30 vertices when needed; preserve key shape, runway axis, and corners
+- **Not a runway bubble**: the polygon should follow the installation footprint, not just the runway envelope
 - **Assets/terrain**: keep broad and believable — do not fake precise coordinates
 - **Runway**: include a basic runway polygon if useful; use public reference data
 
@@ -93,7 +119,7 @@ What the importer does:
 - rebases existing `protected_assets` and `terrain` so they stay in the same real-world place
 - recalculates `placement_bounds_km`
 
-This is currently the easiest "better tool" to integrate into the repo because it needs no paid software and no custom app changes.
+This is currently the easiest "better tool" to integrate into the repo because it needs no paid software and no custom app changes. It is now the preferred path for any base where the old OSM/buffered preset looks too oval or generic.
 
 ### Higher-fidelity options
 
@@ -101,7 +127,7 @@ This is currently the easiest "better tool" to integrate into the repo because i
 - **Google Earth Pro**: good for manual tracing, but less repo-friendly than GeoJSON
 - **OSM / Overpass**: useful as a starting footprint, but often too broad or messy by itself
 
-### Overpass query to get aerodrome boundary
+### Source lookup helpers
 
 ```bash
 curl -s 'https://overpass-api.de/api/interpreter' \
@@ -109,6 +135,15 @@ curl -s 'https://overpass-api.de/api/interpreter' \
 ```
 
 Replace the bounding box with approximate coords around the target base.
+
+If Overpass times out, use the standard OSM API once you know the way/relation ID:
+
+```bash
+curl -s "https://www.openstreetmap.org/api/0.6/way/<WAY_ID>/full.json"
+curl -s "https://www.openstreetmap.org/api/0.6/relation/<RELATION_ID>/full.json"
+```
+
+Use these as source geometry for tracing/simplification, not as a justification to skip the in-app visual pass.
 
 ## Step 3 — Verify
 
@@ -131,7 +166,8 @@ For custom search saves, verify separately:
 2. Confirm it starts from a generic editable polygon
 3. Save the perimeter
 4. Refresh and re-search it in Custom Mission and BDA
-5. Confirm the saved file is loaded from `custom_<slug>.json`
+5. Confirm the saved boundary reloads
+   On GitHub Pages, this is browser-local only and should not be treated as a shared preset
 
 ## Step 4 — Commit and PR
 
@@ -153,4 +189,5 @@ gh issue close <issue_number> --comment "..."
 - Sources used should be noted in the template JSON under a `"source"` field if desired
 - Additional bases can be added independently; each is a self-contained PR
 - Runtime-generated custom presets should not be committed unless you are intentionally promoting them into a curated workflow
+- GitHub Pages browser saves are local only; the shared source of truth is always the curated JSON committed to the repo
 - No code changes to `BdaBaseSelection.tsx` are needed for new curated presets
