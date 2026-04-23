@@ -3,8 +3,8 @@
   "name": "Hill AFB",
   "description": "Hill Air Force Base, Utah. Home of the 75th Air Base Wing and Ogden Air Logistics Complex. F-35A depot and 388th Fighter Wing.",
   "size": "large",
-  "center_lat": 41.118,
-  "center_lng": -111.977,
+  "center_lat": 41.124,
+  "center_lng": -111.9731,
   "default_zoom": 13,
   "boundary": [
     [

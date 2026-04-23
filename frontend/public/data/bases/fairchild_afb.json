@@ -3,8 +3,8 @@
   "name": "Fairchild AFB",
   "description": "Fairchild Air Force Base, Washington. Home of the 92nd Air Refueling Wing. KC-135 Stratotanker air refueling operations.",
   "size": "medium",
-  "center_lat": 47.616085,
-  "center_lng": -117.647,
+  "center_lat": 47.6151,
+  "center_lng": -117.656,
   "default_zoom": 13,
   "boundary": [
     [

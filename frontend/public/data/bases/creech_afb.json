@@ -3,26 +3,74 @@
   "name": "Creech Air Force Base",
   "description": "Curated Creech Air Force Base preset for Indian Springs, Nevada, USA, using a simplified open-source aerodrome footprint derived from OSM Way 274446470. Includes the primary runway axis, main apron and hangar area, flight-line facilities, and support zones for the 432nd Wing/432nd Air Expeditionary Wing (MQ-9 operations). ICAO: KINS.",
   "size": "medium",
-  "center_lat": 36.589,
-  "center_lng": -115.68,
+  "center_lat": 36.5872,
+  "center_lng": -115.673,
   "default_zoom": 14,
   "boundary": [
-    [0.28, -1.12],
-    [-1.71, -0.96],
-    [-2.35, -0.92],
-    [-2.32, -0.19],
-    [-0.88, -0.07],
-    [-1.23, 0.46],
-    [-0.87, 1.02],
-    [-0.52, 0.84],
-    [-0.14, 0.83],
-    [0.03, 1.25],
-    [0.21, 1.07],
-    [1.66, 0.83],
-    [2.35, 0.03],
-    [2.35, -1.25],
-    [1.9, -1.24],
-    [1.18, -1.21]
+    [
+      0.28,
+      -1.12
+    ],
+    [
+      -1.71,
+      -0.96
+    ],
+    [
+      -2.35,
+      -0.92
+    ],
+    [
+      -2.32,
+      -0.19
+    ],
+    [
+      -0.88,
+      -0.07
+    ],
+    [
+      -1.23,
+      0.46
+    ],
+    [
+      -0.87,
+      1.02
+    ],
+    [
+      -0.52,
+      0.84
+    ],
+    [
+      -0.14,
+      0.83
+    ],
+    [
+      0.03,
+      1.25
+    ],
+    [
+      0.21,
+      1.07
+    ],
+    [
+      1.66,
+      0.83
+    ],
+    [
+      2.35,
+      0.03
+    ],
+    [
+      2.35,
+      -1.25
+    ],
+    [
+      1.9,
+      -1.24
+    ],
+    [
+      1.18,
+      -1.21
+    ]
   ],
   "protected_assets": [
     {
@@ -52,7 +100,24 @@
       "id": "runway_ns",
       "type": "runway",
       "name": "Runway N/S",
-      "polygon": [[-1.75, 0.95], [-1.9, 0.8], [1.0, 1.7], [1.15, 1.85]],
+      "polygon": [
+        [
+          -1.75,
+          0.95
+        ],
+        [
+          -1.9,
+          0.8
+        ],
+        [
+          1.0,
+          1.7
+        ],
+        [
+          1.15,
+          1.85
+        ]
+      ],
       "blocks_los": false,
       "height_m": 0.0
     },
@@ -60,7 +125,24 @@
       "id": "ops_tower",
       "type": "tower",
       "name": "ATC / Ops Tower",
-      "polygon": [[0.15, 0.1], [0.15, 0.2], [0.25, 0.2], [0.25, 0.1]],
+      "polygon": [
+        [
+          0.15,
+          0.1
+        ],
+        [
+          0.15,
+          0.2
+        ],
+        [
+          0.25,
+          0.2
+        ],
+        [
+          0.25,
+          0.1
+        ]
+      ],
       "blocks_los": false,
       "height_m": 25.0
     },
@@ -68,7 +150,24 @@
       "id": "east_apron_hangars",
       "type": "building",
       "name": "East Apron Hangars",
-      "polygon": [[0.5, 0.25], [0.5, 0.75], [1.1, 0.75], [1.1, 0.25]],
+      "polygon": [
+        [
+          0.5,
+          0.25
+        ],
+        [
+          0.5,
+          0.75
+        ],
+        [
+          1.1,
+          0.75
+        ],
+        [
+          1.1,
+          0.25
+        ]
+      ],
       "blocks_los": true,
       "height_m": 14.0
     },
@@ -76,7 +175,24 @@
       "id": "west_logistics",
       "type": "building",
       "name": "West Logistics Area",
-      "polygon": [[-1.6, 0.6], [-1.6, 1.2], [-1.1, 1.2], [-1.1, 0.6]],
+      "polygon": [
+        [
+          -1.6,
+          0.6
+        ],
+        [
+          -1.6,
+          1.2
+        ],
+        [
+          -1.1,
+          1.2
+        ],
+        [
+          -1.1,
+          0.6
+        ]
+      ],
       "blocks_los": true,
       "height_m": 10.0
     },
@@ -84,16 +200,49 @@
       "id": "south_support_blocks",
       "type": "building",
       "name": "South Support Blocks",
-      "polygon": [[-1.5, -1.6], [-1.5, -0.9], [-0.65, -0.9], [-0.65, -1.6]],
+      "polygon": [
+        [
+          -1.5,
+          -1.6
+        ],
+        [
+          -1.5,
+          -0.9
+        ],
+        [
+          -0.65,
+          -0.9
+        ],
+        [
+          -0.65,
+          -1.6
+        ]
+      ],
       "blocks_los": true,
       "height_m": 9.0
     }
   ],
   "approach_corridors": [
-    {"name": "Runway N Approach", "bearing_deg": 0, "width_deg": 18},
-    {"name": "Runway S Approach", "bearing_deg": 180, "width_deg": 18},
-    {"name": "East Sector", "bearing_deg": 90, "width_deg": 30},
-    {"name": "West Sector", "bearing_deg": 270, "width_deg": 30}
+    {
+      "name": "Runway N Approach",
+      "bearing_deg": 0,
+      "width_deg": 18
+    },
+    {
+      "name": "Runway S Approach",
+      "bearing_deg": 180,
+      "width_deg": 18
+    },
+    {
+      "name": "East Sector",
+      "bearing_deg": 90,
+      "width_deg": 30
+    },
+    {
+      "name": "West Sector",
+      "bearing_deg": 270,
+      "width_deg": 30
+    }
   ],
   "max_sensors": 4,
   "max_effectors": 3,

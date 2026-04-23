@@ -3,8 +3,8 @@
   "name": "Columbus AFB",
   "description": "Columbus Air Force Base, Mississippi. Home of the 14th Flying Training Wing. T-6A Texan II and T-38 Talon pilot training.",
   "size": "small",
-  "center_lat": 33.640633,
-  "center_lng": -88.453688,
+  "center_lat": 33.6438,
+  "center_lng": -88.4438,
   "default_zoom": 13,
   "boundary": [
     [

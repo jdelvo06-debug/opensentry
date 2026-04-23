@@ -3,8 +3,8 @@
   "name": "JB Elmendorf-Richardson",
   "description": "Curated Joint Base Elmendorf-Richardson preset for Anchorage, Alaska, using a simplified open-source aerodrome footprint derived from OSM Relation 7368334. Home of the 3rd Wing (F-22, C-17, E-3). Runways 06/24 and 16/34. ICAO: PAED.",
   "size": "large",
-  "center_lat": 61.253308,
-  "center_lng": -149.806459,
+  "center_lat": 61.2517,
+  "center_lng": -149.8071,
   "default_zoom": 13,
   "boundary": [
     [

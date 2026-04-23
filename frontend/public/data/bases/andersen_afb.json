@@ -3,8 +3,8 @@
   "name": "Andersen Air Force Base",
   "description": "Andersen AFB, Guam \u2014 strategic Pacific bomber hub, home of the 36th Wing",
   "size": "large",
-  "center_lat": 13.589506,
-  "center_lng": 144.908582,
+  "center_lat": 13.584,
+  "center_lng": 144.93,
   "default_zoom": 13,
   "boundary": [
     [

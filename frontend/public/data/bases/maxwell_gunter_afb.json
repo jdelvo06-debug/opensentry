@@ -3,8 +3,8 @@
   "name": "Maxwell-Gunter AFB",
   "description": "Maxwell-Gunter Air Force Base, Alabama. Home of Air University and the 42nd Air Base Wing. Professional military education and doctrine development.",
   "size": "medium",
-  "center_lat": 32.381913,
-  "center_lng": -86.353317,
+  "center_lat": 32.3829,
+  "center_lng": -86.3658,
   "default_zoom": 13,
   "boundary": [
     [

@@ -3,8 +3,8 @@
   "name": "Al Dhafra AB",
   "description": "Al Dhafra Air Base, UAE. Home of the 380th Air Expeditionary Wing. Key AFCENT power projection hub for CENTCOM operations. Hosts F-35A, F-16, and multi-national coalition aircraft. ICAO: OMAM.",
   "size": "large",
-  "center_lat": 24.23916,
-  "center_lng": 54.550459,
+  "center_lat": 24.2482,
+  "center_lng": 54.5477,
   "default_zoom": 14,
   "boundary": [
     [

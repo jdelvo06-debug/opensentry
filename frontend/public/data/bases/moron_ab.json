@@ -3,8 +3,8 @@
   "name": "Mor\u00f3n Air Base",
   "description": "Curated Mor\u00f3n Air Base preset for Andalusia, Spain, using a simplified open-source aerodrome footprint derived from OSM Way 533433611. Includes the primary runway axis, apron/hangar complex, and support areas for USAF forward operating and aerial refueling missions. ICAO: LEMO.",
   "size": "medium",
-  "center_lat": 37.16657,
-  "center_lng": -5.604167,
+  "center_lat": 37.1749,
+  "center_lng": -5.6159,
   "default_zoom": 13,
   "boundary": [
     [

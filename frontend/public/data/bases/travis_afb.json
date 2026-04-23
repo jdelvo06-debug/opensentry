@@ -3,8 +3,8 @@
   "name": "Travis AFB",
   "description": "Travis Air Force Base, California. West Coast strategic airlift hub. Home of the 60th Air Mobility Wing. C-5M Galaxy, C-17A Globemaster III, KC-10 Extender operations.",
   "size": "large",
-  "center_lat": 38.26322,
-  "center_lng": -121.945363,
+  "center_lat": 38.2627,
+  "center_lng": -121.927,
   "default_zoom": 13,
   "boundary": [
     [

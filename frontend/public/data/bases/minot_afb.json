@@ -3,8 +3,8 @@
   "name": "Minot AFB",
   "description": "Minot Air Force Base, North Dakota. Home of the 5th Bomb Wing (B-52H) and 91st Missile Wing (Minuteman III). Dual nuclear mission.",
   "size": "medium",
-  "center_lat": 48.420011,
-  "center_lng": -101.33721,
+  "center_lat": 48.4156,
+  "center_lng": -101.358,
   "default_zoom": 13,
   "boundary": [
     [

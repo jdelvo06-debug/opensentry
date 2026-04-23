@@ -3,8 +3,8 @@
   "name": "Lajes Field",
   "description": "Curated Lajes Field preset for Terceira Island, Azores, Portugal, using a simplified open-source aerodrome footprint derived from OSM Relation 17833457 (Base Aerea No. 4). Mid-Atlantic refueling and transit hub. Single 3,314m runway 15/33. Portuguese Air Force Base No. 4 with USAF 65th Air Base Group. ICAO: LPLA.",
   "size": "medium",
-  "center_lat": 38.765428,
-  "center_lng": -27.088684,
+  "center_lat": 38.7618,
+  "center_lng": -27.0908,
   "default_zoom": 14,
   "boundary": [
     [

@@ -3,8 +3,8 @@
   "name": "Lackland Air Force Base",
   "description": "Curated Lackland Air Force Base preset for San Antonio, Texas, USA (Joint Base San Antonio-Lackland), using a simplified open-source aerodrome footprint derived from OSM Way 360676169 (aeroway=aerodrome boundary). Includes the Kelly Field runway area, main apron and hangar area, training facilities, and broad support zones for a more credible starting layout. ICAO: KSKF.",
   "size": "medium",
-  "center_lat": 29.3839,
-  "center_lng": -98.5825,
+  "center_lat": 29.3842,
+  "center_lng": -98.5811,
   "default_zoom": 14,
   "boundary": [
     [

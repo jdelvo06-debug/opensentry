@@ -3,8 +3,8 @@
   "name": "Keesler AFB",
   "description": "Keesler Air Force Base, Mississippi. Home of the 81st Training Wing. Technical training and 2nd Air Force headquarters.",
   "size": "medium",
-  "center_lat": 30.409429,
-  "center_lng": -88.918865,
+  "center_lat": 30.4104,
+  "center_lng": -88.9244,
   "default_zoom": 13,
   "boundary": [
     [

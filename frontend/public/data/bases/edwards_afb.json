@@ -3,8 +3,8 @@
   "name": "Edwards AFB",
   "description": "Edwards Air Force Base, California. Home of the 412th Test Wing. Air Force flight test center. F-35, B-21, and next-gen aircraft testing.",
   "size": "large",
-  "center_lat": 34.889855,
-  "center_lng": -117.832968,
+  "center_lat": 34.9108,
+  "center_lng": -117.8864,
   "default_zoom": 12,
   "boundary": [
     [

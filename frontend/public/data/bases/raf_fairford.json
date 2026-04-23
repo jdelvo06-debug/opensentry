@@ -3,8 +3,8 @@
   "name": "RAF Fairford",
   "description": "Curated RAF Fairford preset for Gloucestershire, United Kingdom, using a simplified open-source aerodrome footprint derived from OSM Way 467981201. Includes the single long runway, bomber apron areas, and support zone for USAF heavy bomber operations and RIAT staging. ICAO: EGVA.",
   "size": "medium",
-  "center_lat": 51.684164,
-  "center_lng": -1.784457,
+  "center_lat": 51.6836,
+  "center_lng": -1.7892,
   "default_zoom": 14,
   "boundary": [
     [

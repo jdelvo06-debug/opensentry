@@ -3,8 +3,8 @@
   "name": "US Air Force Academy",
   "description": "United States Air Force Academy, Colorado. Undergraduate education and commissioning source for USAF officers. Home of the 10th Air Base Wing.",
   "size": "medium",
-  "center_lat": 38.991238,
-  "center_lng": -104.858835,
+  "center_lat": 38.9725,
+  "center_lng": -104.8211,
   "default_zoom": 14,
   "boundary": [
     [

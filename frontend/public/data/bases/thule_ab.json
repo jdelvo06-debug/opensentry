@@ -3,8 +3,8 @@
   "name": "Thule AB",
   "description": "Thule Air Base, Greenland. Northernmost deep-water port and airfield. Space surveillance and missile warning. 12th Space Warning Squadron.",
   "size": "small",
-  "center_lat": 76.3891,
-  "center_lng": -68.515222,
+  "center_lat": 76.5312,
+  "center_lng": -68.7032,
   "default_zoom": 12,
   "boundary": [
     [

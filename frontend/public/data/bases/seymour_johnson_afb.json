@@ -3,8 +3,8 @@
   "name": "Seymour Johnson AFB",
   "description": "Seymour Johnson Air Force Base, North Carolina. Home of the 4th Fighter Wing. F-15E Strike Eagle operations and training. ICAO: KGSB.",
   "size": "medium",
-  "center_lat": 35.345894,
-  "center_lng": -77.962685,
+  "center_lat": 35.3394,
+  "center_lng": -77.9606,
   "default_zoom": 14,
   "boundary": [
     [

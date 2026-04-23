@@ -3,8 +3,8 @@
   "name": "Eielson AFB",
   "description": "Eielson Air Force Base, Alaska. Home of the 354th Fighter Wing (F-35A and F-16 Aggressor squadrons). Features North America's second-longest runway at 4,429m (14,530ft), designated 14/32. Key PACAF forward deployment and Red Flag Alaska hub. ICAO: PAEI.",
   "size": "large",
-  "center_lat": 64.6656,
-  "center_lng": -147.1014,
+  "center_lat": 64.6657,
+  "center_lng": -147.102,
   "default_zoom": 13,
   "boundary": [
     [

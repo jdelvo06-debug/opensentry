@@ -3,8 +3,8 @@
   "name": "Westover ARB",
   "description": "Westover Air Reserve Base, Massachusetts. Home of the 439th Airlift Wing. C-5M Galaxy reserve operations.",
   "size": "medium",
-  "center_lat": 42.197163,
-  "center_lng": -72.545518,
+  "center_lat": 42.194,
+  "center_lng": -72.5348,
   "default_zoom": 13,
   "boundary": [
     [

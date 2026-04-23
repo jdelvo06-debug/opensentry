@@ -3,39 +3,126 @@
   "name": "RAF Lakenheath",
   "description": "Curated RAF Lakenheath preset for Suffolk, United Kingdom, using a simplified open-source aerodrome footprint derived from OSM Way 102826331. Includes the primary runway axis, main apron and hangar area, flight-line facilities, and support zones for the 48th Fighter Wing (F-35A). Largest USAF base in the UK. ICAO: EGUL.",
   "size": "medium",
-  "center_lat": 52.4048,
-  "center_lng": 0.5576,
+  "center_lat": 52.4095,
+  "center_lng": 0.5612,
   "default_zoom": 14,
   "boundary": [
-    [-0.88, -1.72],
-    [-1.68, -1.6],
-    [-1.68, -1.45],
-    [-1.55, -1.46],
-    [-1.53, -1.22],
-    [-1.66, -1.21],
-    [-1.62, -0.79],
-    [-1.7, -0.73],
-    [-1.21, -0.4],
-    [-1.37, -0.16],
-    [-1.54, -0.22],
-    [-1.62, 0.06],
-    [-1.21, 0.25],
-    [-0.69, 1.31],
-    [-0.68, 1.49],
-    [-0.3, 1.48],
-    [0.14, 1.7],
-    [0.34, 1.35],
-    [0.32, 1.46],
-    [0.81, 1.44],
-    [0.83, 1.3],
-    [0.94, 1.29],
-    [1.47, 1.64],
-    [1.69, 1.62],
-    [1.71, 1.17],
-    [1.42, -0.23],
-    [1.26, -0.53],
-    [0.97, -0.71],
-    [-0.39, -1.05]
+    [
+      -0.88,
+      -1.72
+    ],
+    [
+      -1.68,
+      -1.6
+    ],
+    [
+      -1.68,
+      -1.45
+    ],
+    [
+      -1.55,
+      -1.46
+    ],
+    [
+      -1.53,
+      -1.22
+    ],
+    [
+      -1.66,
+      -1.21
+    ],
+    [
+      -1.62,
+      -0.79
+    ],
+    [
+      -1.7,
+      -0.73
+    ],
+    [
+      -1.21,
+      -0.4
+    ],
+    [
+      -1.37,
+      -0.16
+    ],
+    [
+      -1.54,
+      -0.22
+    ],
+    [
+      -1.62,
+      0.06
+    ],
+    [
+      -1.21,
+      0.25
+    ],
+    [
+      -0.69,
+      1.31
+    ],
+    [
+      -0.68,
+      1.49
+    ],
+    [
+      -0.3,
+      1.48
+    ],
+    [
+      0.14,
+      1.7
+    ],
+    [
+      0.34,
+      1.35
+    ],
+    [
+      0.32,
+      1.46
+    ],
+    [
+      0.81,
+      1.44
+    ],
+    [
+      0.83,
+      1.3
+    ],
+    [
+      0.94,
+      1.29
+    ],
+    [
+      1.47,
+      1.64
+    ],
+    [
+      1.69,
+      1.62
+    ],
+    [
+      1.71,
+      1.17
+    ],
+    [
+      1.42,
+      -0.23
+    ],
+    [
+      1.26,
+      -0.53
+    ],
+    [
+      0.97,
+      -0.71
+    ],
+    [
+      -0.39,
+      -1.05
+    ]
   ],
   "protected_assets": [
     {
@@ -65,7 +152,24 @@
       "id": "runway_0624",
       "type": "runway",
       "name": "Runway 06/24",
-      "polygon": [[-1.5, -0.5], [-1.65, -0.7], [1.3, 1.4], [1.45, 1.6]],
+      "polygon": [
+        [
+          -1.5,
+          -0.5
+        ],
+        [
+          -1.65,
+          -0.7
+        ],
+        [
+          1.3,
+          1.4
+        ],
+        [
+          1.45,
+          1.6
+        ]
+      ],
       "blocks_los": false,
       "height_m": 0.0
     },
@@ -73,7 +177,24 @@
       "id": "ops_tower",
       "type": "tower",
       "name": "ATC / Ops Tower",
-      "polygon": [[0.15, 0.1], [0.15, 0.25], [0.3, 0.25], [0.3, 0.1]],
+      "polygon": [
+        [
+          0.15,
+          0.1
+        ],
+        [
+          0.15,
+          0.25
+        ],
+        [
+          0.3,
+          0.25
+        ],
+        [
+          0.3,
+          0.1
+        ]
+      ],
       "blocks_los": false,
       "height_m": 25.0
     },
@@ -81,7 +202,24 @@
       "id": "main_hangars",
       "type": "building",
       "name": "Main Hangars",
-      "polygon": [[-0.5, 0.3], [-0.5, 0.9], [0.1, 0.9], [0.1, 0.3]],
+      "polygon": [
+        [
+          -0.5,
+          0.3
+        ],
+        [
+          -0.5,
+          0.9
+        ],
+        [
+          0.1,
+          0.9
+        ],
+        [
+          0.1,
+          0.3
+        ]
+      ],
       "blocks_los": true,
       "height_m": 14.0
     },
@@ -89,7 +227,24 @@
       "id": "east_apron_hangars",
       "type": "building",
       "name": "East Apron Hangars",
-      "polygon": [[0.8, 0.2], [0.8, 0.8], [1.4, 0.8], [1.4, 0.2]],
+      "polygon": [
+        [
+          0.8,
+          0.2
+        ],
+        [
+          0.8,
+          0.8
+        ],
+        [
+          1.4,
+          0.8
+        ],
+        [
+          1.4,
+          0.2
+        ]
+      ],
       "blocks_los": true,
       "height_m": 14.0
     },
@@ -97,16 +252,49 @@
       "id": "west_logistics",
       "type": "building",
       "name": "West Logistics Area",
-      "polygon": [[-1.3, -0.2], [-1.3, 0.4], [-0.8, 0.4], [-0.8, -0.2]],
+      "polygon": [
+        [
+          -1.3,
+          -0.2
+        ],
+        [
+          -1.3,
+          0.4
+        ],
+        [
+          -0.8,
+          0.4
+        ],
+        [
+          -0.8,
+          -0.2
+        ]
+      ],
       "blocks_los": true,
       "height_m": 10.0
     }
   ],
   "approach_corridors": [
-    {"name": "Runway E Approach", "bearing_deg": 60, "width_deg": 18},
-    {"name": "Runway W Approach", "bearing_deg": 240, "width_deg": 18},
-    {"name": "North Sector", "bearing_deg": 350, "width_deg": 30},
-    {"name": "South Sector", "bearing_deg": 170, "width_deg": 30}
+    {
+      "name": "Runway E Approach",
+      "bearing_deg": 60,
+      "width_deg": 18
+    },
+    {
+      "name": "Runway W Approach",
+      "bearing_deg": 240,
+      "width_deg": 18
+    },
+    {
+      "name": "North Sector",
+      "bearing_deg": 350,
+      "width_deg": 30
+    },
+    {
+      "name": "South Sector",
+      "bearing_deg": 170,
+      "width_deg": 30
+    }
   ],
   "max_sensors": 4,
   "max_effectors": 3,

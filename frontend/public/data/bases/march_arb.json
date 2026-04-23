@@ -3,8 +3,8 @@
   "name": "March ARB",
   "description": "March Air Reserve Base, California. Home of the 452nd Air Mobility Wing. C-17A and KC-135 reserve operations.",
   "size": "medium",
-  "center_lat": 33.883761,
-  "center_lng": -117.255835,
+  "center_lat": 33.8807,
+  "center_lng": -117.259,
   "default_zoom": 13,
   "boundary": [
     [

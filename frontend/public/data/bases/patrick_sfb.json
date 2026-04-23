@@ -3,8 +3,8 @@
   "name": "Patrick SFB",
   "description": "Patrick Space Force Base, Florida. Home of Space Launch Delta 45. Eastern Range space launch operations. Adjacent to Cape Canaveral.",
   "size": "medium",
-  "center_lat": 28.237,
-  "center_lng": -80.605,
+  "center_lat": 28.2349,
+  "center_lng": -80.6101,
   "default_zoom": 13,
   "boundary": [
     [

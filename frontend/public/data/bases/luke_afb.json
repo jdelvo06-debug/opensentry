@@ -3,8 +3,8 @@
   "name": "Luke AFB",
   "description": "Luke Air Force Base, Arizona. Home of the 56th Fighter Wing. F-35A Lightning II and F-16 Fighting Falcon training.",
   "size": "medium",
-  "center_lat": 33.542434,
-  "center_lng": -112.366268,
+  "center_lat": 33.535,
+  "center_lng": -112.383,
   "default_zoom": 13,
   "boundary": [
     [

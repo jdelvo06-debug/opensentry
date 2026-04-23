@@ -3,8 +3,8 @@
   "name": "Laughlin AFB",
   "description": "Laughlin Air Force Base, Texas. Home of the 47th Flying Training Wing. T-6A Texan II and T-38 Talon pilot training.",
   "size": "small",
-  "center_lat": 29.356766,
-  "center_lng": -100.786266,
+  "center_lat": 29.3595,
+  "center_lng": -100.778,
   "default_zoom": 13,
   "boundary": [
     [

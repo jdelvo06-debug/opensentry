@@ -3,7 +3,7 @@
   "name": "F.E. Warren AFB",
   "description": "F.E. Warren Air Force Base, Wyoming. Home of the 90th Missile Wing. Minuteman III ICBM operations. Historic cavalry post.",
   "size": "medium",
-  "center_lat": 41.137,
+  "center_lat": 41.1333,
   "center_lng": -104.867,
   "default_zoom": 13,
   "boundary": [

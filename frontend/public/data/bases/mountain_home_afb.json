@@ -3,8 +3,8 @@
   "name": "Mountain Home AFB",
   "description": "Mountain Home Air Force Base, Idaho. Home of the 366th Fighter Wing (Gunfighters). F-15E Strike Eagle training and deployment hub in the western US. ICAO: KMUO.",
   "size": "large",
-  "center_lat": 43.04095,
-  "center_lng": -115.866525,
+  "center_lat": 43.0436,
+  "center_lng": -115.872,
   "default_zoom": 14,
   "boundary": [
     [

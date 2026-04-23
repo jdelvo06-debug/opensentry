@@ -3,8 +3,8 @@
   "name": "Kunsan Air Base",
   "description": "Curated Kunsan Air Base (Wolf Pack) preset for Gunsan, South Korea. Simplified polygon derived from OSM Way 95038648 (aeroway=aerodrome boundary for Gunsan Airport/RKJK). Includes the primary runway, main apron and hangar area, flight-line facilities, and broad support zones for a credible starting layout. ICAO: RKJK.",
   "size": "medium",
-  "center_lat": 35.9071,
-  "center_lng": 126.6271,
+  "center_lat": 35.9038,
+  "center_lng": 126.616,
   "default_zoom": 14,
   "boundary": [
     [

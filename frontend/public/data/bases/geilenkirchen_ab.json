@@ -3,8 +3,8 @@
   "name": "Geilenkirchen AB",
   "description": "Curated NATO Air Base Geilenkirchen preset for North Rhine-Westphalia, Germany, using a simplified open-source aerodrome footprint derived from OSM Way 24908316. Home of the NATO E-3A AWACS Component. Single 3,050m runway 09/27. ICAO: ETNG.",
   "size": "medium",
-  "center_lat": 50.960659,
-  "center_lng": 6.043625,
+  "center_lat": 50.9608,
+  "center_lng": 6.0424,
   "default_zoom": 14,
   "boundary": [
     [

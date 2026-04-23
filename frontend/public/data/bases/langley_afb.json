@@ -3,8 +3,8 @@
   "name": "Langley Air Force Base",
   "description": "Langley Air Force Base \u2014 Joint Base Langley-Eustis, Virginia (standard footprint)",
   "size": "medium",
-  "center_lat": 37.087295,
-  "center_lng": -76.35465,
+  "center_lat": 37.0829,
+  "center_lng": -76.3605,
   "default_zoom": 14,
   "boundary": [
     [

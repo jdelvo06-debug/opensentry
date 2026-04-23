@@ -3,8 +3,8 @@
   "name": "Eglin AFB",
   "description": "Eglin Air Force Base, Florida. Home of the 96th Test Wing. Air Force Materiel Command testing and evaluation. AAC and Air Force Research Lab operations.",
   "size": "large",
-  "center_lat": 30.577696,
-  "center_lng": -86.51396,
+  "center_lat": 30.4832,
+  "center_lng": -86.526,
   "default_zoom": 12,
   "boundary": [
     [

@@ -3,8 +3,8 @@
   "name": "NSA Souda Bay",
   "description": "Curated Naval Support Activity Souda Bay preset for Crete, Greece, using a simplified open-source aerodrome footprint derived from OSM Way 246454281 (Chania/Souda Bay airfield). Shared runway with Chania International Airport. US Navy and NATO Mediterranean support hub. ICAO: LGSA.",
   "size": "medium",
-  "center_lat": 35.529632,
-  "center_lng": 24.148721,
+  "center_lat": 35.2401,
+  "center_lng": 24.8093,
   "default_zoom": 14,
   "boundary": [
     [

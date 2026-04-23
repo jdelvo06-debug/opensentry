@@ -3,8 +3,8 @@
   "name": "Schriever SFB",
   "description": "Schriever Space Force Base, Colorado. Home of the 50th Space Wing. Satellite operations and space control.",
   "size": "medium",
-  "center_lat": 38.816283,
-  "center_lng": -104.536474,
+  "center_lat": 38.8033,
+  "center_lng": -104.5256,
   "default_zoom": 13,
   "boundary": [
     [

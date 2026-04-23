@@ -3,8 +3,8 @@
   "name": "Little Rock AFB",
   "description": "Little Rock Air Force Base, Arkansas. Home of the 19th Airlift Wing. C-130J Super Hercules training and operations.",
   "size": "medium",
-  "center_lat": 34.905927,
-  "center_lng": -92.13877,
+  "center_lat": 34.9169,
+  "center_lng": -92.1497,
   "default_zoom": 13,
   "boundary": [
     [
