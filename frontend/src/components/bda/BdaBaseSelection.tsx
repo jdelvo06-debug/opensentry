@@ -382,21 +382,7 @@ export default function BdaBaseSelection({ selectedBaseId, onSelectBase, onBack,
                     {base.description}
                   </div>
 
-                  {/* Counts */}
-                  <div style={{ display: "flex", gap: 16 }}>
-                    <span style={{ fontSize: 11, color: COLORS.muted }}>
-                      <span style={{ color: COLORS.text, fontWeight: 600 }}>
-                        {base.max_sensors}
-                      </span>{" "}
-                      sensors
-                    </span>
-                    <span style={{ fontSize: 11, color: COLORS.muted }}>
-                      <span style={{ color: COLORS.text, fontWeight: 600 }}>
-                        {base.max_effectors}
-                      </span>{" "}
-                      effectors
-                    </span>
-                  </div>
+                  {/* Base info - no sensor/effector limits displayed */}
                 </button>
               );
             })}
