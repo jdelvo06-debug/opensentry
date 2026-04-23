@@ -3,8 +3,8 @@
   "name": "Dover AFB",
   "description": "Dover Air Force Base, Delaware. East Coast strategic airlift hub. Home of the 436th Airlift Wing. C-5M Galaxy and C-17A Globemaster III operations.",
   "size": "medium",
-  "center_lat": 39.128305,
-  "center_lng": -75.467919,
+  "center_lat": 39.1295,
+  "center_lng": -75.466,
   "default_zoom": 13,
   "boundary": [
     [

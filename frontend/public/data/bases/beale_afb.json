@@ -3,8 +3,8 @@
   "name": "Beale AFB",
   "description": "Beale Air Force Base, California. Home of the 9th Reconnaissance Wing. U-2 Dragon Lady and RQ-4 Global Hawk intelligence, surveillance, and reconnaissance operations. ICAO: KBAB.",
   "size": "medium",
-  "center_lat": 39.128089,
-  "center_lng": -121.405764,
+  "center_lat": 39.1361,
+  "center_lng": -121.437,
   "default_zoom": 14,
   "boundary": [
     [

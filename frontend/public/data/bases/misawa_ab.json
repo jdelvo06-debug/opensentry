@@ -3,8 +3,8 @@
   "name": "Misawa AB",
   "description": "Curated Misawa Air Base preset for Aomori Prefecture, Japan, using a simplified open-source aerodrome footprint derived from OSM Relation 6723874. Home of the 35th Fighter Wing (F-16s) and joint US-Japan air operations. Single 3,050m runway 10/28. ICAO: RJSM.",
   "size": "medium",
-  "center_lat": 40.7095,
-  "center_lng": 141.35812,
+  "center_lat": 40.7032,
+  "center_lng": 141.368,
   "default_zoom": 14,
   "boundary": [
     [

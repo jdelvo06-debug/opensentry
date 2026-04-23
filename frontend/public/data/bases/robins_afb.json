@@ -3,8 +3,8 @@
   "name": "Robins AFB",
   "description": "Robins Air Force Base, Georgia. Home of the 78th Air Base Wing and Air Logistics Complex. C-130, C-5, F-15 depot maintenance.",
   "size": "large",
-  "center_lat": 32.617076,
-  "center_lng": -83.672911,
+  "center_lat": 32.6402,
+  "center_lng": -83.5919,
   "default_zoom": 13,
   "boundary": [
     [

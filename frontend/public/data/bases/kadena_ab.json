@@ -3,36 +3,114 @@
   "name": "Kadena Air Base",
   "description": "Curated Kadena Air Base preset for Okinawa, Japan. Simplified polygon derived from the OSM aerodrome relation for Kadena Air Base, with a small west-side support adjustment to preserve a credible starting layout. Includes dual parallel N/S runways, main apron and hangar area, flight-line facilities, and broad support zones. ICAO: RODN.",
   "size": "large",
-  "center_lat": 26.355,
-  "center_lng": 127.769,
+  "center_lat": 26.3517,
+  "center_lng": 127.7694,
   "default_zoom": 13,
   "boundary": [
-    [2.46, 0.64],
-    [2.54, 0.74],
-    [2.94, 0.57],
-    [3.49, 0.13],
-    [3.24, -0.8],
-    [2.6, -1.85],
-    [2.25, -2.01],
-    [2.03, -1.92],
-    [0.92, -2.68],
-    [0.39, -2.51],
-    [-0.14, -3.02],
-    [-0.54, -2.94],
-    [-1.33, -3.08],
-    [-1.61, -2.99],
-    [-1.75, -1.87],
-    [-2.16, -0.95],
-    [-2.33, -0.06],
-    [-2.18, 0.33],
-    [-1.95, 1.1],
-    [-1.55, 1.2],
-    [-1.17, 0.88],
-    [-0.2, 0.92],
-    [1.12, 1.52],
-    [1.61, 1.51],
-    [1.79, 1.26],
-    [2.49, 0.77]
+    [
+      2.46,
+      0.64
+    ],
+    [
+      2.54,
+      0.74
+    ],
+    [
+      2.94,
+      0.57
+    ],
+    [
+      3.49,
+      0.13
+    ],
+    [
+      3.24,
+      -0.8
+    ],
+    [
+      2.6,
+      -1.85
+    ],
+    [
+      2.25,
+      -2.01
+    ],
+    [
+      2.03,
+      -1.92
+    ],
+    [
+      0.92,
+      -2.68
+    ],
+    [
+      0.39,
+      -2.51
+    ],
+    [
+      -0.14,
+      -3.02
+    ],
+    [
+      -0.54,
+      -2.94
+    ],
+    [
+      -1.33,
+      -3.08
+    ],
+    [
+      -1.61,
+      -2.99
+    ],
+    [
+      -1.75,
+      -1.87
+    ],
+    [
+      -2.16,
+      -0.95
+    ],
+    [
+      -2.33,
+      -0.06
+    ],
+    [
+      -2.18,
+      0.33
+    ],
+    [
+      -1.95,
+      1.1
+    ],
+    [
+      -1.55,
+      1.2
+    ],
+    [
+      -1.17,
+      0.88
+    ],
+    [
+      -0.2,
+      0.92
+    ],
+    [
+      1.12,
+      1.52
+    ],
+    [
+      1.61,
+      1.51
+    ],
+    [
+      1.79,
+      1.26
+    ],
+    [
+      2.49,
+      0.77
+    ]
   ],
   "protected_assets": [
     {
@@ -62,7 +140,24 @@
       "id": "runway_18l36r",
       "type": "runway",
       "name": "Runway 18L/36R",
-      "polygon": [[-1.8, -0.95], [-1.95, -1.1], [1.05, 1.7], [1.2, 1.85]],
+      "polygon": [
+        [
+          -1.8,
+          -0.95
+        ],
+        [
+          -1.95,
+          -1.1
+        ],
+        [
+          1.05,
+          1.7
+        ],
+        [
+          1.2,
+          1.85
+        ]
+      ],
       "blocks_los": false,
       "height_m": 0.0
     },
@@ -70,7 +165,24 @@
       "id": "runway_18r36l",
       "type": "runway",
       "name": "Runway 18R/36L",
-      "polygon": [[-1.5, -0.55], [-1.65, -0.7], [0.9, 1.35], [1.05, 1.5]],
+      "polygon": [
+        [
+          -1.5,
+          -0.55
+        ],
+        [
+          -1.65,
+          -0.7
+        ],
+        [
+          0.9,
+          1.35
+        ],
+        [
+          1.05,
+          1.5
+        ]
+      ],
       "blocks_los": false,
       "height_m": 0.0
     },
@@ -78,7 +190,24 @@
       "id": "ops_tower",
       "type": "tower",
       "name": "ATC / Ops Tower",
-      "polygon": [[0.15, 0.1], [0.15, 0.2], [0.25, 0.2], [0.25, 0.1]],
+      "polygon": [
+        [
+          0.15,
+          0.1
+        ],
+        [
+          0.15,
+          0.2
+        ],
+        [
+          0.25,
+          0.2
+        ],
+        [
+          0.25,
+          0.1
+        ]
+      ],
       "blocks_los": false,
       "height_m": 25.0
     },
@@ -86,7 +215,24 @@
       "id": "east_apron_hangars",
       "type": "building",
       "name": "East Apron Hangars",
-      "polygon": [[0.5, 0.25], [0.5, 0.75], [1.1, 0.75], [1.1, 0.25]],
+      "polygon": [
+        [
+          0.5,
+          0.25
+        ],
+        [
+          0.5,
+          0.75
+        ],
+        [
+          1.1,
+          0.75
+        ],
+        [
+          1.1,
+          0.25
+        ]
+      ],
       "blocks_los": true,
       "height_m": 14.0
     },
@@ -94,7 +240,24 @@
       "id": "west_logistics",
       "type": "building",
       "name": "West Logistics Area",
-      "polygon": [[-1.6, 0.6], [-1.6, 1.2], [-1.1, 1.2], [-1.1, 0.6]],
+      "polygon": [
+        [
+          -1.6,
+          0.6
+        ],
+        [
+          -1.6,
+          1.2
+        ],
+        [
+          -1.1,
+          1.2
+        ],
+        [
+          -1.1,
+          0.6
+        ]
+      ],
       "blocks_los": true,
       "height_m": 10.0
     },
@@ -102,16 +265,49 @@
       "id": "south_support_blocks",
       "type": "building",
       "name": "South Support Blocks",
-      "polygon": [[-1.5, -1.6], [-1.5, -0.9], [-0.65, -0.9], [-0.65, -1.6]],
+      "polygon": [
+        [
+          -1.5,
+          -1.6
+        ],
+        [
+          -1.5,
+          -0.9
+        ],
+        [
+          -0.65,
+          -0.9
+        ],
+        [
+          -0.65,
+          -1.6
+        ]
+      ],
       "blocks_los": true,
       "height_m": 9.0
     }
   ],
   "approach_corridors": [
-    {"name": "Runway N Approach", "bearing_deg": 0, "width_deg": 18},
-    {"name": "Runway S Approach", "bearing_deg": 180, "width_deg": 18},
-    {"name": "East Sector", "bearing_deg": 90, "width_deg": 30},
-    {"name": "West Sector", "bearing_deg": 270, "width_deg": 30}
+    {
+      "name": "Runway N Approach",
+      "bearing_deg": 0,
+      "width_deg": 18
+    },
+    {
+      "name": "Runway S Approach",
+      "bearing_deg": 180,
+      "width_deg": 18
+    },
+    {
+      "name": "East Sector",
+      "bearing_deg": 90,
+      "width_deg": 30
+    },
+    {
+      "name": "West Sector",
+      "bearing_deg": 270,
+      "width_deg": 30
+    }
   ],
   "max_sensors": 5,
   "max_effectors": 4,

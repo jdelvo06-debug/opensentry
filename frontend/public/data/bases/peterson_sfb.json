@@ -3,8 +3,8 @@
   "name": "Peterson SFB",
   "description": "Peterson Space Force Base, Colorado. Home of USSPACECOM and NORAD/USNORTHCOM. Space operations command center.",
   "size": "medium",
-  "center_lat": 38.822288,
-  "center_lng": -104.700449,
+  "center_lat": 38.8058,
+  "center_lng": -104.7008,
   "default_zoom": 13,
   "boundary": [
     [

@@ -3,8 +3,8 @@
   "name": "Buckley SFB",
   "description": "Buckley Space Force Base, Colorado. Home of Space Base Delta 2. Space-based missile warning and ISR operations.",
   "size": "medium",
-  "center_lat": 39.70269,
-  "center_lng": -104.755979,
+  "center_lat": 39.70176,
+  "center_lng": -104.75196,
   "default_zoom": 13,
   "boundary": [
     [

@@ -3,8 +3,8 @@
   "name": "Volkel Air Base",
   "description": "Curated Volkel Air Base preset for North Brabant, Netherlands, using a simplified open-source aerodrome footprint derived from OSM Way 946556911. Home of the Royal Netherlands Air Force 312/313 F-16 squadrons and NATO nuclear sharing. Dual parallel runways 06L/24R and 06R/24L. ICAO: EHVK.",
   "size": "medium",
-  "center_lat": 51.657799,
-  "center_lng": 5.701331,
+  "center_lat": 51.6572,
+  "center_lng": 5.7078,
   "default_zoom": 14,
   "boundary": [
     [

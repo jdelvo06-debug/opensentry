@@ -3,8 +3,8 @@
   "name": "Incirlik Air Base",
   "description": "Incirlik AB, Turkey \u2014 39th Air Base Wing, strategic NATO hub",
   "size": "medium",
-  "center_lat": 37.002408,
-  "center_lng": 35.42288,
+  "center_lat": 37.0021,
+  "center_lng": 35.4259,
   "default_zoom": 14,
   "boundary": [
     [

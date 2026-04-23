@@ -3,8 +3,8 @@
   "name": "Vance AFB",
   "description": "Vance Air Force Base, Oklahoma. Home of the 71st Flying Training Wing. T-6A Texan II and T-38 Talon pilot training.",
   "size": "small",
-  "center_lat": 36.343617,
-  "center_lng": -97.909792,
+  "center_lat": 36.3392,
+  "center_lng": -97.9165,
   "default_zoom": 13,
   "boundary": [
     [

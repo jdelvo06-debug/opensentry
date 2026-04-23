@@ -3,8 +3,8 @@
   "name": "Joint Base Andrews",
   "description": "Joint Base Andrews, Maryland. Capital region air base. Home of the 316th Wing and 89th Airlift Wing. Air Force One operations.",
   "size": "large",
-  "center_lat": 38.805747,
-  "center_lng": -76.877416,
+  "center_lat": 38.8108,
+  "center_lng": -76.867,
   "default_zoom": 13,
   "boundary": [
     [

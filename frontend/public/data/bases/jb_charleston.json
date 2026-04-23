@@ -3,8 +3,8 @@
   "name": "Joint Base Charleston",
   "description": "Joint Base Charleston, South Carolina. Home of the 437th Airlift Wing. C-17A Globemaster III strategic airlift operations.",
   "size": "medium",
-  "center_lat": 32.967227,
-  "center_lng": -79.967573,
+  "center_lat": 32.8986,
+  "center_lng": -80.0405,
   "default_zoom": 13,
   "boundary": [
     [

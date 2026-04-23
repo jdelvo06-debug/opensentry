@@ -3,8 +3,8 @@
   "name": "JBSA-Randolph",
   "description": "Joint Base San Antonio-Randolph, Texas. Home of the 12th Flying Training Wing and Air Education and Training Command headquarters. T-6A, T-38C, T-1A training.",
   "size": "medium",
-  "center_lat": 29.533,
-  "center_lng": -98.283,
+  "center_lat": 29.5297,
+  "center_lng": -98.2789,
   "default_zoom": 13,
   "boundary": [
     [

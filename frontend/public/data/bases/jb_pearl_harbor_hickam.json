@@ -3,8 +3,8 @@
   "name": "JB Pearl Harbor-Hickam",
   "description": "Curated Joint Base Pearl Harbor-Hickam preset for Honolulu, Hawaii, using a simplified open-source aerodrome footprint derived from OSM Relation 2815931 (Daniel K. Inouye International Airport / Hickam AFB complex). PACAF headquarters and 15th Wing. Shared runways with Honolulu International. ICAO: PHIK/PHNL.",
   "size": "large",
-  "center_lat": 21.318633,
-  "center_lng": -157.926624,
+  "center_lat": 21.3353,
+  "center_lng": -157.9483,
   "default_zoom": 13,
   "boundary": [
     [

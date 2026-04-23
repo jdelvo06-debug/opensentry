@@ -3,8 +3,8 @@
   "name": "Goodfellow AFB",
   "description": "Goodfellow Air Force Base, Texas. Home of the 17th Training Wing. Intelligence and fire protection training.",
   "size": "small",
-  "center_lat": 31.43207,
-  "center_lng": -100.406228,
+  "center_lat": 31.4316,
+  "center_lng": -100.3992,
   "default_zoom": 13,
   "boundary": [
     [

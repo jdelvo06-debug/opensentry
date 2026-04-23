@@ -3,8 +3,8 @@
   "name": "Davis-Monthan AFB",
   "description": "Davis-Monthan Air Force Base, Arizona. Home of the 355th Wing and AMARG (309th Aerospace Maintenance and Regeneration Group). A-10C Warthog training and the famous aircraft boneyard. ICAO: KDMA.",
   "size": "large",
-  "center_lat": 32.159294,
-  "center_lng": -110.845133,
+  "center_lat": 32.1665,
+  "center_lng": -110.883,
   "default_zoom": 14,
   "boundary": [
     [

@@ -3,8 +3,8 @@
   "name": "Arnold AFB",
   "description": "Arnold Air Force Base, Tennessee. Home of Arnold Engineering Development Complex. Hypersonic and propulsion wind tunnel testing.",
   "size": "small",
-  "center_lat": 35.370097,
-  "center_lng": -86.102704,
+  "center_lat": 35.3926,
+  "center_lng": -86.0858,
   "default_zoom": 13,
   "boundary": [
     [

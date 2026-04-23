@@ -3,8 +3,8 @@
   "name": "McConnell AFB",
   "description": "McConnell Air Force Base, Kansas. Home of the 22nd Air Refueling Wing. KC-46A Pegasus air refueling operations.",
   "size": "medium",
-  "center_lat": 37.641281,
-  "center_lng": -97.275094,
+  "center_lat": 37.6219,
+  "center_lng": -97.2682,
   "default_zoom": 13,
   "boundary": [
     [

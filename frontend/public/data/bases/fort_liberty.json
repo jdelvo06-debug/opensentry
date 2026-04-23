@@ -3,26 +3,74 @@
   "name": "Fort Liberty (Pope Army Airfield)",
   "description": "Curated Fort Liberty preset for North Carolina, USA, using a simplified open-source aerodrome footprint derived from OSM Way 222784159 (Pope Army Airfield). Formerly Fort Bragg, includes the Pope AAF runway axis, main apron and hangar area, flight-line facilities, and support zones. ICAO: KFBG / KPOB.",
   "size": "large",
-  "center_lat": 35.1726,
-  "center_lng": -79.0134,
+  "center_lat": 35.1709,
+  "center_lng": -79.0145,
   "default_zoom": 14,
   "boundary": [
-    [1.24, 0.71],
-    [0.58, 1.66],
-    [0.43, 1.09],
-    [-0.15, 0.97],
-    [-0.46, 0.76],
-    [-0.93, 0.41],
-    [-1.79, 0.45],
-    [-2.24, 0.29],
-    [-1.76, -0.71],
-    [-1.52, -1.38],
-    [-1.24, -1.66],
-    [0.14, -1.22],
-    [0.43, -1.64],
-    [0.78, -1.56],
-    [2.24, -1.15],
-    [1.99, -0.23]
+    [
+      1.24,
+      0.71
+    ],
+    [
+      0.58,
+      1.66
+    ],
+    [
+      0.43,
+      1.09
+    ],
+    [
+      -0.15,
+      0.97
+    ],
+    [
+      -0.46,
+      0.76
+    ],
+    [
+      -0.93,
+      0.41
+    ],
+    [
+      -1.79,
+      0.45
+    ],
+    [
+      -2.24,
+      0.29
+    ],
+    [
+      -1.76,
+      -0.71
+    ],
+    [
+      -1.52,
+      -1.38
+    ],
+    [
+      -1.24,
+      -1.66
+    ],
+    [
+      0.14,
+      -1.22
+    ],
+    [
+      0.43,
+      -1.64
+    ],
+    [
+      0.78,
+      -1.56
+    ],
+    [
+      2.24,
+      -1.15
+    ],
+    [
+      1.99,
+      -0.23
+    ]
   ],
   "protected_assets": [
     {
@@ -59,7 +107,24 @@
       "id": "runway_0122",
       "type": "runway",
       "name": "Runway 01/19",
-      "polygon": [[-1.8, 0.4], [-1.95, 0.2], [0.5, 1.5], [0.65, 1.7]],
+      "polygon": [
+        [
+          -1.8,
+          0.4
+        ],
+        [
+          -1.95,
+          0.2
+        ],
+        [
+          0.5,
+          1.5
+        ],
+        [
+          0.65,
+          1.7
+        ]
+      ],
       "blocks_los": false,
       "height_m": 0.0
     },
@@ -67,7 +132,24 @@
       "id": "ops_tower",
       "type": "tower",
       "name": "ATC / Ops Tower",
-      "polygon": [[0.35, 0.2], [0.35, 0.35], [0.5, 0.35], [0.5, 0.2]],
+      "polygon": [
+        [
+          0.35,
+          0.2
+        ],
+        [
+          0.35,
+          0.35
+        ],
+        [
+          0.5,
+          0.35
+        ],
+        [
+          0.5,
+          0.2
+        ]
+      ],
       "blocks_los": false,
       "height_m": 25.0
     },
@@ -75,7 +157,24 @@
       "id": "main_hangars",
       "type": "building",
       "name": "Main Hangars",
-      "polygon": [[-0.6, 0.5], [-0.6, 1.0], [-0.1, 1.0], [-0.1, 0.5]],
+      "polygon": [
+        [
+          -0.6,
+          0.5
+        ],
+        [
+          -0.6,
+          1.0
+        ],
+        [
+          -0.1,
+          1.0
+        ],
+        [
+          -0.1,
+          0.5
+        ]
+      ],
       "blocks_los": true,
       "height_m": 14.0
     },
@@ -83,7 +182,24 @@
       "id": "west_logistics",
       "type": "building",
       "name": "West Logistics Area",
-      "polygon": [[-1.6, 0.3], [-1.6, 0.8], [-1.1, 0.8], [-1.1, 0.3]],
+      "polygon": [
+        [
+          -1.6,
+          0.3
+        ],
+        [
+          -1.6,
+          0.8
+        ],
+        [
+          -1.1,
+          0.8
+        ],
+        [
+          -1.1,
+          0.3
+        ]
+      ],
       "blocks_los": true,
       "height_m": 10.0
     },
@@ -91,16 +207,49 @@
       "id": "south_support_blocks",
       "type": "building",
       "name": "South Support Blocks",
-      "polygon": [[-1.2, -1.4], [-1.2, -0.7], [-0.5, -0.7], [-0.5, -1.4]],
+      "polygon": [
+        [
+          -1.2,
+          -1.4
+        ],
+        [
+          -1.2,
+          -0.7
+        ],
+        [
+          -0.5,
+          -0.7
+        ],
+        [
+          -0.5,
+          -1.4
+        ]
+      ],
       "blocks_los": true,
       "height_m": 9.0
     }
   ],
   "approach_corridors": [
-    {"name": "Runway N Approach", "bearing_deg": 10, "width_deg": 18},
-    {"name": "Runway S Approach", "bearing_deg": 190, "width_deg": 18},
-    {"name": "East Sector", "bearing_deg": 80, "width_deg": 30},
-    {"name": "West Sector", "bearing_deg": 260, "width_deg": 30}
+    {
+      "name": "Runway N Approach",
+      "bearing_deg": 10,
+      "width_deg": 18
+    },
+    {
+      "name": "Runway S Approach",
+      "bearing_deg": 190,
+      "width_deg": 18
+    },
+    {
+      "name": "East Sector",
+      "bearing_deg": 80,
+      "width_deg": 30
+    },
+    {
+      "name": "West Sector",
+      "bearing_deg": 260,
+      "width_deg": 30
+    }
   ],
   "max_sensors": 5,
   "max_effectors": 4,

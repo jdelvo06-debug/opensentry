@@ -3,8 +3,8 @@
   "name": "Altus AFB",
   "description": "Altus Air Force Base, Oklahoma. Home of the 97th Mobility Wing. C-17A and KC-46A formal training unit.",
   "size": "small",
-  "center_lat": 34.664272,
-  "center_lng": -99.269152,
+  "center_lat": 34.6671,
+  "center_lng": -99.2667,
   "default_zoom": 13,
   "boundary": [
     [

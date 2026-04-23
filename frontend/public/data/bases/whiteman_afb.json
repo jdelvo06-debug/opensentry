@@ -3,8 +3,8 @@
   "name": "Whiteman AFB",
   "description": "Whiteman Air Force Base, Missouri. Home of the 509th Bomb Wing. B-2 Spirit stealth bomber operations. ICAO: KSZL.",
   "size": "medium",
-  "center_lat": 38.724595,
-  "center_lng": -93.553308,
+  "center_lat": 38.7303,
+  "center_lng": -93.5479,
   "default_zoom": 14,
   "boundary": [
     [

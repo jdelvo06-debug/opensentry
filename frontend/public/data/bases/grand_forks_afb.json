@@ -3,8 +3,8 @@
   "name": "Grand Forks AFB",
   "description": "Grand Forks Air Force Base, North Dakota. Home of the 319th Reconnaissance Wing. RQ-4 Global Hawk reconnaissance operations.",
   "size": "medium",
-  "center_lat": 47.96361,
-  "center_lng": -97.400376,
+  "center_lat": 47.9611,
+  "center_lng": -97.4012,
   "default_zoom": 13,
   "boundary": [
     [

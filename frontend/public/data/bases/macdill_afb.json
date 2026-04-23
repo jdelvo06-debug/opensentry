@@ -3,8 +3,8 @@
   "name": "MacDill AFB",
   "description": "MacDill Air Force Base, Florida. Home of the 6th Air Refueling Wing and US Central Command / US Special Operations Command HQ. KC-135 operations.",
   "size": "large",
-  "center_lat": 27.843641,
-  "center_lng": -82.502872,
+  "center_lat": 27.8493,
+  "center_lng": -82.5212,
   "default_zoom": 13,
   "boundary": [
     [

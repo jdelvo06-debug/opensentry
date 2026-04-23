@@ -3,8 +3,8 @@
   "name": "Yokota AB",
   "description": "Curated Yokota Air Base preset for Fussa, Tokyo, Japan, using a simplified open-source aerodrome footprint derived from OSM Way 58610047. Home of the 374th Airlift Wing and US Forces Japan HQ. Single 3,353m runway 18/36. ICAO: RJTY.",
   "size": "medium",
-  "center_lat": 35.744004,
-  "center_lng": 139.350186,
+  "center_lat": 35.7485,
+  "center_lng": 139.348,
   "default_zoom": 14,
   "boundary": [
     [

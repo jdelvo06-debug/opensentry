@@ -3,8 +3,8 @@
   "name": "Holloman AFB",
   "description": "Holloman Air Force Base, New Mexico. Home of the 49th Wing. F-16 Viper training and MQ-9 Reaper operations. ICAO: KHMO.",
   "size": "medium",
-  "center_lat": 32.851956,
-  "center_lng": -106.085997,
+  "center_lat": 32.8525,
+  "center_lng": -106.107,
   "default_zoom": 14,
   "boundary": [
     [

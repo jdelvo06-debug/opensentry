@@ -3,8 +3,8 @@
   "name": "Vandenberg SFB",
   "description": "Vandenberg Space Force Base, California. Space launch and ballistic missile test range. Home of Space Launch Delta 30.",
   "size": "large",
-  "center_lat": 34.742,
-  "center_lng": -120.575,
+  "center_lat": 34.7373,
+  "center_lng": -120.584,
   "default_zoom": 11,
   "boundary": [
     [

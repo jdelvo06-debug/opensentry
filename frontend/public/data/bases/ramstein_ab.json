@@ -3,26 +3,74 @@
   "name": "Ramstein Air Base",
   "description": "Curated Ramstein Air Base preset for Ramstein-Miesenbach, Germany, using a simplified open-source aerodrome footprint derived from OSM Way 60546523. Includes the primary 09/27 runway axis, main apron and hangar area, flight-line facilities, and broad support zones for a more credible starting layout. ICAO: ETAR.",
   "size": "medium",
-  "center_lat": 49.437,
-  "center_lng": 7.6,
+  "center_lat": 49.4369,
+  "center_lng": 7.6003,
   "default_zoom": 14,
   "boundary": [
-    [-0.44, 2.41],
-    [-0.02, 2.76],
-    [0.31, 2.38],
-    [0.73, 1.66],
-    [1.16, 1.19],
-    [2.35, -0.03],
-    [2.21, -0.24],
-    [0.79, -0.96],
-    [-1.55, -1.73],
-    [-1.38, -1.78],
-    [-1.62, -1.56],
-    [-2.26, -0.99],
-    [-2.35, -0.12],
-    [-1.46, 0.64],
-    [-1.95, 1.93],
-    [-1.37, 2.23]
+    [
+      -0.44,
+      2.41
+    ],
+    [
+      -0.02,
+      2.76
+    ],
+    [
+      0.31,
+      2.38
+    ],
+    [
+      0.73,
+      1.66
+    ],
+    [
+      1.16,
+      1.19
+    ],
+    [
+      2.35,
+      -0.03
+    ],
+    [
+      2.21,
+      -0.24
+    ],
+    [
+      0.79,
+      -0.96
+    ],
+    [
+      -1.55,
+      -1.73
+    ],
+    [
+      -1.38,
+      -1.78
+    ],
+    [
+      -1.62,
+      -1.56
+    ],
+    [
+      -2.26,
+      -0.99
+    ],
+    [
+      -2.35,
+      -0.12
+    ],
+    [
+      -1.46,
+      0.64
+    ],
+    [
+      -1.95,
+      1.93
+    ],
+    [
+      -1.37,
+      2.23
+    ]
   ],
   "protected_assets": [
     {
@@ -52,7 +100,24 @@
       "id": "runway_0927",
       "type": "runway",
       "name": "Runway 09/27",
-      "polygon": [[-1.85, 0.75], [-1.85, 0.95], [1.55, 0.95], [1.55, 0.75]],
+      "polygon": [
+        [
+          -1.85,
+          0.75
+        ],
+        [
+          -1.85,
+          0.95
+        ],
+        [
+          1.55,
+          0.95
+        ],
+        [
+          1.55,
+          0.75
+        ]
+      ],
       "blocks_los": false,
       "height_m": 0.0
     },
@@ -60,7 +125,24 @@
       "id": "ops_tower",
       "type": "tower",
       "name": "ATC / Ops Tower",
-      "polygon": [[0.1, 0.15], [0.1, 0.25], [0.22, 0.25], [0.22, 0.15]],
+      "polygon": [
+        [
+          0.1,
+          0.15
+        ],
+        [
+          0.1,
+          0.25
+        ],
+        [
+          0.22,
+          0.25
+        ],
+        [
+          0.22,
+          0.15
+        ]
+      ],
       "blocks_los": false,
       "height_m": 25.0
     },
@@ -68,7 +150,24 @@
       "id": "east_apron_hangars",
       "type": "building",
       "name": "East Apron Hangars",
-      "polygon": [[0.5, 0.2], [0.5, 0.75], [1.2, 0.75], [1.2, 0.2]],
+      "polygon": [
+        [
+          0.5,
+          0.2
+        ],
+        [
+          0.5,
+          0.75
+        ],
+        [
+          1.2,
+          0.75
+        ],
+        [
+          1.2,
+          0.2
+        ]
+      ],
       "blocks_los": true,
       "height_m": 14.0
     },
@@ -76,7 +175,24 @@
       "id": "west_logistics",
       "type": "building",
       "name": "West Logistics Area",
-      "polygon": [[-1.5, 0.4], [-1.5, 1.0], [-0.9, 1.0], [-0.9, 0.4]],
+      "polygon": [
+        [
+          -1.5,
+          0.4
+        ],
+        [
+          -1.5,
+          1.0
+        ],
+        [
+          -0.9,
+          1.0
+        ],
+        [
+          -0.9,
+          0.4
+        ]
+      ],
       "blocks_los": true,
       "height_m": 10.0
     },
@@ -84,16 +200,49 @@
       "id": "south_support_blocks",
       "type": "building",
       "name": "South Support Blocks",
-      "polygon": [[-1.2, -1.5], [-1.2, -0.8], [-0.4, -0.8], [-0.4, -1.5]],
+      "polygon": [
+        [
+          -1.2,
+          -1.5
+        ],
+        [
+          -1.2,
+          -0.8
+        ],
+        [
+          -0.4,
+          -0.8
+        ],
+        [
+          -0.4,
+          -1.5
+        ]
+      ],
       "blocks_los": true,
       "height_m": 9.0
     }
   ],
   "approach_corridors": [
-    {"name": "Runway East Approach", "bearing_deg": 90, "width_deg": 18},
-    {"name": "Runway West Approach", "bearing_deg": 270, "width_deg": 18},
-    {"name": "North Sector", "bearing_deg": 0, "width_deg": 30},
-    {"name": "South Sector", "bearing_deg": 180, "width_deg": 30}
+    {
+      "name": "Runway East Approach",
+      "bearing_deg": 90,
+      "width_deg": 18
+    },
+    {
+      "name": "Runway West Approach",
+      "bearing_deg": 270,
+      "width_deg": 18
+    },
+    {
+      "name": "North Sector",
+      "bearing_deg": 0,
+      "width_deg": 30
+    },
+    {
+      "name": "South Sector",
+      "bearing_deg": 180,
+      "width_deg": 30
+    }
   ],
   "max_sensors": 4,
   "max_effectors": 3,

@@ -3,8 +3,8 @@
   "name": "Tinker AFB",
   "description": "Tinker Air Force Base, Oklahoma. Home of the 72nd Air Base Wing and Oklahoma City Air Logistics Complex. E-3 AWACS, KC-135, B-1B depot maintenance.",
   "size": "large",
-  "center_lat": 35.411755,
-  "center_lng": -97.390797,
+  "center_lat": 35.4147,
+  "center_lng": -97.3866,
   "default_zoom": 13,
   "boundary": [
     [

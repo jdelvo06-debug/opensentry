@@ -3,8 +3,8 @@
   "name": "Sheppard AFB",
   "description": "Sheppard Air Force Base, Texas. Home of the 82nd Training Wing and Euro-NATO Joint Jet Pilot Training. T-6A and T-38 pilot training.",
   "size": "medium",
-  "center_lat": 33.987505,
-  "center_lng": -98.501273,
+  "center_lat": 33.9888,
+  "center_lng": -98.4919,
   "default_zoom": 13,
   "boundary": [
     [

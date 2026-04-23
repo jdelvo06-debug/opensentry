@@ -3,25 +3,70 @@
   "name": "RAF Mildenhall",
   "description": "Curated RAF Mildenhall preset for Suffolk, United Kingdom, using a simplified open-source aerodrome footprint derived from OSM Way 158599098. Includes the primary 10/28 runway axis, main apron and hangar area, flight-line facilities, and broad support zones for a more credible starting layout. ICAO: EGUN.",
   "size": "medium",
-  "center_lat": 52.3625,
-  "center_lng": 0.4865,
+  "center_lat": 52.3619,
+  "center_lng": 0.4864,
   "default_zoom": 14,
   "boundary": [
-    [1.5, -0.61],
-    [0.18, -0.9],
-    [0.04, -1.23],
-    [-0.37, -0.98],
-    [-0.92, -0.67],
-    [-1.89, 0.25],
-    [-1.77, 0.44],
-    [-1.52, 0.53],
-    [-1.06, 1.28],
-    [-0.8, 1.24],
-    [-0.52, 1.06],
-    [-0.05, 0.83],
-    [0.83, 0.13],
-    [1.75, -0.1],
-    [1.94, -0.51]
+    [
+      1.5,
+      -0.61
+    ],
+    [
+      0.18,
+      -0.9
+    ],
+    [
+      0.04,
+      -1.23
+    ],
+    [
+      -0.37,
+      -0.98
+    ],
+    [
+      -0.92,
+      -0.67
+    ],
+    [
+      -1.89,
+      0.25
+    ],
+    [
+      -1.77,
+      0.44
+    ],
+    [
+      -1.52,
+      0.53
+    ],
+    [
+      -1.06,
+      1.28
+    ],
+    [
+      -0.8,
+      1.24
+    ],
+    [
+      -0.52,
+      1.06
+    ],
+    [
+      -0.05,
+      0.83
+    ],
+    [
+      0.83,
+      0.13
+    ],
+    [
+      1.75,
+      -0.1
+    ],
+    [
+      1.94,
+      -0.51
+    ]
   ],
   "protected_assets": [
     {
@@ -51,7 +96,24 @@
       "id": "runway_1028",
       "type": "runway",
       "name": "Runway 10/28",
-      "polygon": [[-1.6, 0.2], [-1.6, 0.38], [1.4, 0.38], [1.4, 0.2]],
+      "polygon": [
+        [
+          -1.6,
+          0.2
+        ],
+        [
+          -1.6,
+          0.38
+        ],
+        [
+          1.4,
+          0.38
+        ],
+        [
+          1.4,
+          0.2
+        ]
+      ],
       "blocks_los": false,
       "height_m": 0.0
     },
@@ -59,7 +121,24 @@
       "id": "ops_tower",
       "type": "tower",
       "name": "ATC / Ops Tower",
-      "polygon": [[0.14, -0.05], [0.14, 0.05], [0.26, 0.05], [0.26, -0.05]],
+      "polygon": [
+        [
+          0.14,
+          -0.05
+        ],
+        [
+          0.14,
+          0.05
+        ],
+        [
+          0.26,
+          0.05
+        ],
+        [
+          0.26,
+          -0.05
+        ]
+      ],
       "blocks_los": false,
       "height_m": 22.0
     },
@@ -67,7 +146,24 @@
       "id": "east_apron_hangars",
       "type": "building",
       "name": "East Apron Hangars",
-      "polygon": [[0.5, -0.2], [0.5, 0.4], [1.1, 0.4], [1.1, -0.2]],
+      "polygon": [
+        [
+          0.5,
+          -0.2
+        ],
+        [
+          0.5,
+          0.4
+        ],
+        [
+          1.1,
+          0.4
+        ],
+        [
+          1.1,
+          -0.2
+        ]
+      ],
       "blocks_los": true,
       "height_m": 14.0
     },
@@ -75,7 +171,24 @@
       "id": "west_logistics",
       "type": "building",
       "name": "West Logistics Area",
-      "polygon": [[-1.3, -0.5], [-1.3, 0.1], [-0.7, 0.1], [-0.7, -0.5]],
+      "polygon": [
+        [
+          -1.3,
+          -0.5
+        ],
+        [
+          -1.3,
+          0.1
+        ],
+        [
+          -0.7,
+          0.1
+        ],
+        [
+          -0.7,
+          -0.5
+        ]
+      ],
       "blocks_los": true,
       "height_m": 10.0
     },
@@ -83,16 +196,49 @@
       "id": "south_support_blocks",
       "type": "building",
       "name": "South Support Blocks",
-      "polygon": [[-0.7, -0.9], [-0.7, -0.4], [0.1, -0.4], [0.1, -0.9]],
+      "polygon": [
+        [
+          -0.7,
+          -0.9
+        ],
+        [
+          -0.7,
+          -0.4
+        ],
+        [
+          0.1,
+          -0.4
+        ],
+        [
+          0.1,
+          -0.9
+        ]
+      ],
       "blocks_los": true,
       "height_m": 9.0
     }
   ],
   "approach_corridors": [
-    {"name": "Runway East Approach", "bearing_deg": 100, "width_deg": 18},
-    {"name": "Runway West Approach", "bearing_deg": 280, "width_deg": 18},
-    {"name": "North Sector", "bearing_deg": 350, "width_deg": 30},
-    {"name": "South Sector", "bearing_deg": 170, "width_deg": 30}
+    {
+      "name": "Runway East Approach",
+      "bearing_deg": 100,
+      "width_deg": 18
+    },
+    {
+      "name": "Runway West Approach",
+      "bearing_deg": 280,
+      "width_deg": 18
+    },
+    {
+      "name": "North Sector",
+      "bearing_deg": 350,
+      "width_deg": 30
+    },
+    {
+      "name": "South Sector",
+      "bearing_deg": 170,
+      "width_deg": 30
+    }
   ],
   "max_sensors": 4,
   "max_effectors": 3,

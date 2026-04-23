@@ -3,8 +3,8 @@
   "name": "Grissom ARB",
   "description": "Grissom Air Reserve Base, Indiana. Home of the 434th Air Refueling Wing. KC-135R Stratotanker reserve operations.",
   "size": "small",
-  "center_lat": 40.667,
-  "center_lng": -86.153,
+  "center_lat": 40.64809,
+  "center_lng": -86.15212,
   "default_zoom": 13,
   "boundary": [
     [

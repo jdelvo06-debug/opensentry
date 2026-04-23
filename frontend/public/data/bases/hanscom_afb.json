@@ -3,8 +3,8 @@
   "name": "Hanscom AFB",
   "description": "Hanscom Air Force Base, Massachusetts. Home of the 66th Air Base Group. AF Life Cycle Management Center and defense R&D.",
   "size": "small",
-  "center_lat": 42.458311,
-  "center_lng": -71.277967,
+  "center_lat": 42.4687,
+  "center_lng": -71.2868,
   "default_zoom": 13,
   "boundary": [
     [

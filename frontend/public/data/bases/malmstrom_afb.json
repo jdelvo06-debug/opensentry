@@ -3,8 +3,8 @@
   "name": "Malmstrom AFB",
   "description": "Malmstrom Air Force Base, Montana. Home of the 341st Missile Wing. Minuteman III ICBM operations and launch facilities.",
   "size": "medium",
-  "center_lat": 47.506226,
-  "center_lng": -111.200396,
+  "center_lat": 47.5047,
+  "center_lng": -111.187,
   "default_zoom": 13,
   "boundary": [
     [

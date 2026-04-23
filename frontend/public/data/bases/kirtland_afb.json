@@ -3,8 +3,8 @@
   "name": "Kirtland AFB",
   "description": "Kirtland Air Force Base, New Mexico. Home of the 377th Air Base Wing. Air Force Research Lab and nuclear weapons school.",
   "size": "medium",
-  "center_lat": 35.001131,
-  "center_lng": -106.515726,
+  "center_lat": 35.0403,
+  "center_lng": -106.6092,
   "default_zoom": 13,
   "boundary": [
     [

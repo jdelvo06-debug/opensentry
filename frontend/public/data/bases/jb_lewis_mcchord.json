@@ -3,8 +3,8 @@
   "name": "JB Lewis-McChord",
   "description": "Joint Base Lewis-McChord, Washington. Home of the 62nd Airlift Wing. C-17A Globemaster III strategic airlift operations.",
   "size": "large",
-  "center_lat": 47.13,
-  "center_lng": -122.49,
+  "center_lat": 47.1377,
+  "center_lng": -122.476,
   "default_zoom": 13,
   "boundary": [
     [

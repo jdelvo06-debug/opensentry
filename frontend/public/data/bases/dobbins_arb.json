@@ -3,8 +3,8 @@
   "name": "Dobbins ARB",
   "description": "Dobbins Air Reserve Base, Georgia. Home of the 94th Airlift Wing. C-130H Hercules reserve operations.",
   "size": "small",
-  "center_lat": 33.913298,
-  "center_lng": -84.51622,
+  "center_lat": 33.9154,
+  "center_lng": -84.5163,
   "default_zoom": 13,
   "boundary": [
     [

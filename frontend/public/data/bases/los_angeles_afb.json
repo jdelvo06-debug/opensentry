@@ -3,8 +3,8 @@
   "name": "Los Angeles AFB",
   "description": "Los Angeles Air Force Base, California. Home of the Space Systems Command. Space launch and satellite acquisition.",
   "size": "medium",
-  "center_lat": 33.920117,
-  "center_lng": -118.38091,
+  "center_lat": 33.9161,
+  "center_lng": -118.4041,
   "default_zoom": 13,
   "boundary": [
     [

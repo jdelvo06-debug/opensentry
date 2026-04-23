@@ -3,7 +3,7 @@
   "name": "Muwaffaq Salti AB",
   "description": "Muwaffaq Salti Air Base (MSAB), Azraq, Jordan. Primary AFCENT forward operating location for F-16 deployment in the Levant. Named after Jordanian pilot Muwaffaq Salti. Key US partner force training and regional contingency hub. ICAO: OJAI.",
   "size": "medium",
-  "center_lat": 31.823,
+  "center_lat": 31.8256,
   "center_lng": 36.782,
   "default_zoom": 14,
   "boundary": [

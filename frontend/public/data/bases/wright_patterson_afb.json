@@ -3,8 +3,8 @@
   "name": "Wright-Patterson AFB",
   "description": "Wright-Patterson Air Force Base, Ohio. Home of AFLCMC and AFRL headquarters. National Air and Space Intelligence Center. Major R&D and acquisition hub.",
   "size": "large",
-  "center_lat": 39.825,
-  "center_lng": -84.048,
+  "center_lat": 39.8261,
+  "center_lng": -84.0483,
   "default_zoom": 12,
   "boundary": [
     [
