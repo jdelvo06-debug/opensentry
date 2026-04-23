@@ -547,22 +547,7 @@ export default function ScenarioSelect({ onSelect }: Props) {
                     >
                       {b.description}
                     </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 12,
-                        fontSize: 11,
-                        color: "#8b949e",
-                        fontFamily: "'JetBrains Mono', monospace",
-                      }}
-                    >
-                      <span>
-                        Sensors: <span style={{ color: "#e6edf3" }}>{b.max_sensors}</span>
-                      </span>
-                      <span>
-                        Effectors: <span style={{ color: "#e6edf3" }}>{b.max_effectors}</span>
-                      </span>
-                    </div>
+
                   </div>
                 );
               })}

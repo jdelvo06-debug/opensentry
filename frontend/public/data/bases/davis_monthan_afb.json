@@ -3,25 +3,73 @@
   "name": "Davis-Monthan AFB",
   "description": "Davis-Monthan Air Force Base, Arizona. Home of the 355th Wing and AMARG (309th Aerospace Maintenance and Regeneration Group). A-10C Warthog training and the famous aircraft boneyard. ICAO: KDMA.",
   "size": "large",
-  "center_lat": 32.165,
-  "center_lng": -110.845,
+  "center_lat": 32.159294,
+  "center_lng": -110.845133,
   "default_zoom": 14,
   "boundary": [
     [
-      -1.11,
-      -2.35
+      -4.44,
+      4.8
     ],
     [
-      -1.11,
-      2.35
+      -4.44,
+      4.4
     ],
     [
-      1.11,
-      2.35
+      -1.94,
+      -2.79
     ],
     [
-      1.11,
-      -2.35
+      0.44,
+      -4.81
+    ],
+    [
+      1.67,
+      -5.62
+    ],
+    [
+      2.08,
+      -5.83
+    ],
+    [
+      3.0,
+      -5.86
+    ],
+    [
+      3.12,
+      -5.85
+    ],
+    [
+      3.25,
+      -5.8
+    ],
+    [
+      3.34,
+      -5.74
+    ],
+    [
+      3.86,
+      -4.98
+    ],
+    [
+      3.95,
+      -4.44
+    ],
+    [
+      3.94,
+      -3.78
+    ],
+    [
+      3.6,
+      -1.29
+    ],
+    [
+      0.32,
+      5.2
+    ],
+    [
+      -4.06,
+      5.2
     ]
   ],
   "protected_assets": [
@@ -123,8 +171,9 @@
   ],
   "max_sensors": 5,
   "max_effectors": 4,
-  "placement_bounds_km": 2.5,
+  "placement_bounds_km": 6.2,
   "icao": "KDMA",
   "country": "US",
-  "note": "Boundary is approximate box \u2014 could be improved with satellite tracing."
+  "note": "Boundary is approximate box \u2014 could be improved with satellite tracing.",
+  "source": "OSM relation 14056461 (convex hull)"
 }

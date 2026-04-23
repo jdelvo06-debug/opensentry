@@ -49,24 +49,10 @@ export default function BaseDefenseArchitect({ onBack, onExportToMission }: Prop
   }, []);
 
   const handleBaseSelect = useCallback((baseId: string, template: BaseTemplate) => {
-    // Warn if changing base and selected equipment exceeds new limits
-    const totalCombined = selectedEquipment.combined.reduce((s, e) => s + e.qty, 0);
-    const totalSensors = selectedEquipment.sensors.reduce((s, e) => s + e.qty, 0) + totalCombined;
-    const totalEffectors = selectedEquipment.effectors.reduce((s, e) => s + e.qty, 0) + totalCombined;
-    if (
-      (totalSensors > template.max_sensors || totalEffectors > template.max_effectors) &&
-      !window.confirm(
-        `This base allows max ${template.max_sensors} sensors and ${template.max_effectors} effectors. ` +
-        `You have ${totalSensors} sensors and ${totalEffectors} effectors selected. ` +
-        `Change base anyway? You'll need to reduce equipment in step 2.`
-      )
-    ) {
-      return;
-    }
     setSelectedBaseId(baseId);
     setBaseTemplate(template);
     setBoundary(template.boundary ?? []);
-  }, [selectedEquipment]);
+  }, []);
 
   const handleEquipmentChange = useCallback((equipment: SelectedEquipment) => {
     setSelectedEquipment(equipment);
@@ -101,8 +87,6 @@ export default function BaseDefenseArchitect({ onBack, onExportToMission }: Prop
 
       {currentStep === 2 && baseTemplate && (
         <BdaEquipmentSelection
-          maxSensors={baseTemplate.max_sensors}
-          maxEffectors={baseTemplate.max_effectors}
           selectedEquipment={selectedEquipment}
           onUpdateEquipment={handleEquipmentChange}
           onBack={() => setCurrentStep(1)}

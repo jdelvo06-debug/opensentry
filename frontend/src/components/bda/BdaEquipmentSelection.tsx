@@ -8,8 +8,6 @@ import BdaEquipmentCard from "./components/BdaEquipmentCard";
 type FilterTab = "all" | "sensor" | "effector" | "combined";
 
 interface Props {
-  maxSensors: number;
-  maxEffectors: number;
   selectedEquipment: SelectedEquipment;
   onUpdateEquipment: (equipment: SelectedEquipment) => void;
   onBack: () => void;
@@ -67,8 +65,6 @@ function totalCount(list: { catalogId: string; qty: number }[]): number {
 }
 
 export default function BdaEquipmentSelection({
-  maxSensors,
-  maxEffectors,
   selectedEquipment,
   onUpdateEquipment,
   onBack,
@@ -99,17 +95,7 @@ export default function BdaEquipmentSelection({
 
   // ─── Derived limit counters ───────────────────────────────────────────────
 
-  const totalSensors = useMemo(
-    () => totalCount(selectedEquipment.sensors) + totalCount(selectedEquipment.combined),
-    [selectedEquipment]
-  );
-  const totalEffectors = useMemo(
-    () => totalCount(selectedEquipment.effectors) + totalCount(selectedEquipment.combined),
-    [selectedEquipment]
-  );
 
-  const sensorMaxReached = totalSensors >= maxSensors;
-  const effectorMaxReached = totalEffectors >= maxEffectors;
 
   const totalSelected = useMemo(
     () =>
@@ -174,41 +160,7 @@ export default function BdaEquipmentSelection({
             </p>
           </div>
 
-          {/* Live limit counters */}
-          <div style={{ display: "flex", gap: 12 }}>
-            <div
-              style={{
-                background: `#388bfd15`,
-                border: `1px solid #388bfd40`,
-                borderRadius: 6,
-                padding: "6px 12px",
-                textAlign: "center",
-              }}
-            >
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#388bfd" }}>
-                {totalSensors}/{maxSensors}
-              </div>
-              <div style={{ fontSize: 9, color: COLORS.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                Sensors
-              </div>
-            </div>
-            <div
-              style={{
-                background: `#f8514915`,
-                border: `1px solid #f8514940`,
-                borderRadius: 6,
-                padding: "6px 12px",
-                textAlign: "center",
-              }}
-            >
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#f85149" }}>
-                {totalEffectors}/{maxEffectors}
-              </div>
-              <div style={{ fontSize: 9, color: COLORS.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                Effectors
-              </div>
-            </div>
-          </div>
+
         </div>
 
         {/* Filter tabs */}
@@ -274,7 +226,7 @@ export default function BdaEquipmentSelection({
                   fovDeg={s.fov_deg}
                   requiresLos={s.requires_los}
                   qty={getQty(selectedEquipment, "sensor", s.catalog_id)}
-                  maxReached={sensorMaxReached}
+                  maxReached={false}
                   onIncrement={() => handleIncrement("sensor", s.catalog_id)}
                   onDecrement={() => handleDecrement("sensor", s.catalog_id)}
                 />
@@ -293,7 +245,7 @@ export default function BdaEquipmentSelection({
                   fovDeg={e.fov_deg}
                   requiresLos={e.requires_los}
                   qty={getQty(selectedEquipment, "effector", e.catalog_id)}
-                  maxReached={effectorMaxReached}
+                  maxReached={false}
                   onIncrement={() => handleIncrement("effector", e.catalog_id)}
                   onDecrement={() => handleDecrement("effector", e.catalog_id)}
                 />
@@ -314,7 +266,7 @@ export default function BdaEquipmentSelection({
                   fovDeg={c.fov_deg}
                   requiresLos={c.requires_los}
                   qty={getQty(selectedEquipment, "combined", c.catalog_id)}
-                  maxReached={sensorMaxReached || effectorMaxReached}
+                  maxReached={false}
                   onIncrement={() => handleIncrement("combined", c.catalog_id)}
                   onDecrement={() => handleDecrement("combined", c.catalog_id)}
                 />
