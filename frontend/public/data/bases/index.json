@@ -28,7 +28,9 @@
     "name": "Altus AFB",
     "size": "small",
     "location_name": "Altus, Oklahoma",
-    "description": "C-17A/KC-46A training"
+    "description": "C-17A/KC-46A training",
+    "max_sensors": 3,
+    "max_effectors": 2
   },
   {
     "id": "andersen_afb",
@@ -43,7 +45,9 @@
     "name": "Arnold AFB",
     "size": "small",
     "location_name": "Tullahoma, Tennessee",
-    "description": "Wind tunnel testing"
+    "description": "Wind tunnel testing",
+    "max_sensors": 3,
+    "max_effectors": 2
   },
   {
     "id": "aviano_ab",
@@ -74,7 +78,9 @@
     "name": "Buckley SFB",
     "size": "medium",
     "location_name": "Aurora, Colorado",
-    "description": "Missile warning and ISR"
+    "description": "Missile warning and ISR",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "cannon_afb",
@@ -89,7 +95,9 @@
     "name": "Columbus AFB",
     "size": "small",
     "location_name": "Columbus, Mississippi",
-    "description": "Pilot training"
+    "description": "Pilot training",
+    "max_sensors": 3,
+    "max_effectors": 2
   },
   {
     "id": "creech_afb",
@@ -112,14 +120,18 @@
     "name": "Dobbins ARB",
     "size": "small",
     "location_name": "Marietta, Georgia",
-    "description": "C-130H reserve"
+    "description": "C-130H reserve",
+    "max_sensors": 3,
+    "max_effectors": 2
   },
   {
     "id": "dover_afb",
     "name": "Dover AFB",
     "size": "medium",
     "location_name": "Dover, Delaware",
-    "description": "East Coast strategic airlift hub"
+    "description": "East Coast strategic airlift hub",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "dyess_afb",
@@ -134,14 +146,18 @@
     "name": "Edwards AFB",
     "size": "large",
     "location_name": "Edwards, California",
-    "description": "Air Force flight test center"
+    "description": "Air Force flight test center",
+    "max_sensors": 8,
+    "max_effectors": 6
   },
   {
     "id": "eglin_afb",
     "name": "Eglin AFB",
     "size": "large",
     "location_name": "Valparaiso, Florida",
-    "description": "AFMC testing and evaluation"
+    "description": "AFMC testing and evaluation",
+    "max_sensors": 8,
+    "max_effectors": 6
   },
   {
     "id": "eielson_afb",
@@ -164,14 +180,18 @@
     "name": "F.E. Warren AFB",
     "size": "medium",
     "location_name": "Cheyenne, Wyoming",
-    "description": "Minuteman III ICBM"
+    "description": "Minuteman III ICBM",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "fairchild_afb",
     "name": "Fairchild AFB",
     "size": "medium",
     "location_name": "Spokane, Washington",
-    "description": "KC-135 air refueling"
+    "description": "KC-135 air refueling",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "fort_liberty",
@@ -194,35 +214,45 @@
     "name": "Goodfellow AFB",
     "size": "small",
     "location_name": "San Angelo, Texas",
-    "description": "Intelligence training"
+    "description": "Intelligence training",
+    "max_sensors": 3,
+    "max_effectors": 2
   },
   {
     "id": "grand_forks_afb",
     "name": "Grand Forks AFB",
     "size": "medium",
     "location_name": "Grand Forks, North Dakota",
-    "description": "RQ-4 Global Hawk operations"
+    "description": "RQ-4 Global Hawk operations",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "grissom_arb",
     "name": "Grissom ARB",
     "size": "small",
     "location_name": "Peru, Indiana",
-    "description": "KC-135R reserve"
+    "description": "KC-135R reserve",
+    "max_sensors": 3,
+    "max_effectors": 2
   },
   {
     "id": "hanscom_afb",
     "name": "Hanscom AFB",
     "size": "small",
     "location_name": "Bedford, Massachusetts",
-    "description": "Defense R&D"
+    "description": "Defense R&D",
+    "max_sensors": 3,
+    "max_effectors": 2
   },
   {
     "id": "hill_afb",
     "name": "Hill AFB",
     "size": "large",
     "location_name": "Ogden, Utah",
-    "description": "F-35 depot and logistics"
+    "description": "F-35 depot and logistics",
+    "max_sensors": 8,
+    "max_effectors": 6
   },
   {
     "id": "holloman_afb",
@@ -237,14 +267,18 @@
     "name": "Homestead ARB",
     "size": "small",
     "location_name": "Homestead, Florida",
-    "description": "F-16C reserve operations"
+    "description": "F-16C reserve operations",
+    "max_sensors": 3,
+    "max_effectors": 2
   },
   {
     "id": "hurlburt_field",
     "name": "Hurlburt Field",
     "size": "medium",
     "location_name": "Fort Walton Beach, Florida",
-    "description": "AFSOC HQ and special ops"
+    "description": "AFSOC HQ and special ops",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "incirlik_ab",
@@ -259,7 +293,9 @@
     "name": "JB Anacostia-Bolling",
     "size": "small",
     "location_name": "Washington, DC",
-    "description": "Capital region support"
+    "description": "Capital region support",
+    "max_sensors": 3,
+    "max_effectors": 2
   },
   {
     "id": "jb_elmendorf_richardson",
@@ -274,14 +310,18 @@
     "name": "JB Lewis-McChord",
     "size": "large",
     "location_name": "Tacoma, Washington",
-    "description": "C-17A strategic airlift"
+    "description": "C-17A strategic airlift",
+    "max_sensors": 8,
+    "max_effectors": 6
   },
   {
     "id": "jb_mcguire_dix_lakehurst",
     "name": "JB McGuire-Dix-Lakehurst",
     "size": "large",
     "location_name": "Wrightstown, New Jersey",
-    "description": "Tri-base airlift complex"
+    "description": "Tri-base airlift complex",
+    "max_sensors": 8,
+    "max_effectors": 6
   },
   {
     "id": "jb_pearl_harbor_hickam",
@@ -296,21 +336,27 @@
     "name": "JBSA-Randolph",
     "size": "medium",
     "location_name": "San Antonio, Texas",
-    "description": "AETC HQ and pilot training"
+    "description": "AETC HQ and pilot training",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "jb_andrews",
     "name": "Joint Base Andrews",
     "size": "large",
     "location_name": "Camp Springs, Maryland",
-    "description": "Capital region air base"
+    "description": "Capital region air base",
+    "max_sensors": 8,
+    "max_effectors": 6
   },
   {
     "id": "jb_charleston",
     "name": "Joint Base Charleston",
     "size": "medium",
     "location_name": "Charleston, South Carolina",
-    "description": "C-17A strategic airlift"
+    "description": "C-17A strategic airlift",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "kadena_ab",
@@ -325,14 +371,18 @@
     "name": "Keesler AFB",
     "size": "medium",
     "location_name": "Biloxi, Mississippi",
-    "description": "Technical training"
+    "description": "Technical training",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "kirtland_afb",
     "name": "Kirtland AFB",
     "size": "medium",
     "location_name": "Albuquerque, New Mexico",
-    "description": "AFRL and nuclear weapons school"
+    "description": "AFRL and nuclear weapons school",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "kunsan_ab",
@@ -379,63 +429,81 @@
     "name": "Laughlin AFB",
     "size": "small",
     "location_name": "Del Rio, Texas",
-    "description": "Pilot training"
+    "description": "Pilot training",
+    "max_sensors": 3,
+    "max_effectors": 2
   },
   {
     "id": "little_rock_afb",
     "name": "Little Rock AFB",
     "size": "medium",
     "location_name": "Jacksonville, Arkansas",
-    "description": "C-130J Super Hercules training hub"
+    "description": "C-130J Super Hercules training hub",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "los_angeles_afb",
     "name": "Los Angeles AFB",
     "size": "medium",
     "location_name": "El Segundo, California",
-    "description": "Space Systems Command"
+    "description": "Space Systems Command",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "luke_afb",
     "name": "Luke AFB",
     "size": "medium",
     "location_name": "Glendale, Arizona",
-    "description": "F-35A/F-16 fighter training"
+    "description": "F-35A/F-16 fighter training",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "macdill_afb",
     "name": "MacDill AFB",
     "size": "large",
     "location_name": "Tampa, Florida",
-    "description": "CENTCOM/SOCOM HQ"
+    "description": "CENTCOM/SOCOM HQ",
+    "max_sensors": 8,
+    "max_effectors": 6
   },
   {
     "id": "malmstrom_afb",
     "name": "Malmstrom AFB",
     "size": "medium",
     "location_name": "Great Falls, Montana",
-    "description": "Minuteman III ICBM"
+    "description": "Minuteman III ICBM",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "march_arb",
     "name": "March ARB",
     "size": "medium",
     "location_name": "Riverside, California",
-    "description": "C-17A/KC-135 reserve"
+    "description": "C-17A/KC-135 reserve",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "maxwell_gunter_afb",
     "name": "Maxwell-Gunter AFB",
     "size": "medium",
     "location_name": "Montgomery, Alabama",
-    "description": "Air University and PME"
+    "description": "Air University and PME",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "mcconnell_afb",
     "name": "McConnell AFB",
     "size": "medium",
     "location_name": "Wichita, Kansas",
-    "description": "KC-46A Pegasus air refueling"
+    "description": "KC-46A Pegasus air refueling",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "mcentire_jngb",
@@ -458,7 +526,9 @@
     "name": "Minot AFB",
     "size": "medium",
     "location_name": "Minot, North Dakota",
-    "description": "B-52H and Minuteman III"
+    "description": "B-52H and Minuteman III",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "misawa_ab",
@@ -537,14 +607,18 @@
     "name": "Patrick SFB",
     "size": "medium",
     "location_name": "Cape Canaveral, Florida",
-    "description": "Eastern Range launch ops"
+    "description": "Eastern Range launch ops",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "peterson_sfb",
     "name": "Peterson SFB",
     "size": "medium",
     "location_name": "Colorado Springs, Colorado",
-    "description": "USSPACECOM/NORAD"
+    "description": "USSPACECOM/NORAD",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "prince_sultan_ab",
@@ -591,14 +665,18 @@
     "name": "Robins AFB",
     "size": "large",
     "location_name": "Warner Robins, Georgia",
-    "description": "Air Logistics Complex"
+    "description": "Air Logistics Complex",
+    "max_sensors": 8,
+    "max_effectors": 6
   },
   {
     "id": "schriever_sfb",
     "name": "Schriever SFB",
     "size": "medium",
     "location_name": "Colorado Springs, Colorado",
-    "description": "Satellite operations"
+    "description": "Satellite operations",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "scott_afb",
@@ -629,7 +707,9 @@
     "name": "Sheppard AFB",
     "size": "medium",
     "location_name": "Wichita Falls, Texas",
-    "description": "ENJJPT and technical training"
+    "description": "ENJJPT and technical training",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "small_fob",
@@ -652,21 +732,27 @@
     "name": "Thule AB",
     "size": "small",
     "location_name": "Greenland",
-    "description": "Space surveillance and missile warning"
+    "description": "Space surveillance and missile warning",
+    "max_sensors": 3,
+    "max_effectors": 2
   },
   {
     "id": "tinker_afb",
     "name": "Tinker AFB",
     "size": "large",
     "location_name": "Oklahoma City, Oklahoma",
-    "description": "Air Logistics Complex"
+    "description": "Air Logistics Complex",
+    "max_sensors": 8,
+    "max_effectors": 6
   },
   {
     "id": "travis_afb",
     "name": "Travis AFB",
     "size": "large",
     "location_name": "Fairfield, California",
-    "description": "West Coast strategic airlift hub"
+    "description": "West Coast strategic airlift hub",
+    "max_sensors": 8,
+    "max_effectors": 6
   },
   {
     "id": "tyndall_afb",
@@ -681,21 +767,27 @@
     "name": "US Air Force Academy",
     "size": "medium",
     "location_name": "Colorado Springs, Colorado",
-    "description": "USAF officer commissioning"
+    "description": "USAF officer commissioning",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "vance_afb",
     "name": "Vance AFB",
     "size": "small",
     "location_name": "Enid, Oklahoma",
-    "description": "Pilot training"
+    "description": "Pilot training",
+    "max_sensors": 3,
+    "max_effectors": 2
   },
   {
     "id": "vandenberg_sfb",
     "name": "Vandenberg SFB",
     "size": "large",
     "location_name": "Lompoc, California",
-    "description": "Space launch range"
+    "description": "Space launch range",
+    "max_sensors": 8,
+    "max_effectors": 6
   },
   {
     "id": "volkel_ab",
@@ -710,7 +802,9 @@
     "name": "Westover ARB",
     "size": "medium",
     "location_name": "Chicopee, Massachusetts",
-    "description": "C-5M reserve"
+    "description": "C-5M reserve",
+    "max_sensors": 5,
+    "max_effectors": 4
   },
   {
     "id": "whiteman_afb",
@@ -725,7 +819,9 @@
     "name": "Wright-Patterson AFB",
     "size": "large",
     "location_name": "Dayton, Ohio",
-    "description": "AFMC HQ and AFRL"
+    "description": "AFMC HQ and AFRL",
+    "max_sensors": 8,
+    "max_effectors": 6
   },
   {
     "id": "yokota_ab",
