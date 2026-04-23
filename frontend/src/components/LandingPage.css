@@ -632,10 +632,49 @@
 /* CTAs */
 .lp-ctas {
   display: flex;
-  gap: 16px;
+  gap: 20px;
   justify-content: center;
-  margin-top: 48px;
+  margin-top: 56px;
   flex-wrap: wrap;
+}
+
+.lp-ctas .lp-btn {
+  padding: 16px 44px;
+  font-size: 14px;
+  letter-spacing: 2px;
+  border-width: 1.5px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Custom Mission — solid blue tint with elevation */
+.lp-ctas .lp-btn--outline:not(.lp-btn--gold) {
+  background: rgba(88, 166, 255, 0.08);
+  border-color: rgba(88, 166, 255, 0.35);
+  color: var(--blue);
+  box-shadow: 0 4px 24px rgba(88, 166, 255, 0.08), 0 0 0 1px rgba(88, 166, 255, 0.1);
+}
+.lp-ctas .lp-btn--outline:not(.lp-btn--gold):hover {
+  background: rgba(88, 166, 255, 0.14);
+  border-color: var(--blue);
+  color: var(--blue);
+  box-shadow: 0 6px 32px rgba(88, 166, 255, 0.18), 0 0 0 1px rgba(88, 166, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Base Defense Architect — solid amber tint with glow */
+.lp-ctas .lp-btn--gold {
+  background: rgba(210, 153, 34, 0.08);
+  border-color: rgba(210, 153, 34, 0.35);
+  color: var(--amber);
+  box-shadow: 0 4px 24px rgba(210, 153, 34, 0.08), 0 0 0 1px rgba(210, 153, 34, 0.1);
+}
+.lp-ctas .lp-btn--gold:hover {
+  background: rgba(210, 153, 34, 0.14);
+  border-color: var(--amber);
+  color: var(--amber);
+  box-shadow: 0 6px 32px rgba(210, 153, 34, 0.18), 0 0 0 1px rgba(210, 153, 34, 0.2);
+  transform: translateY(-2px);
 }
 
 /* ══════════════════════════════════════════

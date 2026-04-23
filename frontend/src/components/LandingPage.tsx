@@ -216,6 +216,10 @@ export default function LandingPage({
             <span className="lp-stat__label">Kill Chain Phases</span>
           </div>
           <div className="lp-stat" ref={addRevealRef}>
+            <span className="lp-stat__value">98</span>
+            <span className="lp-stat__label">Base Presets</span>
+          </div>
+          <div className="lp-stat" ref={addRevealRef}>
             <span className="lp-stat__value">6</span>
             <span className="lp-stat__label">Scenarios</span>
           </div>
