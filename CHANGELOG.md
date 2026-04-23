@@ -8,7 +8,24 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.13.0] — 2026-04-23
+
 ### Added
+- **48 new curated base presets** — Bulk addition of major USAF/Space Force installations across all MAJCOMs: AMC (10), AETC (11), AFMC (9), AFGSC (3), AFSOC/ACC/AFRC/NAF/USSF (15). Preset library now totals **98 curated bases + 3 generic templates**.
+- **preset-aliases.json** — Expanded alias mapping with name/ICAO variants for all new presets, enabling search-by-name across the full inventory.
+- **Box boundary support** — Flight-line-centered approximate boxes added for all bulk presets. Users can adjust in-app as needed.
+
+### Fixed
+- **Base center coordinate accuracy** — All 95 presets cross-referenced against ICAO/OurAirports/web search. Significant corrections for Souda Bay (68km), Thule AB (16.5km), JB Charleston (10.2km), Eglin AFB (10.6km), Kirtland AFB (9.5km), and many others. Bullseyes now land on actual airfields.
+- **Schema validation** — `protected_assets`, `terrain`, and `approach_corridors` field names corrected across all new presets to match TypeScript interfaces.
+- **Figure-8 polygon bug** — Vertex winding order fixed for all box presets (TL→TR→BR→BL instead of crossing TL→TR→BL→BR).
+- **Missing required fields** — `max_sensors`/`max_effectors` added to 48 new `index.json` entries, resolving unclickable cards in BDA.
+
+### Changed
+- **Curated preset count documentation** — README and CHANGELOG updated to reflect **98 curated presets** (previously 19).
+
+### Added
+
 - **GeoJSON preset importer** — Added `scripts/import_geojson_preset.py` so traced `geojson.io` polygons can be converted directly into curated base preset format.
 
 ### Changed

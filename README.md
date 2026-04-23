@@ -108,7 +108,7 @@ UAS and drone contacts are never ATC-authorized — only manned aircraft can rec
 - **EW realism pass** — RF jamming now respects command-link presence, Shenobi is limited to supported commercial/micro control links, and Shahed-class threats are documented and scored as kinetic-only.
 - **Directed energy split** — `DE-LASER-3km` for precision single-target kills and `DE-HPM-3km` for area effects against swarms. Each system has distinct visuals, recharge timing, and ROE tradeoffs.
 - **Weapon pre-slew / aim time** — Directed energy systems can orient onto a target before it enters range, then fire after a short slew/aim delay once commanded in-range.
-- **📍 19 curated base presets** — Search by name or ICAO code for real installations. Curated boundaries load automatically — Osan, Aviano, Shaw, Ramstein, RAF Mildenhall, RAF Lakenheath, Al Udeid, Creech, Fort Liberty, Nellis, Kadena, Barksdale, Lackland, Scott, Tyndall, Kunsan, Prince Sultan, Spangdahlem, and McEntire.
+- **📍 98 curated base presets** — Search by name or ICAO code for real installations. Curated boundaries load automatically — from Al Dhafra and Al Udeid to Yokota and Thule AB. Covers AMC, AETC, AFMC, AFGSC, AFSOC, ACC, AFRC, NAF, and USSF installations worldwide.
 - **💾 Saved custom locations** — Search any location, shape the perimeter you actually want, save it, and get the same boundary back on revisit in both Custom Mission and Base Defense Architect. On the live GitHub Pages site, these saves are browser-local; shared presets still need a curated JSON committed to the repo.
 - **🛠️ Curated perimeter workflow** — New shared presets should come from traced/source-derived aerodrome outlines (`geojson.io` or OSM geometry + `scripts/import_geojson_preset.py`), not runway-buffer ovals. See [docs/adding-base-presets.md](./docs/adding-base-presets.md).
 - **Real-world satellite maps** via Leaflet.js — OpenStreetMap + CartoDB imagery, global coverage
@@ -250,7 +250,7 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 - [x] 4-sided default perimeter with midpoint add / right-click remove
 - [x] Custom mission handoff uses live edited boundary (not stale template)
 - [x] `placement_bounds_km` derived from edited polygon
-- [x] **19 curated searchable base presets** in preset library
+- [x] **98 curated searchable base presets** in preset library
 
 ### Completed (v1.12.0)
 - [x] Custom searched locations now start from a generic editable polygon instead of reusing curated scaffold data
