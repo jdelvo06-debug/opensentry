@@ -24,6 +24,13 @@
     "max_effectors": 4
   },
   {
+    "id": "altus_afb",
+    "name": "Altus AFB",
+    "size": "small",
+    "location_name": "Altus, Oklahoma",
+    "description": "C-17A/KC-46A training"
+  },
+  {
     "id": "andersen_afb",
     "name": "Andersen Air Force Base",
     "description": "Andersen AFB, Guam \u2014 strategic Pacific bomber hub, home of the 36th Wing",
@@ -62,6 +69,13 @@
     "size": "medium",
     "max_sensors": 4,
     "max_effectors": 3
+  },
+  {
+    "id": "columbus_afb",
+    "name": "Columbus AFB",
+    "size": "small",
+    "location_name": "Columbus, Mississippi",
+    "description": "Pilot training"
   },
   {
     "id": "creech_afb",
@@ -134,6 +148,13 @@
     "max_effectors": 3
   },
   {
+    "id": "goodfellow_afb",
+    "name": "Goodfellow AFB",
+    "size": "small",
+    "location_name": "San Angelo, Texas",
+    "description": "Intelligence training"
+  },
+  {
     "id": "grand_forks_afb",
     "name": "Grand Forks AFB",
     "size": "medium",
@@ -187,6 +208,13 @@
     "max_effectors": 4
   },
   {
+    "id": "jb_san_antonio_randolph",
+    "name": "JBSA-Randolph",
+    "size": "medium",
+    "location_name": "San Antonio, Texas",
+    "description": "AETC HQ and pilot training"
+  },
+  {
     "id": "jb_andrews",
     "name": "Joint Base Andrews",
     "size": "large",
@@ -207,6 +235,13 @@
     "size": "large",
     "max_sensors": 5,
     "max_effectors": 4
+  },
+  {
+    "id": "keesler_afb",
+    "name": "Keesler AFB",
+    "size": "medium",
+    "location_name": "Biloxi, Mississippi",
+    "description": "Technical training"
   },
   {
     "id": "kunsan_ab",
@@ -249,11 +284,32 @@
     "max_effectors": 4
   },
   {
+    "id": "laughlin_afb",
+    "name": "Laughlin AFB",
+    "size": "small",
+    "location_name": "Del Rio, Texas",
+    "description": "Pilot training"
+  },
+  {
     "id": "little_rock_afb",
     "name": "Little Rock AFB",
     "size": "medium",
     "location_name": "Jacksonville, Arkansas",
     "description": "C-130J Super Hercules training hub"
+  },
+  {
+    "id": "luke_afb",
+    "name": "Luke AFB",
+    "size": "medium",
+    "location_name": "Glendale, Arizona",
+    "description": "F-35A/F-16 fighter training"
+  },
+  {
+    "id": "maxwell_gunter_afb",
+    "name": "Maxwell-Gunter AFB",
+    "size": "medium",
+    "location_name": "Montgomery, Alabama",
+    "description": "Air University and PME"
   },
   {
     "id": "mcconnell_afb",
@@ -415,6 +471,13 @@
     "max_effectors": 3
   },
   {
+    "id": "sheppard_afb",
+    "name": "Sheppard AFB",
+    "size": "medium",
+    "location_name": "Wichita Falls, Texas",
+    "description": "ENJJPT and technical training"
+  },
+  {
     "id": "small_fob",
     "name": "Small FOB",
     "description": "Compact forward operating base with tight perimeter. Limited entry points and short sight lines.",
@@ -444,6 +507,20 @@
     "size": "large",
     "max_sensors": 5,
     "max_effectors": 4
+  },
+  {
+    "id": "usafa",
+    "name": "US Air Force Academy",
+    "size": "medium",
+    "location_name": "Colorado Springs, Colorado",
+    "description": "USAF officer commissioning"
+  },
+  {
+    "id": "vance_afb",
+    "name": "Vance AFB",
+    "size": "small",
+    "location_name": "Enid, Oklahoma",
+    "description": "Pilot training"
   },
   {
     "id": "volkel_ab",

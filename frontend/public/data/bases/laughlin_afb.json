@@ -1,0 +1,76 @@
+{
+  "id": "laughlin_afb",
+  "name": "Laughlin AFB",
+  "description": "Laughlin Air Force Base, Texas. Home of the 47th Flying Training Wing. T-6A Texan II and T-38 Talon pilot training.",
+  "size": "small",
+  "center_lat": 29.356766,
+  "center_lng": -100.786266,
+  "default_zoom": 13,
+  "boundary": [
+    [
+      1.4,
+      -1.4
+    ],
+    [
+      1.4,
+      1.4
+    ],
+    [
+      -1.4,
+      -1.4
+    ],
+    [
+      -1.4,
+      1.4
+    ]
+  ],
+  "protected_assets": [
+    {
+      "name": "Runway",
+      "type": "runway",
+      "lat_offset_km": 0,
+      "lng_offset_km": 0,
+      "radius_km": 0.3
+    },
+    {
+      "name": "Air Operations",
+      "type": "command",
+      "lat_offset_km": 0.2,
+      "lng_offset_km": 0.2,
+      "radius_km": 0.1
+    },
+    {
+      "name": "Aircraft Parking",
+      "type": "high_value",
+      "lat_offset_km": -0.1,
+      "lng_offset_km": 0.3,
+      "radius_km": 0.15
+    }
+  ],
+  "terrain": [
+    {
+      "type": "flat",
+      "description": "Relatively flat terrain"
+    },
+    {
+      "type": "structures",
+      "description": "Base infrastructure and hangars"
+    }
+  ],
+  "approach_corridors": [
+    {
+      "bearing_deg": 12,
+      "width_deg": 30,
+      "description": "Runway approach"
+    },
+    {
+      "bearing_deg": 192,
+      "width_deg": 30,
+      "description": "Runway departure"
+    }
+  ],
+  "max_sensors": 5,
+  "max_effectors": 4,
+  "placement_bounds_km": 2.0,
+  "source": "approximate (flight-line center)"
+}

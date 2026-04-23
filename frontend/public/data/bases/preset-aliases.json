@@ -692,5 +692,135 @@
       "Fort Lewis"
     ],
     "baseFile": "jb_lewis_mcchord"
+  },
+  {
+    "id": "maxwell_gunter_afb",
+    "aliases": [
+      "Maxwell",
+      "Maxwell AFB",
+      "Maxwell-Gunter",
+      "Gunter",
+      "Maxwell Air Force Base",
+      "KMGM"
+    ],
+    "baseFile": "maxwell_gunter_afb"
+  },
+  {
+    "id": "luke_afb",
+    "aliases": [
+      "Luke",
+      "Luke AFB",
+      "Luke Air Force Base",
+      "KLUF",
+      "LUF",
+      "Glendale AFB"
+    ],
+    "baseFile": "luke_afb"
+  },
+  {
+    "id": "usafa",
+    "aliases": [
+      "Air Force Academy",
+      "USAFA",
+      "US Air Force Academy",
+      "Academy",
+      "Colorado Springs Academy"
+    ],
+    "baseFile": "usafa"
+  },
+  {
+    "id": "columbus_afb",
+    "aliases": [
+      "Columbus",
+      "Columbus AFB",
+      "Columbus Air Force Base",
+      "KCBM",
+      "CBM"
+    ],
+    "baseFile": "columbus_afb"
+  },
+  {
+    "id": "keesler_afb",
+    "aliases": [
+      "Keesler",
+      "Keesler AFB",
+      "Keesler Air Force Base",
+      "KBIX",
+      "BIX",
+      "Biloxi AFB"
+    ],
+    "baseFile": "keesler_afb"
+  },
+  {
+    "id": "altus_afb",
+    "aliases": [
+      "Altus",
+      "Altus AFB",
+      "Altus Air Force Base",
+      "KADS",
+      "ADS",
+      "LTS"
+    ],
+    "baseFile": "altus_afb"
+  },
+  {
+    "id": "vance_afb",
+    "aliases": [
+      "Vance",
+      "Vance AFB",
+      "Vance Air Force Base",
+      "KEND",
+      "END"
+    ],
+    "baseFile": "vance_afb"
+  },
+  {
+    "id": "goodfellow_afb",
+    "aliases": [
+      "Goodfellow",
+      "Goodfellow AFB",
+      "Goodfellow Air Force Base",
+      "KGOF",
+      "GOF"
+    ],
+    "baseFile": "goodfellow_afb"
+  },
+  {
+    "id": "jb_san_antonio_randolph",
+    "aliases": [
+      "Randolph",
+      "Randolph AFB",
+      "JBSA-Randolph",
+      "Randolph Air Force Base",
+      "KRND",
+      "RND",
+      "San Antonio Randolph"
+    ],
+    "baseFile": "jb_san_antonio_randolph"
+  },
+  {
+    "id": "laughlin_afb",
+    "aliases": [
+      "Laughlin",
+      "Laughlin AFB",
+      "Laughlin Air Force Base",
+      "KDLF",
+      "DLF",
+      "Del Rio AFB"
+    ],
+    "baseFile": "laughlin_afb"
+  },
+  {
+    "id": "sheppard_afb",
+    "aliases": [
+      "Sheppard",
+      "Sheppard AFB",
+      "Sheppard Air Force Base",
+      "KSPS",
+      "SPS",
+      "Wichita Falls AFB",
+      "ENJJPT"
+    ],
+    "baseFile": "sheppard_afb"
   }
 ]

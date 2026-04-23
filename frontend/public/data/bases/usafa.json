@@ -1,0 +1,65 @@
+{
+  "id": "usafa",
+  "name": "US Air Force Academy",
+  "description": "United States Air Force Academy, Colorado. Undergraduate education and commissioning source for USAF officers. Home of the 10th Air Base Wing.",
+  "size": "medium",
+  "center_lat": 38.991238,
+  "center_lng": -104.858835,
+  "default_zoom": 14,
+  "boundary": [
+    [
+      1.4,
+      -1.4
+    ],
+    [
+      1.4,
+      1.4
+    ],
+    [
+      -1.4,
+      -1.4
+    ],
+    [
+      -1.4,
+      1.4
+    ]
+  ],
+  "protected_assets": [
+    {
+      "name": "Runway",
+      "type": "runway",
+      "lat_offset_km": 0,
+      "lng_offset_km": 0,
+      "radius_km": 0.3
+    },
+    {
+      "name": "Air Operations",
+      "type": "command",
+      "lat_offset_km": 0.2,
+      "lng_offset_km": 0.2,
+      "radius_km": 0.1
+    },
+    {
+      "name": "Aircraft Parking",
+      "type": "high_value",
+      "lat_offset_km": -0.1,
+      "lng_offset_km": 0.3,
+      "radius_km": 0.15
+    }
+  ],
+  "terrain": [
+    {
+      "type": "flat",
+      "description": "Relatively flat terrain"
+    },
+    {
+      "type": "structures",
+      "description": "Base infrastructure and hangars"
+    }
+  ],
+  "approach_corridors": [],
+  "max_sensors": 5,
+  "max_effectors": 4,
+  "placement_bounds_km": 2.0,
+  "source": "approximate (flight-line center)"
+}
