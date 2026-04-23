@@ -80,6 +80,13 @@
     "max_effectors": 4
   },
   {
+    "id": "dover_afb",
+    "name": "Dover AFB",
+    "size": "medium",
+    "location_name": "Dover, Delaware",
+    "description": "East Coast strategic airlift hub"
+  },
+  {
     "id": "dyess_afb",
     "name": "Dyess AFB",
     "description": "7th Bomb Wing, B-1B Lancer and C-130J.",
@@ -104,6 +111,13 @@
     "max_effectors": 4
   },
   {
+    "id": "fairchild_afb",
+    "name": "Fairchild AFB",
+    "size": "medium",
+    "location_name": "Spokane, Washington",
+    "description": "KC-135 air refueling"
+  },
+  {
     "id": "fort_liberty",
     "name": "Fort Liberty (Pope Army Airfield)",
     "description": "Curated Fort Liberty preset for North Carolina, USA, using a simplified open-source aerodrome footprint derived from OSM",
@@ -118,6 +132,13 @@
     "size": "medium",
     "max_sensors": 4,
     "max_effectors": 3
+  },
+  {
+    "id": "grand_forks_afb",
+    "name": "Grand Forks AFB",
+    "size": "medium",
+    "location_name": "Grand Forks, North Dakota",
+    "description": "RQ-4 Global Hawk operations"
   },
   {
     "id": "holloman_afb",
@@ -144,12 +165,40 @@
     "max_effectors": 4
   },
   {
+    "id": "jb_lewis_mcchord",
+    "name": "JB Lewis-McChord",
+    "size": "large",
+    "location_name": "Tacoma, Washington",
+    "description": "C-17A strategic airlift"
+  },
+  {
+    "id": "jb_mcguire_dix_lakehurst",
+    "name": "JB McGuire-Dix-Lakehurst",
+    "size": "large",
+    "location_name": "Wrightstown, New Jersey",
+    "description": "Tri-base airlift complex"
+  },
+  {
     "id": "jb_pearl_harbor_hickam",
     "name": "JB Pearl Harbor-Hickam",
     "description": "Curated Joint Base Pearl Harbor-Hickam preset for Honolulu, Hawaii, using a simplified open-source aerodrome footprint d",
     "size": "large",
     "max_sensors": 5,
     "max_effectors": 4
+  },
+  {
+    "id": "jb_andrews",
+    "name": "Joint Base Andrews",
+    "size": "large",
+    "location_name": "Camp Springs, Maryland",
+    "description": "Capital region air base"
+  },
+  {
+    "id": "jb_charleston",
+    "name": "Joint Base Charleston",
+    "size": "medium",
+    "location_name": "Charleston, South Carolina",
+    "description": "C-17A strategic airlift"
   },
   {
     "id": "kadena_ab",
@@ -198,6 +247,20 @@
     "size": "large",
     "max_sensors": 5,
     "max_effectors": 4
+  },
+  {
+    "id": "little_rock_afb",
+    "name": "Little Rock AFB",
+    "size": "medium",
+    "location_name": "Jacksonville, Arkansas",
+    "description": "C-130J Super Hercules training hub"
+  },
+  {
+    "id": "mcconnell_afb",
+    "name": "McConnell AFB",
+    "size": "medium",
+    "location_name": "Wichita, Kansas",
+    "description": "KC-46A Pegasus air refueling"
   },
   {
     "id": "mcentire_jngb",
@@ -366,6 +429,13 @@
     "size": "medium",
     "max_sensors": 4,
     "max_effectors": 3
+  },
+  {
+    "id": "travis_afb",
+    "name": "Travis AFB",
+    "size": "large",
+    "location_name": "Fairfield, California",
+    "description": "West Coast strategic airlift hub"
   },
   {
     "id": "tyndall_afb",

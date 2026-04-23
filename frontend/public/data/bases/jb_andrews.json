@@ -1,0 +1,76 @@
+{
+  "id": "jb_andrews",
+  "name": "Joint Base Andrews",
+  "description": "Joint Base Andrews, Maryland. Capital region air base. Home of the 316th Wing and 89th Airlift Wing. Air Force One operations.",
+  "size": "large",
+  "center_lat": 38.805747,
+  "center_lng": -76.877416,
+  "default_zoom": 13,
+  "boundary": [
+    [
+      2.45,
+      -2.45
+    ],
+    [
+      2.45,
+      2.45
+    ],
+    [
+      -2.45,
+      -2.45
+    ],
+    [
+      -2.45,
+      2.45
+    ]
+  ],
+  "protected_assets": [
+    {
+      "name": "Runway",
+      "type": "runway",
+      "lat_offset_km": 0,
+      "lng_offset_km": 0,
+      "radius_km": 0.3
+    },
+    {
+      "name": "Air Operations",
+      "type": "command",
+      "lat_offset_km": 0.2,
+      "lng_offset_km": 0.2,
+      "radius_km": 0.1
+    },
+    {
+      "name": "Aircraft Parking",
+      "type": "high_value",
+      "lat_offset_km": -0.1,
+      "lng_offset_km": 0.3,
+      "radius_km": 0.15
+    }
+  ],
+  "terrain": [
+    {
+      "type": "flat",
+      "description": "Relatively flat terrain"
+    },
+    {
+      "type": "structures",
+      "description": "Base infrastructure and hangars"
+    }
+  ],
+  "approach_corridors": [
+    {
+      "bearing_deg": 18,
+      "width_deg": 30,
+      "description": "Runway approach"
+    },
+    {
+      "bearing_deg": 198,
+      "width_deg": 30,
+      "description": "Runway departure"
+    }
+  ],
+  "max_sensors": 8,
+  "max_effectors": 6,
+  "placement_bounds_km": 3.5,
+  "source": "approximate (flight-line center)"
+}

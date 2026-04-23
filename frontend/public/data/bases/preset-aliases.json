@@ -572,5 +572,125 @@
       "yokota tokyo"
     ],
     "baseFile": "yokota_ab"
+  },
+  {
+    "id": "little_rock_afb",
+    "aliases": [
+      "Little Rock",
+      "Little Rock AFB",
+      "Little Rock Air Force Base",
+      "KLRF",
+      "LRF"
+    ],
+    "baseFile": "little_rock_afb"
+  },
+  {
+    "id": "travis_afb",
+    "aliases": [
+      "Travis",
+      "Travis AFB",
+      "Travis Air Force Base",
+      "KSUU",
+      "SUU",
+      "Fairfield"
+    ],
+    "baseFile": "travis_afb"
+  },
+  {
+    "id": "dover_afb",
+    "aliases": [
+      "Dover",
+      "Dover AFB",
+      "Dover Air Force Base",
+      "KDOV",
+      "DOV"
+    ],
+    "baseFile": "dover_afb"
+  },
+  {
+    "id": "mcconnell_afb",
+    "aliases": [
+      "McConnell",
+      "McConnell AFB",
+      "McConnell Air Force Base",
+      "KIAB",
+      "IAB",
+      "Wichita AFB"
+    ],
+    "baseFile": "mcconnell_afb"
+  },
+  {
+    "id": "jb_andrews",
+    "aliases": [
+      "Andrews",
+      "Andrews AFB",
+      "Joint Base Andrews",
+      "Andrews Air Force Base",
+      "KADW",
+      "ADW"
+    ],
+    "baseFile": "jb_andrews"
+  },
+  {
+    "id": "jb_mcguire_dix_lakehurst",
+    "aliases": [
+      "McGuire",
+      "McGuire AFB",
+      "McGuire Air Force Base",
+      "JB McGuire",
+      "McGuire-Dix-Lakehurst",
+      "KWRI",
+      "WRI"
+    ],
+    "baseFile": "jb_mcguire_dix_lakehurst"
+  },
+  {
+    "id": "grand_forks_afb",
+    "aliases": [
+      "Grand Forks",
+      "Grand Forks AFB",
+      "Grand Forks Air Force Base",
+      "KRDR",
+      "RDR"
+    ],
+    "baseFile": "grand_forks_afb"
+  },
+  {
+    "id": "jb_charleston",
+    "aliases": [
+      "Charleston",
+      "Charleston AFB",
+      "Joint Base Charleston",
+      "Charleston Air Force Base",
+      "KCHS",
+      "CHS"
+    ],
+    "baseFile": "jb_charleston"
+  },
+  {
+    "id": "fairchild_afb",
+    "aliases": [
+      "Fairchild",
+      "Fairchild AFB",
+      "Fairchild Air Force Base",
+      "KSKA",
+      "SKA",
+      "Spokane AFB"
+    ],
+    "baseFile": "fairchild_afb"
+  },
+  {
+    "id": "jb_lewis_mcchord",
+    "aliases": [
+      "Lewis-McChord",
+      "McChord",
+      "McChord AFB",
+      "JBLM",
+      "JB Lewis-McChord",
+      "KTCM",
+      "TCM",
+      "Fort Lewis"
+    ],
+    "baseFile": "jb_lewis_mcchord"
   }
 ]
