@@ -1,0 +1,76 @@
+{
+  "id": "homestead_arb",
+  "name": "Homestead ARB",
+  "description": "Homestead Air Reserve Base, Florida. Home of the 482nd Fighter Wing. F-16C Fighting Falcon reserve operations.",
+  "size": "small",
+  "center_lat": 25.488018,
+  "center_lng": -80.394843,
+  "default_zoom": 13,
+  "boundary": [
+    [
+      1.4,
+      -1.4
+    ],
+    [
+      1.4,
+      1.4
+    ],
+    [
+      -1.4,
+      -1.4
+    ],
+    [
+      -1.4,
+      1.4
+    ]
+  ],
+  "protected_assets": [
+    {
+      "name": "Runway",
+      "type": "runway",
+      "lat_offset_km": 0,
+      "lng_offset_km": 0,
+      "radius_km": 0.3
+    },
+    {
+      "name": "Air Operations",
+      "type": "command",
+      "lat_offset_km": 0.2,
+      "lng_offset_km": 0.2,
+      "radius_km": 0.1
+    },
+    {
+      "name": "Aircraft Parking",
+      "type": "high_value",
+      "lat_offset_km": -0.1,
+      "lng_offset_km": 0.3,
+      "radius_km": 0.15
+    }
+  ],
+  "terrain": [
+    {
+      "type": "flat",
+      "description": "Relatively flat terrain"
+    },
+    {
+      "type": "structures",
+      "description": "Base infrastructure and hangars"
+    }
+  ],
+  "approach_corridors": [
+    {
+      "bearing_deg": 5,
+      "width_deg": 30,
+      "description": "Runway approach"
+    },
+    {
+      "bearing_deg": 185,
+      "width_deg": 30,
+      "description": "Runway departure"
+    }
+  ],
+  "max_sensors": 5,
+  "max_effectors": 4,
+  "placement_bounds_km": 2.0,
+  "source": "approximate (flight-line center)"
+}

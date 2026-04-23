@@ -822,5 +822,327 @@
       "ENJJPT"
     ],
     "baseFile": "sheppard_afb"
+  },
+  {
+    "id": "edwards_afb",
+    "aliases": [
+      "Edwards",
+      "Edwards AFB",
+      "Edwards Air Force Base",
+      "KEDW",
+      "EDW"
+    ],
+    "baseFile": "edwards_afb"
+  },
+  {
+    "id": "eglin_afb",
+    "aliases": [
+      "Eglin",
+      "Eglin AFB",
+      "Eglin Air Force Base",
+      "KVPS",
+      "VPS"
+    ],
+    "baseFile": "eglin_afb"
+  },
+  {
+    "id": "robins_afb",
+    "aliases": [
+      "Robins",
+      "Robins AFB",
+      "Robins Air Force Base",
+      "KWRB",
+      "WRB"
+    ],
+    "baseFile": "robins_afb"
+  },
+  {
+    "id": "hanscom_afb",
+    "aliases": [
+      "Hanscom",
+      "Hanscom AFB",
+      "Hanscom Air Force Base",
+      "KBED",
+      "BED"
+    ],
+    "baseFile": "hanscom_afb"
+  },
+  {
+    "id": "kirtland_afb",
+    "aliases": [
+      "Kirtland",
+      "Kirtland AFB",
+      "Kirtland Air Force Base",
+      "KABQ",
+      "ABQ"
+    ],
+    "baseFile": "kirtland_afb"
+  },
+  {
+    "id": "wright_patterson_afb",
+    "aliases": [
+      "Wright-Patt",
+      "Wright-Patterson",
+      "Wright-Patterson AFB",
+      "Wright Patterson",
+      "KFFO",
+      "FFO",
+      "Dayton AFB"
+    ],
+    "baseFile": "wright_patterson_afb"
+  },
+  {
+    "id": "tinker_afb",
+    "aliases": [
+      "Tinker",
+      "Tinker AFB",
+      "Tinker Air Force Base",
+      "KTIK",
+      "TIK"
+    ],
+    "baseFile": "tinker_afb"
+  },
+  {
+    "id": "arnold_afb",
+    "aliases": [
+      "Arnold",
+      "Arnold AFB",
+      "Arnold Air Force Base",
+      "KAED",
+      "AED",
+      "AEDC"
+    ],
+    "baseFile": "arnold_afb"
+  },
+  {
+    "id": "hill_afb",
+    "aliases": [
+      "Hill",
+      "Hill AFB",
+      "Hill Air Force Base",
+      "KHIF",
+      "HIF",
+      "Ogden AFB"
+    ],
+    "baseFile": "hill_afb"
+  },
+  {
+    "id": "malmstrom_afb",
+    "aliases": [
+      "Malmstrom",
+      "Malmstrom AFB",
+      "Malmstrom Air Force Base",
+      "KGFA",
+      "GFA",
+      "Great Falls AFB"
+    ],
+    "baseFile": "malmstrom_afb"
+  },
+  {
+    "id": "minot_afb",
+    "aliases": [
+      "Minot",
+      "Minot AFB",
+      "Minot Air Force Base",
+      "KMIB",
+      "MIB"
+    ],
+    "baseFile": "minot_afb"
+  },
+  {
+    "id": "fe_warren_afb",
+    "aliases": [
+      "Warren",
+      "F.E. Warren",
+      "F.E. Warren AFB",
+      "FE Warren",
+      "Francis Warren",
+      "KCYS",
+      "Cheyenne AFB"
+    ],
+    "baseFile": "fe_warren_afb"
+  },
+  {
+    "id": "hurlburt_field",
+    "aliases": [
+      "Hurlburt",
+      "Hurlburt Field",
+      "KHRT",
+      "HRT",
+      "AFSOC"
+    ],
+    "baseFile": "hurlburt_field"
+  },
+  {
+    "id": "macdill_afb",
+    "aliases": [
+      "MacDill",
+      "MacDill AFB",
+      "MacDill Air Force Base",
+      "KMCF",
+      "MCF",
+      "Tampa AFB",
+      "CENTCOM",
+      "SOCOM"
+    ],
+    "baseFile": "macdill_afb"
+  },
+  {
+    "id": "march_arb",
+    "aliases": [
+      "March",
+      "March ARB",
+      "March Air Reserve Base",
+      "March AFB",
+      "KRIV",
+      "RIV"
+    ],
+    "baseFile": "march_arb"
+  },
+  {
+    "id": "homestead_arb",
+    "aliases": [
+      "Homestead",
+      "Homestead ARB",
+      "Homestead AFB",
+      "KHST",
+      "HST"
+    ],
+    "baseFile": "homestead_arb"
+  },
+  {
+    "id": "dobbins_arb",
+    "aliases": [
+      "Dobbins",
+      "Dobbins ARB",
+      "Dobbins AFB",
+      "KMGE",
+      "MGE",
+      "Marietta AFB"
+    ],
+    "baseFile": "dobbins_arb"
+  },
+  {
+    "id": "grissom_arb",
+    "aliases": [
+      "Grissom",
+      "Grissom ARB",
+      "Grissom AFB",
+      "KGUS",
+      "GUS"
+    ],
+    "baseFile": "grissom_arb"
+  },
+  {
+    "id": "westover_arb",
+    "aliases": [
+      "Westover",
+      "Westover ARB",
+      "Westover AFB",
+      "KCEF",
+      "CEF",
+      "Chicopee AFB"
+    ],
+    "baseFile": "westover_arb"
+  },
+  {
+    "id": "jb_anacostia_bolling",
+    "aliases": [
+      "Anacostia",
+      "Bolling",
+      "Anacostia-Bolling",
+      "JBAB",
+      "Joint Base Anacostia-Bolling",
+      "KBOF",
+      "BOF"
+    ],
+    "baseFile": "jb_anacostia_bolling"
+  },
+  {
+    "id": "los_angeles_afb",
+    "aliases": [
+      "LA AFB",
+      "Los Angeles AFB",
+      "Los Angeles Air Force Base",
+      "KLAX",
+      "El Segundo AFB",
+      "Space Systems Command"
+    ],
+    "baseFile": "los_angeles_afb"
+  },
+  {
+    "id": "vandenberg_sfb",
+    "aliases": [
+      "Vandenberg",
+      "Vandenberg SFB",
+      "Vandenberg AFB",
+      "Vandenberg Space Force Base",
+      "KVBG",
+      "VBG"
+    ],
+    "baseFile": "vandenberg_sfb"
+  },
+  {
+    "id": "buckley_sfb",
+    "aliases": [
+      "Buckley",
+      "Buckley SFB",
+      "Buckley AFB",
+      "Buckley Space Force Base",
+      "KBKF",
+      "BKF",
+      "Aurora AFB"
+    ],
+    "baseFile": "buckley_sfb"
+  },
+  {
+    "id": "peterson_sfb",
+    "aliases": [
+      "Peterson",
+      "Peterson SFB",
+      "Peterson AFB",
+      "Peterson Space Force Base",
+      "KCOS",
+      "COS",
+      "NORAD",
+      "USSPACECOM"
+    ],
+    "baseFile": "peterson_sfb"
+  },
+  {
+    "id": "schriever_sfb",
+    "aliases": [
+      "Schriever",
+      "Schriever SFB",
+      "Schriever AFB",
+      "Schriever Space Force Base",
+      "KCOS",
+      "Space Wing"
+    ],
+    "baseFile": "schriever_sfb"
+  },
+  {
+    "id": "patrick_sfb",
+    "aliases": [
+      "Patrick",
+      "Patrick SFB",
+      "Patrick AFB",
+      "Patrick Space Force Base",
+      "KCOF",
+      "COF",
+      "Cape Canaveral AFB"
+    ],
+    "baseFile": "patrick_sfb"
+  },
+  {
+    "id": "thule_ab",
+    "aliases": [
+      "Thule",
+      "Thule AB",
+      "Thule Air Base",
+      "BGTL",
+      "Greenland AFB"
+    ],
+    "baseFile": "thule_ab"
   }
 ]

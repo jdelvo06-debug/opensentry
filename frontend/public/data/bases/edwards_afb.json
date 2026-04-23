@@ -1,0 +1,76 @@
+{
+  "id": "edwards_afb",
+  "name": "Edwards AFB",
+  "description": "Edwards Air Force Base, California. Home of the 412th Test Wing. Air Force flight test center. F-35, B-21, and next-gen aircraft testing.",
+  "size": "large",
+  "center_lat": 34.889855,
+  "center_lng": -117.832968,
+  "default_zoom": 12,
+  "boundary": [
+    [
+      2.8,
+      -2.8
+    ],
+    [
+      2.8,
+      2.8
+    ],
+    [
+      -2.8,
+      -2.8
+    ],
+    [
+      -2.8,
+      2.8
+    ]
+  ],
+  "protected_assets": [
+    {
+      "name": "Runway",
+      "type": "runway",
+      "lat_offset_km": 0,
+      "lng_offset_km": 0,
+      "radius_km": 0.3
+    },
+    {
+      "name": "Air Operations",
+      "type": "command",
+      "lat_offset_km": 0.2,
+      "lng_offset_km": 0.2,
+      "radius_km": 0.1
+    },
+    {
+      "name": "Aircraft Parking",
+      "type": "high_value",
+      "lat_offset_km": -0.1,
+      "lng_offset_km": 0.3,
+      "radius_km": 0.15
+    }
+  ],
+  "terrain": [
+    {
+      "type": "flat",
+      "description": "Relatively flat terrain"
+    },
+    {
+      "type": "structures",
+      "description": "Base infrastructure and hangars"
+    }
+  ],
+  "approach_corridors": [
+    {
+      "bearing_deg": 22,
+      "width_deg": 30,
+      "description": "Runway approach"
+    },
+    {
+      "bearing_deg": 202,
+      "width_deg": 30,
+      "description": "Runway departure"
+    }
+  ],
+  "max_sensors": 8,
+  "max_effectors": 6,
+  "placement_bounds_km": 4.0,
+  "source": "approximate (flight-line center)"
+}

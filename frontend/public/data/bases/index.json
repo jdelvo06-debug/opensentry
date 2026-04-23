@@ -39,6 +39,13 @@
     "max_effectors": 4
   },
   {
+    "id": "arnold_afb",
+    "name": "Arnold AFB",
+    "size": "small",
+    "location_name": "Tullahoma, Tennessee",
+    "description": "Wind tunnel testing"
+  },
+  {
     "id": "aviano_ab",
     "name": "Aviano Air Base",
     "description": "Curated Aviano Air Base preset for the Friuli-Venezia Giulia region of northeastern Italy, using a simplified open-sourc",
@@ -61,6 +68,13 @@
     "size": "medium",
     "max_sensors": 4,
     "max_effectors": 3
+  },
+  {
+    "id": "buckley_sfb",
+    "name": "Buckley SFB",
+    "size": "medium",
+    "location_name": "Aurora, Colorado",
+    "description": "Missile warning and ISR"
   },
   {
     "id": "cannon_afb",
@@ -94,6 +108,13 @@
     "max_effectors": 4
   },
   {
+    "id": "dobbins_arb",
+    "name": "Dobbins ARB",
+    "size": "small",
+    "location_name": "Marietta, Georgia",
+    "description": "C-130H reserve"
+  },
+  {
     "id": "dover_afb",
     "name": "Dover AFB",
     "size": "medium",
@@ -107,6 +128,20 @@
     "size": "large",
     "max_sensors": 5,
     "max_effectors": 4
+  },
+  {
+    "id": "edwards_afb",
+    "name": "Edwards AFB",
+    "size": "large",
+    "location_name": "Edwards, California",
+    "description": "Air Force flight test center"
+  },
+  {
+    "id": "eglin_afb",
+    "name": "Eglin AFB",
+    "size": "large",
+    "location_name": "Valparaiso, Florida",
+    "description": "AFMC testing and evaluation"
   },
   {
     "id": "eielson_afb",
@@ -123,6 +158,13 @@
     "size": "large",
     "max_sensors": 5,
     "max_effectors": 4
+  },
+  {
+    "id": "fe_warren_afb",
+    "name": "F.E. Warren AFB",
+    "size": "medium",
+    "location_name": "Cheyenne, Wyoming",
+    "description": "Minuteman III ICBM"
   },
   {
     "id": "fairchild_afb",
@@ -162,6 +204,27 @@
     "description": "RQ-4 Global Hawk operations"
   },
   {
+    "id": "grissom_arb",
+    "name": "Grissom ARB",
+    "size": "small",
+    "location_name": "Peru, Indiana",
+    "description": "KC-135R reserve"
+  },
+  {
+    "id": "hanscom_afb",
+    "name": "Hanscom AFB",
+    "size": "small",
+    "location_name": "Bedford, Massachusetts",
+    "description": "Defense R&D"
+  },
+  {
+    "id": "hill_afb",
+    "name": "Hill AFB",
+    "size": "large",
+    "location_name": "Ogden, Utah",
+    "description": "F-35 depot and logistics"
+  },
+  {
     "id": "holloman_afb",
     "name": "Holloman AFB",
     "description": "49th Wing, F-16 and MQ-9 Reaper ops.",
@@ -170,12 +233,33 @@
     "max_effectors": 3
   },
   {
+    "id": "homestead_arb",
+    "name": "Homestead ARB",
+    "size": "small",
+    "location_name": "Homestead, Florida",
+    "description": "F-16C reserve operations"
+  },
+  {
+    "id": "hurlburt_field",
+    "name": "Hurlburt Field",
+    "size": "medium",
+    "location_name": "Fort Walton Beach, Florida",
+    "description": "AFSOC HQ and special ops"
+  },
+  {
     "id": "incirlik_ab",
     "name": "Incirlik Air Base",
     "description": "Incirlik AB, Turkey \u2014 39th Air Base Wing, strategic NATO hub",
     "size": "medium",
     "max_sensors": 4,
     "max_effectors": 3
+  },
+  {
+    "id": "jb_anacostia_bolling",
+    "name": "JB Anacostia-Bolling",
+    "size": "small",
+    "location_name": "Washington, DC",
+    "description": "Capital region support"
   },
   {
     "id": "jb_elmendorf_richardson",
@@ -244,6 +328,13 @@
     "description": "Technical training"
   },
   {
+    "id": "kirtland_afb",
+    "name": "Kirtland AFB",
+    "size": "medium",
+    "location_name": "Albuquerque, New Mexico",
+    "description": "AFRL and nuclear weapons school"
+  },
+  {
     "id": "kunsan_ab",
     "name": "Kunsan Air Base",
     "description": "Curated Kunsan Air Base (Wolf Pack) preset for Gunsan, South Korea. Simplified polygon derived from OSM Way 95038648 (ae",
@@ -298,11 +389,39 @@
     "description": "C-130J Super Hercules training hub"
   },
   {
+    "id": "los_angeles_afb",
+    "name": "Los Angeles AFB",
+    "size": "medium",
+    "location_name": "El Segundo, California",
+    "description": "Space Systems Command"
+  },
+  {
     "id": "luke_afb",
     "name": "Luke AFB",
     "size": "medium",
     "location_name": "Glendale, Arizona",
     "description": "F-35A/F-16 fighter training"
+  },
+  {
+    "id": "macdill_afb",
+    "name": "MacDill AFB",
+    "size": "large",
+    "location_name": "Tampa, Florida",
+    "description": "CENTCOM/SOCOM HQ"
+  },
+  {
+    "id": "malmstrom_afb",
+    "name": "Malmstrom AFB",
+    "size": "medium",
+    "location_name": "Great Falls, Montana",
+    "description": "Minuteman III ICBM"
+  },
+  {
+    "id": "march_arb",
+    "name": "March ARB",
+    "size": "medium",
+    "location_name": "Riverside, California",
+    "description": "C-17A/KC-135 reserve"
   },
   {
     "id": "maxwell_gunter_afb",
@@ -333,6 +452,13 @@
     "size": "medium",
     "max_sensors": 4,
     "max_effectors": 3
+  },
+  {
+    "id": "minot_afb",
+    "name": "Minot AFB",
+    "size": "medium",
+    "location_name": "Minot, North Dakota",
+    "description": "B-52H and Minuteman III"
   },
   {
     "id": "misawa_ab",
@@ -407,6 +533,20 @@
     "max_effectors": 3
   },
   {
+    "id": "patrick_sfb",
+    "name": "Patrick SFB",
+    "size": "medium",
+    "location_name": "Cape Canaveral, Florida",
+    "description": "Eastern Range launch ops"
+  },
+  {
+    "id": "peterson_sfb",
+    "name": "Peterson SFB",
+    "size": "medium",
+    "location_name": "Colorado Springs, Colorado",
+    "description": "USSPACECOM/NORAD"
+  },
+  {
     "id": "prince_sultan_ab",
     "name": "Prince Sultan Air Base",
     "description": "Curated Prince Sultan Air Base preset for Al Kharj, Saudi Arabia, using a simplified open-source aerodrome footprint der",
@@ -445,6 +585,20 @@
     "size": "medium",
     "max_sensors": 4,
     "max_effectors": 3
+  },
+  {
+    "id": "robins_afb",
+    "name": "Robins AFB",
+    "size": "large",
+    "location_name": "Warner Robins, Georgia",
+    "description": "Air Logistics Complex"
+  },
+  {
+    "id": "schriever_sfb",
+    "name": "Schriever SFB",
+    "size": "medium",
+    "location_name": "Colorado Springs, Colorado",
+    "description": "Satellite operations"
   },
   {
     "id": "scott_afb",
@@ -494,6 +648,20 @@
     "max_effectors": 3
   },
   {
+    "id": "thule_ab",
+    "name": "Thule AB",
+    "size": "small",
+    "location_name": "Greenland",
+    "description": "Space surveillance and missile warning"
+  },
+  {
+    "id": "tinker_afb",
+    "name": "Tinker AFB",
+    "size": "large",
+    "location_name": "Oklahoma City, Oklahoma",
+    "description": "Air Logistics Complex"
+  },
+  {
     "id": "travis_afb",
     "name": "Travis AFB",
     "size": "large",
@@ -523,6 +691,13 @@
     "description": "Pilot training"
   },
   {
+    "id": "vandenberg_sfb",
+    "name": "Vandenberg SFB",
+    "size": "large",
+    "location_name": "Lompoc, California",
+    "description": "Space launch range"
+  },
+  {
     "id": "volkel_ab",
     "name": "Volkel Air Base",
     "description": "Curated Volkel Air Base preset for North Brabant, Netherlands, using a simplified open-source aerodrome footprint derive",
@@ -531,12 +706,26 @@
     "max_effectors": 3
   },
   {
+    "id": "westover_arb",
+    "name": "Westover ARB",
+    "size": "medium",
+    "location_name": "Chicopee, Massachusetts",
+    "description": "C-5M reserve"
+  },
+  {
     "id": "whiteman_afb",
     "name": "Whiteman AFB",
     "description": "509th Bomb Wing, B-2 Spirit stealth bomber ops.",
     "size": "medium",
     "max_sensors": 4,
     "max_effectors": 3
+  },
+  {
+    "id": "wright_patterson_afb",
+    "name": "Wright-Patterson AFB",
+    "size": "large",
+    "location_name": "Dayton, Ohio",
+    "description": "AFMC HQ and AFRL"
   },
   {
     "id": "yokota_ab",

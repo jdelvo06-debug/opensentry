@@ -1,0 +1,76 @@
+{
+  "id": "thule_ab",
+  "name": "Thule AB",
+  "description": "Thule Air Base, Greenland. Northernmost deep-water port and airfield. Space surveillance and missile warning. 12th Space Warning Squadron.",
+  "size": "small",
+  "center_lat": 76.3891,
+  "center_lng": -68.515222,
+  "default_zoom": 12,
+  "boundary": [
+    [
+      1.4,
+      -1.4
+    ],
+    [
+      1.4,
+      1.4
+    ],
+    [
+      -1.4,
+      -1.4
+    ],
+    [
+      -1.4,
+      1.4
+    ]
+  ],
+  "protected_assets": [
+    {
+      "name": "Runway",
+      "type": "runway",
+      "lat_offset_km": 0,
+      "lng_offset_km": 0,
+      "radius_km": 0.3
+    },
+    {
+      "name": "Air Operations",
+      "type": "command",
+      "lat_offset_km": 0.2,
+      "lng_offset_km": 0.2,
+      "radius_km": 0.1
+    },
+    {
+      "name": "Aircraft Parking",
+      "type": "high_value",
+      "lat_offset_km": -0.1,
+      "lng_offset_km": 0.3,
+      "radius_km": 0.15
+    }
+  ],
+  "terrain": [
+    {
+      "type": "flat",
+      "description": "Relatively flat terrain"
+    },
+    {
+      "type": "structures",
+      "description": "Base infrastructure and hangars"
+    }
+  ],
+  "approach_corridors": [
+    {
+      "bearing_deg": 10,
+      "width_deg": 30,
+      "description": "Runway approach"
+    },
+    {
+      "bearing_deg": 190,
+      "width_deg": 30,
+      "description": "Runway departure"
+    }
+  ],
+  "max_sensors": 5,
+  "max_effectors": 4,
+  "placement_bounds_km": 2.0,
+  "source": "approximate (flight-line center)"
+}
