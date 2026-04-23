@@ -1,0 +1,118 @@
+{
+  "id": "jb_mcguire_dix_lakehurst",
+  "name": "JB McGuire-Dix-Lakehurst",
+  "description": "Joint Base McGuire-Dix-Lakehurst, New Jersey. Tri-base complex. Home of the 305th Air Mobility Wing. C-17A Globemaster III and KC-46A Pegasus operations.",
+  "size": "large",
+  "center_lat": 40.017162,
+  "center_lng": -74.590205,
+  "default_zoom": 13,
+  "boundary": [
+    [
+      2.45,
+      -2.45
+    ],
+    [
+      2.45,
+      2.45
+    ],
+    [
+      -2.45,
+      2.45
+    ],
+    [
+      -2.45,
+      -2.45
+    ]
+  ],
+  "protected_assets": [
+    {
+      "id": "asset_1",
+      "name": "Runway",
+      "x": 0,
+      "y": 0,
+      "priority": 1
+    },
+    {
+      "id": "asset_2",
+      "name": "Air Operations",
+      "x": 0.2,
+      "y": 0.2,
+      "priority": 2
+    },
+    {
+      "id": "asset_3",
+      "name": "Aircraft Parking",
+      "x": -0.1,
+      "y": 0.3,
+      "priority": 3
+    }
+  ],
+  "terrain": [
+    {
+      "id": "terrain_1",
+      "type": "flat",
+      "name": "Relatively flat terrain",
+      "polygon": [
+        [
+          -2.8000000000000003,
+          -2.8000000000000003
+        ],
+        [
+          -2.8000000000000003,
+          2.8000000000000003
+        ],
+        [
+          2.8000000000000003,
+          2.8000000000000003
+        ],
+        [
+          2.8000000000000003,
+          -2.8000000000000003
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "terrain_2",
+      "type": "structures",
+      "name": "Base infrastructure and hangars",
+      "polygon": [
+        [
+          -2.8000000000000003,
+          -2.8000000000000003
+        ],
+        [
+          -2.8000000000000003,
+          2.8000000000000003
+        ],
+        [
+          2.8000000000000003,
+          2.8000000000000003
+        ],
+        [
+          2.8000000000000003,
+          -2.8000000000000003
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    }
+  ],
+  "approach_corridors": [
+    {
+      "name": "Runway approach",
+      "bearing_deg": 4,
+      "width_deg": 30
+    },
+    {
+      "name": "Runway departure",
+      "bearing_deg": 184,
+      "width_deg": 30
+    }
+  ],
+  "max_sensors": 8,
+  "max_effectors": 6,
+  "placement_bounds_km": 3.5,
+  "source": "approximate (flight-line center)"
+}

@@ -1,0 +1,118 @@
+{
+  "id": "fe_warren_afb",
+  "name": "F.E. Warren AFB",
+  "description": "F.E. Warren Air Force Base, Wyoming. Home of the 90th Missile Wing. Minuteman III ICBM operations. Historic cavalry post.",
+  "size": "medium",
+  "center_lat": 41.137,
+  "center_lng": -104.867,
+  "default_zoom": 13,
+  "boundary": [
+    [
+      1.75,
+      -1.75
+    ],
+    [
+      1.75,
+      1.75
+    ],
+    [
+      -1.75,
+      1.75
+    ],
+    [
+      -1.75,
+      -1.75
+    ]
+  ],
+  "protected_assets": [
+    {
+      "id": "asset_1",
+      "name": "Runway",
+      "x": 0,
+      "y": 0,
+      "priority": 1
+    },
+    {
+      "id": "asset_2",
+      "name": "Air Operations",
+      "x": 0.2,
+      "y": 0.2,
+      "priority": 2
+    },
+    {
+      "id": "asset_3",
+      "name": "Aircraft Parking",
+      "x": -0.1,
+      "y": 0.3,
+      "priority": 3
+    }
+  ],
+  "terrain": [
+    {
+      "id": "terrain_1",
+      "type": "flat",
+      "name": "Relatively flat terrain",
+      "polygon": [
+        [
+          -2.0,
+          -2.0
+        ],
+        [
+          -2.0,
+          2.0
+        ],
+        [
+          2.0,
+          2.0
+        ],
+        [
+          2.0,
+          -2.0
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    },
+    {
+      "id": "terrain_2",
+      "type": "structures",
+      "name": "Base infrastructure and hangars",
+      "polygon": [
+        [
+          -2.0,
+          -2.0
+        ],
+        [
+          -2.0,
+          2.0
+        ],
+        [
+          2.0,
+          2.0
+        ],
+        [
+          2.0,
+          -2.0
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
+    }
+  ],
+  "approach_corridors": [
+    {
+      "name": "Runway approach",
+      "bearing_deg": 13,
+      "width_deg": 30
+    },
+    {
+      "name": "Runway departure",
+      "bearing_deg": 193,
+      "width_deg": 30
+    }
+  ],
+  "max_sensors": 5,
+  "max_effectors": 4,
+  "placement_bounds_km": 2.5,
+  "source": "approximate (flight-line center)"
+}
