@@ -26,47 +26,89 @@
   ],
   "protected_assets": [
     {
+      "id": "asset_1",
       "name": "Runway",
-      "type": "runway",
-      "lat_offset_km": 0,
-      "lng_offset_km": 0,
-      "radius_km": 0.3
+      "x": 0,
+      "y": 0,
+      "priority": 1
     },
     {
+      "id": "asset_2",
       "name": "Air Operations",
-      "type": "command",
-      "lat_offset_km": 0.2,
-      "lng_offset_km": 0.2,
-      "radius_km": 0.1
+      "x": 0.2,
+      "y": 0.2,
+      "priority": 2
     },
     {
+      "id": "asset_3",
       "name": "Aircraft Parking",
-      "type": "high_value",
-      "lat_offset_km": -0.1,
-      "lng_offset_km": 0.3,
-      "radius_km": 0.15
+      "x": -0.1,
+      "y": 0.3,
+      "priority": 3
     }
   ],
   "terrain": [
     {
+      "id": "terrain_1",
       "type": "flat",
-      "description": "Relatively flat terrain"
+      "name": "Relatively flat terrain",
+      "polygon": [
+        [
+          -3.2,
+          -3.2
+        ],
+        [
+          -3.2,
+          3.2
+        ],
+        [
+          3.2,
+          3.2
+        ],
+        [
+          3.2,
+          -3.2
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
     },
     {
+      "id": "terrain_2",
       "type": "structures",
-      "description": "Base infrastructure and hangars"
+      "name": "Base infrastructure and hangars",
+      "polygon": [
+        [
+          -3.2,
+          -3.2
+        ],
+        [
+          -3.2,
+          3.2
+        ],
+        [
+          3.2,
+          3.2
+        ],
+        [
+          3.2,
+          -3.2
+        ]
+      ],
+      "blocks_los": false,
+      "height_m": 0.0
     }
   ],
   "approach_corridors": [
     {
+      "name": "Runway approach",
       "bearing_deg": 18,
-      "width_deg": 30,
-      "description": "Runway approach"
+      "width_deg": 30
     },
     {
+      "name": "Runway departure",
       "bearing_deg": 198,
-      "width_deg": 30,
-      "description": "Runway departure"
+      "width_deg": 30
     }
   ],
   "max_sensors": 8,
