@@ -3,25 +3,57 @@
   "name": "Dyess AFB",
   "description": "Dyess Air Force Base, Texas. Home of the 7th Bomb Wing. B-1B Lancer bomber and C-130J training operations. ICAO: KDYS.",
   "size": "large",
-  "center_lat": 32.421,
-  "center_lng": -99.838,
+  "center_lat": 32.423092,
+  "center_lng": -99.839336,
   "default_zoom": 14,
   "boundary": [
     [
-      1.75,
-      -2.0
+      -3.2,
+      -0.86
     ],
     [
-      1.75,
-      2.0
+      -2.77,
+      -1.47
     ],
     [
-      -1.75,
-      2.0
+      -1.55,
+      -2.45
     ],
     [
-      -1.75,
-      -2.0
+      -1.33,
+      -2.6
+    ],
+    [
+      -1.07,
+      -2.65
+    ],
+    [
+      -0.0,
+      -2.64
+    ],
+    [
+      2.57,
+      -2.45
+    ],
+    [
+      2.7,
+      -1.78
+    ],
+    [
+      2.24,
+      2.83
+    ],
+    [
+      0.91,
+      2.88
+    ],
+    [
+      -0.64,
+      2.85
+    ],
+    [
+      -2.75,
+      1.05
     ]
   ],
   "protected_assets": [
@@ -123,8 +155,8 @@
   ],
   "max_sensors": 5,
   "max_effectors": 4,
-  "placement_bounds_km": 2.1,
+  "placement_bounds_km": 3.4,
   "icao": "KDYS",
   "country": "US",
-  "source": "approximate (no OSM aerodrome boundary)"
+  "source": "OSM relation 13749339 (convex hull)"
 }

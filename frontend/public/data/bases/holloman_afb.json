@@ -3,25 +3,117 @@
   "name": "Holloman AFB",
   "description": "Holloman Air Force Base, New Mexico. Home of the 49th Wing. F-16 Viper training and MQ-9 Reaper operations. ICAO: KHMO.",
   "size": "medium",
-  "center_lat": 33.077,
-  "center_lng": -106.219,
+  "center_lat": 32.851956,
+  "center_lng": -106.085997,
   "default_zoom": 14,
   "boundary": [
     [
-      1.25,
-      -1.5
+      -2.36,
+      1.46
     ],
     [
-      1.25,
-      1.5
+      -1.61,
+      1.71
     ],
     [
-      -1.25,
-      1.5
+      -0.4,
+      1.37
     ],
     [
-      -1.25,
-      -1.5
+      -0.25,
+      1.64
+    ],
+    [
+      0.13,
+      1.53
+    ],
+    [
+      0.1,
+      1.19
+    ],
+    [
+      0.39,
+      1.14
+    ],
+    [
+      2.39,
+      1.12
+    ],
+    [
+      2.38,
+      1.47
+    ],
+    [
+      2.96,
+      1.45
+    ],
+    [
+      2.95,
+      0.33
+    ],
+    [
+      4.04,
+      0.38
+    ],
+    [
+      4.27,
+      0.63
+    ],
+    [
+      4.67,
+      0.48
+    ],
+    [
+      4.63,
+      -0.6
+    ],
+    [
+      2.66,
+      -2.71
+    ],
+    [
+      2.58,
+      -3.16
+    ],
+    [
+      2.42,
+      -3.16
+    ],
+    [
+      2.41,
+      -4.68
+    ],
+    [
+      -0.14,
+      -4.71
+    ],
+    [
+      -0.77,
+      -5.42
+    ],
+    [
+      -1.53,
+      -4.73
+    ],
+    [
+      -2.5,
+      -4.71
+    ],
+    [
+      -2.5,
+      -2.2
+    ],
+    [
+      -2.61,
+      -1.9
+    ],
+    [
+      -3.31,
+      -1.91
+    ],
+    [
+      -3.31,
+      -0.12
     ]
   ],
   "protected_assets": [
@@ -123,8 +215,8 @@
   ],
   "max_sensors": 4,
   "max_effectors": 3,
-  "placement_bounds_km": 1.6,
+  "placement_bounds_km": 5.7,
   "icao": "KHMO",
   "country": "US",
-  "source": "approximate (no OSM aerodrome boundary)"
+  "source": "OSM way 720029921"
 }
