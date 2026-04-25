@@ -493,6 +493,12 @@ export interface GameState {
   /** Per-drone evasive maneuver state (moved from module-level to support multiple game instances). */
   evasive_states: Map<string, { offset_rad: number; alt_offset: number; next_jink: number; tick_counter: number }>;
 
+  /** Per-drone erratic wander state (birds and ambient tracks). */
+  erratic_states: Map<string, { heading_offset: number; speed_factor: number; next_turn: number; tick_counter: number }>;
+
+  /** Per-drone drift-ascend state (weather balloons). */
+  drift_ascend_states: Map<string, { altitude_gain_rate: number; lateral_drift_offset: number; next_drift: number; tick_counter: number }>;
+
   /** Boundary polygon for polygon-accurate breach checks (game XY km coords). */
   boundary_polygon: [number, number][];
 
@@ -563,6 +569,8 @@ export function createGameState(
     free_play_spawn_counter: 0,
     free_play_last_spawn_time: -30,
     evasive_states: new Map(),
+    erratic_states: new Map(),
+    drift_ascend_states: new Map(),
     boundary_polygon: [],
     event_flags: new Set(),
   };
