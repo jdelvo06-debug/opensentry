@@ -230,6 +230,21 @@ export function tickSpawns(gs: GameState, elapsed: number): Msg[] {
   for (const [ambType, nextTime] of gs.next_ambient_times) {
     if (elapsed < gs.ambient_suppressed_until && ATC_CLEARABLE_AMB.has(ambType)) continue;
     if (elapsed >= nextTime) {
+      // Cap simultaneous birds/balloons to prevent pile-up
+      const MAX_SIMULTANEOUS: Record<string, number> = { bird: 4, weather_balloon: 2 };
+      const maxForType = MAX_SIMULTANEOUS[ambType];
+      if (maxForType !== undefined) {
+        const currentCount = gs.drones.filter(d => d.is_ambient && d.drone_type === ambType && !d.neutralized).length;
+        if (currentCount >= maxForType) {
+          // Skip spawn — reschedule for later
+          const interval = AMBIENT_INTERVALS[ambType];
+          if (interval) {
+            gs.next_ambient_times.set(ambType, elapsed + interval[0] + Math.random() * (interval[1] - interval[0]));
+          }
+          continue;
+        }
+      }
+
       let [ambCfg, counter] = generateAmbientObject(gs.ambient_counter, ambType, elapsed);
       gs.ambient_counter = counter;
       while (gs.drone_configs.has(ambCfg.id)) {
@@ -298,13 +313,13 @@ const _FREE_PLAY_TEMPLATES: Record<string, Omit<DroneStartConfig, 'id' | 'start_
     optimal_effectors: ['kinetic'], acceptable_effectors: ['kinetic'], roe_violations: [],
   },
   bird: {
-    drone_type: 'bird', altitude: 150, speed: 30, behavior: 'evasive',
+    drone_type: 'bird', altitude: 150, speed: 30, behavior: 'erratic_wander',
     rf_emitting: false, should_engage: false,
     correct_classification: 'bird', correct_affiliation: 'neutral',
     optimal_effectors: [], acceptable_effectors: [], roe_violations: ['electronic', 'kinetic', 'rf_jam', 'de_laser', 'de_hpm', 'net_interceptor'],
   },
   balloon: {
-    drone_type: 'weather_balloon', altitude: 800, speed: 3, behavior: 'waypoint_path',
+    drone_type: 'weather_balloon', altitude: 800, speed: 3, behavior: 'drift_ascend',
     rf_emitting: false, should_engage: false,
     correct_classification: 'weather_balloon', correct_affiliation: 'neutral',
     optimal_effectors: [], acceptable_effectors: [], roe_violations: ['electronic', 'kinetic', 'rf_jam', 'de_laser', 'de_hpm', 'net_interceptor'],
@@ -626,6 +641,8 @@ export function tickDrones(gs: GameState, elapsed: number): Msg[] {
           orbit_center: cfg.orbit_center ?? undefined,
           detected_by_player: gs.drones[i].detected,
           evasive_states: gs.evasive_states,
+          erratic_states: gs.erratic_states,
+          drift_ascend_states: gs.drift_ascend_states,
         });
       }
     }
@@ -651,10 +668,14 @@ export function tickDrones(gs: GameState, elapsed: number): Msg[] {
       }
     }
 
-    // Remove ambient objects that leave the map
+    // Remove ambient objects that leave the map or climb above detection range
     if (gs.drones[i].is_ambient) {
       const dist = Math.sqrt(gs.drones[i].x ** 2 + gs.drones[i].y ** 2);
-      if (dist > 12.0) {
+      const outOfMap = dist > 12.0;
+      const aboveMaxAlt = gs.drones[i].drone_type === 'weather_balloon' && gs.drones[i].altitude > 30000;
+      if (outOfMap || aboveMaxAlt) {
+        gs.erratic_states.delete(gs.drones[i].id);
+        gs.drift_ascend_states.delete(gs.drones[i].id);
         gs.drones[i] = markDroneNeutralized(gs.drones[i], elapsed);
       }
     }

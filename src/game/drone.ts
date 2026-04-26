@@ -26,6 +26,28 @@ export interface EvasiveState {
 }
 
 // ---------------------------------------------------------------------------
+// Erratic wander state (for birds and ambient tracks)
+// ---------------------------------------------------------------------------
+
+export interface ErraticState {
+  heading_offset: number;
+  speed_factor: number;
+  next_turn: number;
+  tick_counter: number;
+}
+
+// ---------------------------------------------------------------------------
+// Drift-ascend state (for weather balloons)
+// ---------------------------------------------------------------------------
+
+export interface DriftAscendState {
+  altitude_gain_rate: number;
+  lateral_drift_offset: number;
+  next_drift: number;
+  tick_counter: number;
+}
+
+// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
@@ -88,6 +110,10 @@ export interface MoveDroneOptions {
   detected_by_player?: boolean;
   /** Per-game evasive state map (from GameState.evasive_states). */
   evasive_states?: Map<string, EvasiveState>;
+  /** Per-game erratic wander state map (from GameState.erratic_states). */
+  erratic_states?: Map<string, ErraticState>;
+  /** Per-game drift-ascend state map (from GameState.drift_ascend_states). */
+  drift_ascend_states?: Map<string, DriftAscendState>;
 }
 
 /** Update a drone's position for one tick. Returns a new DroneState (immutable). */
@@ -105,6 +131,8 @@ export function moveDrone(
     orbit_center = null,
     detected_by_player = false,
     evasive_states,
+    erratic_states,
+    drift_ascend_states,
   } = options;
 
   switch (behavior) {
@@ -116,6 +144,10 @@ export function moveDrone(
       return _waypointPath(drone, dt, waypoints ?? []);
     case 'evasive':
       return _evasive(drone, dt, detected_by_player, evasive_states);
+    case 'erratic_wander':
+      return _erraticWander(drone, dt, waypoints ?? [], erratic_states);
+    case 'drift_ascend':
+      return _driftAscend(drone, dt, waypoints ?? [], drift_ascend_states);
     default:
       return _directApproach(drone, dt);
   }
@@ -317,6 +349,120 @@ function _evasive(
     heading: heading_deg,
     trail,
   };
+}
+
+function _erraticWander(
+  drone: DroneState,
+  dt: number,
+  waypoints: number[][],
+  erratic_states?: Map<string, ErraticState>,
+): DroneState {
+  const stateMap = erratic_states ?? new Map<string, ErraticState>();
+
+  // Initialise erratic state on first call
+  if (!stateMap.has(drone.id)) {
+    stateMap.set(drone.id, {
+      heading_offset: 0.0,
+      speed_factor: 1.0,
+      next_turn: _randomRange(1.5, 4.0),
+      tick_counter: 0.0,
+    });
+  }
+
+  const state = stateMap.get(drone.id)!;
+  state.tick_counter += dt;
+
+  // Time for a heading change?
+  if (state.tick_counter >= state.next_turn) {
+    // Random heading offset between -45 and +45 degrees (erratic but still outbound)
+    state.heading_offset = _randomRange(-45, 45) * (Math.PI / 180);
+    // Speed varies (birds speed up and slow down)
+    state.speed_factor = _randomRange(0.6, 1.2);
+    state.next_turn = state.tick_counter + _randomRange(2.0, 5.0);
+  }
+
+  // Base heading: toward exit waypoint if available, otherwise away from base
+  let baseAngle: number;
+  if (waypoints.length > 0) {
+    const wp = waypoints[waypoints.length - 1];
+    const distToWp = Math.sqrt((drone.x - wp[0]) ** 2 + (drone.y - wp[1]) ** 2);
+    if (distToWp < 0.3) {
+      // Reached exit waypoint — keep drifting in current direction
+      baseAngle = (drone.heading * Math.PI) / 180;
+    } else {
+      baseAngle = Math.atan2(wp[1] - drone.y, wp[0] - drone.x);
+    }
+  } else {
+    // No waypoint — fly away from base center (opposite of toward-origin angle)
+    baseAngle = Math.atan2(drone.y, drone.x) + Math.PI;
+  }
+
+  const angle = baseAngle + state.heading_offset;
+  const speed_kms = drone.speed * KTS_TO_KMS * state.speed_factor;
+  const dx = Math.cos(angle) * speed_kms * dt;
+  const dy = Math.sin(angle) * speed_kms * dt;
+  const new_x = drone.x + dx;
+  const new_y = drone.y + dy;
+  const heading_deg = ((angle * 180) / Math.PI + 360) % 360;
+
+  // Slight altitude variation (birds go up and down)
+  const alt_offset = _randomRange(-10, 10) * dt;
+  const new_alt = Math.max(20, Math.min(2000, drone.altitude + alt_offset));
+
+  const trail = _updateTrail(drone.trail, new_x, new_y);
+  return { ...drone, x: new_x, y: new_y, altitude: new_alt, heading: heading_deg, trail };
+}
+
+function _driftAscend(
+  drone: DroneState,
+  dt: number,
+  waypoints: number[][],
+  drift_ascend_states?: Map<string, DriftAscendState>,
+): DroneState {
+  const stateMap = drift_ascend_states ?? new Map<string, DriftAscendState>();
+
+  // Initialise drift-ascend state on first call
+  if (!stateMap.has(drone.id)) {
+    stateMap.set(drone.id, {
+      altitude_gain_rate: _randomRange(50, 150),  // ft per tick-second
+      lateral_drift_offset: 0.0,
+      next_drift: _randomRange(5.0, 12.0),
+      tick_counter: 0.0,
+    });
+  }
+
+  const state = stateMap.get(drone.id)!;
+  state.tick_counter += dt;
+
+  // Drift direction changes occasionally
+  if (state.tick_counter >= state.next_drift) {
+    state.lateral_drift_offset = _randomRange(-30, 30) * (Math.PI / 180);
+    state.next_drift = state.tick_counter + _randomRange(8.0, 15.0);
+  }
+
+  // Move toward waypoint with drift offset
+  let baseAngle: number;
+  if (waypoints.length > 0) {
+    const wp = waypoints[waypoints.length - 1];
+    baseAngle = Math.atan2(wp[1] - drone.y, wp[0] - drone.x);
+  } else {
+    // No waypoint — drift outward from base (opposite of toward-origin angle)
+    baseAngle = Math.atan2(drone.y, drone.x) + Math.PI;
+  }
+
+  const angle = baseAngle + state.lateral_drift_offset;
+  const speed_kms = drone.speed * KTS_TO_KMS;
+  const dx = Math.cos(angle) * speed_kms * dt;
+  const dy = Math.sin(angle) * speed_kms * dt;
+  const new_x = drone.x + dx;
+  const new_y = drone.y + dy;
+  const heading_deg = ((angle * 180) / Math.PI + 360) % 360;
+
+  // Steady altitude gain — balloon climbs out of detection range
+  const new_alt = drone.altitude + state.altitude_gain_rate * dt;
+
+  const trail = _updateTrail(drone.trail, new_x, new_y);
+  return { ...drone, x: new_x, y: new_y, altitude: new_alt, heading: heading_deg, trail };
 }
 
 // ---------------------------------------------------------------------------

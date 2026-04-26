@@ -143,8 +143,8 @@ const _MILITARY_CALLSIGNS = [
 export const AMBIENT_INTERVALS: Record<string, [number, number]> = {
   commercial_aircraft: [90.0, 150.0],
   military_jet: [180.0, 300.0],
-  bird: [90.0, 150.0],
-  weather_balloon: [240.0, 420.0],
+  bird: [180.0, 300.0],
+  weather_balloon: [300.0, 480.0],
 };
 
 /**
@@ -241,11 +241,13 @@ export function generateAmbientObject(
     const startX = startDist * Math.cos(entryAngle);
     const startY = startDist * Math.sin(entryAngle);
     // Exit point: roughly opposite side, off-map (>10km)
+    // Birds fly across the map with erratic wandering — not toward base center
+    // Use the new erratic_wander behavior for realistic bird flight
     const exitAngle = entryAngle + Math.PI + uniform(-0.6, 0.6);
     const exitDist = uniform(8.0, 11.0);
     const exitX = exitDist * Math.cos(exitAngle);
     const exitY = exitDist * Math.sin(exitAngle);
-    const heading = ((Math.atan2(exitX - startX, exitY - startY) * 180 / Math.PI) + 360) % 360;
+    const heading = ((Math.atan2(exitY - startY, exitX - startX) * 180 / Math.PI) + 360) % 360;
 
     cfg = {
       id: ambId,
@@ -255,7 +257,7 @@ export function generateAmbientObject(
       altitude: randInt(50, 500),
       speed: randInt(20, 40),
       heading,
-      behavior: 'waypoint_path',
+      behavior: 'erratic_wander',
       rf_emitting: false,
       spawn_delay: 0.0,
       correct_classification: 'bird',
@@ -272,6 +274,12 @@ export function generateAmbientObject(
     const startDist = uniform(1.5, 4.0);
     const startX = startDist * Math.cos(angle);
     const startY = startDist * Math.sin(angle);
+    // Balloons drift slowly and ascend — use drift_ascend behavior
+    const driftAngle = angle + uniform(-1.0, 1.0);
+    const driftDist = startDist + uniform(2.0, 5.0);
+    const driftX = driftDist * Math.cos(driftAngle);
+    const driftY = driftDist * Math.sin(driftAngle);
+    const heading = ((Math.atan2(driftY - startY, driftX - startX) * 180 / Math.PI) + 360) % 360;
 
     cfg = {
       id: ambId,
@@ -280,11 +288,11 @@ export function generateAmbientObject(
       start_y: round2(startY),
       altitude: randInt(500, 2000),
       speed: randInt(0, 5),
-      heading: uniform(0, 360),
-      behavior: 'waypoint_path',
+      heading,
+      behavior: 'drift_ascend',
       rf_emitting: false,
       spawn_delay: 0.0,
-      waypoints: [[round2(startX + uniform(-0.5, 0.5)), round2(startY + uniform(-0.5, 0.5))]],
+      waypoints: [[round2(driftX), round2(driftY)]],
       correct_classification: 'weather_balloon',
       correct_affiliation: 'neutral',
       optimal_effectors: [],
