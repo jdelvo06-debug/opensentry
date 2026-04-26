@@ -393,8 +393,8 @@ function _erraticWander(
       baseAngle = Math.atan2(wp[1] - drone.y, wp[0] - drone.x);
     }
   } else {
-    // No waypoint — fly away from base center with strong outward bias
-    baseAngle = Math.atan2(drone.y, drone.x);
+    // No waypoint — fly away from base center (opposite of toward-origin angle)
+    baseAngle = Math.atan2(drone.y, drone.x) + Math.PI;
   }
 
   const angle = baseAngle + state.heading_offset;
@@ -446,8 +446,8 @@ function _driftAscend(
     const wp = waypoints[waypoints.length - 1];
     baseAngle = Math.atan2(wp[1] - drone.y, wp[0] - drone.x);
   } else {
-    // No waypoint — drift outward from base
-    baseAngle = Math.atan2(drone.y, drone.x);
+    // No waypoint — drift outward from base (opposite of toward-origin angle)
+    baseAngle = Math.atan2(drone.y, drone.x) + Math.PI;
   }
 
   const angle = baseAngle + state.lateral_drift_offset;

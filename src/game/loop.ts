@@ -672,10 +672,10 @@ export function tickDrones(gs: GameState, elapsed: number): Msg[] {
     if (gs.drones[i].is_ambient) {
       const dist = Math.sqrt(gs.drones[i].x ** 2 + gs.drones[i].y ** 2);
       const outOfMap = dist > 12.0;
-      // Weather balloons climb out of detection range
       const aboveMaxAlt = gs.drones[i].drone_type === 'weather_balloon' && gs.drones[i].altitude > 30000;
-      // Birds that have been active too long also despawn (safety net)
       if (outOfMap || aboveMaxAlt) {
+        gs.erratic_states.delete(gs.drones[i].id);
+        gs.drift_ascend_states.delete(gs.drones[i].id);
         gs.drones[i] = markDroneNeutralized(gs.drones[i], elapsed);
       }
     }
