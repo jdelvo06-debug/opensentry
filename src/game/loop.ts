@@ -230,6 +230,21 @@ export function tickSpawns(gs: GameState, elapsed: number): Msg[] {
   for (const [ambType, nextTime] of gs.next_ambient_times) {
     if (elapsed < gs.ambient_suppressed_until && ATC_CLEARABLE_AMB.has(ambType)) continue;
     if (elapsed >= nextTime) {
+      // Cap simultaneous birds/balloons to prevent pile-up
+      const MAX_SIMULTANEOUS: Record<string, number> = { bird: 4, weather_balloon: 2 };
+      const maxForType = MAX_SIMULTANEOUS[ambType];
+      if (maxForType !== undefined) {
+        const currentCount = gs.drones.filter(d => d.is_ambient && d.drone_type === ambType && !d.neutralized).length;
+        if (currentCount >= maxForType) {
+          // Skip spawn — reschedule for later
+          const interval = AMBIENT_INTERVALS[ambType];
+          if (interval) {
+            gs.next_ambient_times.set(ambType, elapsed + interval[0] + Math.random() * (interval[1] - interval[0]));
+          }
+          continue;
+        }
+      }
+
       let [ambCfg, counter] = generateAmbientObject(gs.ambient_counter, ambType, elapsed);
       gs.ambient_counter = counter;
       while (gs.drone_configs.has(ambCfg.id)) {

@@ -143,8 +143,8 @@ const _MILITARY_CALLSIGNS = [
 export const AMBIENT_INTERVALS: Record<string, [number, number]> = {
   commercial_aircraft: [90.0, 150.0],
   military_jet: [180.0, 300.0],
-  bird: [90.0, 150.0],
-  weather_balloon: [240.0, 420.0],
+  bird: [180.0, 300.0],
+  weather_balloon: [300.0, 480.0],
 };
 
 /**

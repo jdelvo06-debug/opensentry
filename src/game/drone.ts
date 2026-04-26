@@ -374,10 +374,10 @@ function _erraticWander(
 
   // Time for a heading change?
   if (state.tick_counter >= state.next_turn) {
-    // Random heading offset between -60 and +60 degrees
-    state.heading_offset = _randomRange(-60, 60) * (Math.PI / 180);
+    // Random heading offset between -45 and +45 degrees (erratic but still outbound)
+    state.heading_offset = _randomRange(-45, 45) * (Math.PI / 180);
     // Speed varies (birds speed up and slow down)
-    state.speed_factor = _randomRange(0.5, 1.3);
+    state.speed_factor = _randomRange(0.6, 1.2);
     state.next_turn = state.tick_counter + _randomRange(2.0, 5.0);
   }
 
@@ -393,10 +393,8 @@ function _erraticWander(
       baseAngle = Math.atan2(wp[1] - drone.y, wp[0] - drone.x);
     }
   } else {
-    // No waypoint — wander with slight bias away from base center
-    const awayAngle = Math.atan2(drone.y, drone.x);
-    const wanderAngle = _randomRange(0, 2 * Math.PI);
-    baseAngle = awayAngle * 0.3 + wanderAngle * 0.7;
+    // No waypoint — fly away from base center with strong outward bias
+    baseAngle = Math.atan2(drone.y, drone.x);
   }
 
   const angle = baseAngle + state.heading_offset;
