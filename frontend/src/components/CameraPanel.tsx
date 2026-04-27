@@ -1868,7 +1868,11 @@ export default function CameraPanel({
       // Use drone_type for silhouette (always available) — camera shows what it sees.
       // classification only matters for scoring; visuals use ground truth type.
       const aspectInfo = calcAspectAngle(vt.x, vt.y, vt.heading_deg, cameraX, cameraY);
-      drawSilhouette(ctx, vt.drone_type ?? vt.classification, scale, mode, time, aspectInfo);
+      // JACKAL interceptors always appear horizontal on camera — override rotation to 90°
+      // (silhouette is drawn nose-up, so 90° rotation = nose-right = horizontal flight)
+      const isJackal = vt.drone_type === 'jackal' || vt.classification === 'jackal' || vt.classification === 'interceptor';
+      const silhouetteAspect = isJackal ? { aspect: 90, visualRotationDeg: -90 } : aspectInfo;
+      drawSilhouette(ctx, vt.drone_type ?? vt.classification, scale, mode, time, silhouetteAspect);
       ctx.restore();
 
       // Draw approaching JACKAL as bright dot if one is targeting this track
