@@ -12,7 +12,7 @@
 
 > 🗺️ **Train at your actual base.** Drop a pin anywhere on Earth — real satellite imagery loads automatically. Set your perimeter, place your sensors, and run scenarios on terrain your operators actually defend. Not a demo airfield. Your location.
 
-**Version:** v1.12.0 | **Status:** Active development
+**Version:** v1.13.0 | **Status:** Active development
 
 ---
 
@@ -260,20 +260,14 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 - [x] Mission map pan/zoom no longer gets reset on every render tick
 - [x] Curated preset authoring now defaults to traced/source-derived aerodrome outlines via `geojson.io` / OSM geometry + `scripts/import_geojson_preset.py`
 
-### WIP (on `wip/preset-generation-script` branch)
-- `scripts/generate-preset.py` — deterministic OSM-based preset generator (experimental only; not the default preset-authoring workflow)
-- Script-regenerated polygons for Barksdale, Nellis, Kadena, Tyndall (unverified)
-- Langley AFB preset (polygon still mangled from OSM relation stitching issues)
-- Do not merge this branch's preset output without a traced/source-derived visual cleanup pass
-
-### Backlog
-- [ ] Fix JACKAL trajectory + action wheel size (Issue #1)
-- [ ] Improve preset polygon quality (OSM relation stitching, oversized boundary handling)
-- [ ] Add remaining bases (Langley, Andersen, Incirlik, etc.)
-- [ ] After-action replay (timeline scrub)
-- [ ] Multi-operator / shared mission
-- [ ] React.lazy() code splitting for bundle size reduction
-- [ ] Accessibility pass (ARIA labels, keyboard navigation)
+### Pending / Future
+- [ ] **Preset polygon quality** — 20 curated presets in main, quality varies; many OSM-relation-sourced polygons still need manual tracing or shapely-based processing
+- [ ] **Langley AFB** — script-generated preset exists but polygon still mangled
+- [ ] **After-action replay** — ability to scrub through a completed mission timeline
+- [ ] **Scenario editor** — custom wave composition, threat mix, timing
+- [ ] **Multiplayer co-op** — shared TOC picture
+- [ ] **Instructor dashboard** — remote observation and grading
+- [ ] **Score leaderboards** — requires auth backend (not planned for browser-only mode)
 
 ---
 
