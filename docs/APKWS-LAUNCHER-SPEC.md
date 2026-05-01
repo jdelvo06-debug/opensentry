@@ -22,7 +22,7 @@ The implementation should stay unclassified and training-oriented: model high-le
 {
   "catalog_id": "apkws_launcher",
   "name": "APKWS Launcher",
-  "type": "kinetic",
+  "type": "apkws",
   "range_km": 5.0,
   "fov_deg": 120,
   "recharge_seconds": 2,

@@ -41,6 +41,7 @@ function _normalizeEffectorForScoring(effector: string | null | undefined): stri
   const lower = effector.toLowerCase();
   if (lower === 'rf_jam' || lower.includes('rf_jammer') || lower.includes('jammer')) return 'electronic';
   if (lower === 'kinetic' || lower.includes('jackal')) return 'kinetic';
+  if (lower === 'apkws' || lower.includes('apkws')) return 'kinetic';
   if (lower === 'de_laser' || lower.includes('de_laser') || lower.includes('de-laser')) return 'de_laser';
   if (lower === 'de_hpm' || lower.includes('de_hpm') || lower.includes('de-hpm') || lower.includes('hpm')) return 'de_hpm';
   if (lower === 'shenobi_pm' || lower.includes('shenobi')) return 'shenobi_pm';
