@@ -111,6 +111,7 @@ function getRingStyleByName(name?: string, type?: string): { color: string; dash
   if (n.includes("shenobi") || type === "shenobi_pm") return { color: "#a371f7", dashArray: "4,4" };  // Purple for Shenobi
   if (n.includes("jammer") || type === "electronic") return { color: "#e3b341", dashArray: "8,4" };
   if (n.includes("jackal") || type === "kinetic") return { color: "#f85149", dashArray: "8,4" };
+  if (n.includes("apkws") || type === "apkws") return { color: "#e8553a", dashArray: "8,3" };
   if (type === "de_laser" || n.includes("de-laser") || n.includes("de_laser")) return { color: "#ff6a00", dashArray: "4,4" };
   if (type === "de_hpm" || n.includes("de-hpm") || n.includes("de_hpm")) return { color: "#00d4ff", dashArray: "4,4" };
   if (type === "rf" && n.includes("shenobi")) return { color: "#a371f7", dashArray: "4,4" };
@@ -119,12 +120,12 @@ function getRingStyleByName(name?: string, type?: string): { color: string; dash
 }
 
 function createRingLabel(name: string, rangeKm: number, color: string): L.DivIcon {
-  const html = `<span style="font:600 9px 'JetBrains Mono',monospace;color:${color};white-space:nowrap;pointer-events:none;background:rgba(13,17,23,0.75);padding:1px 5px;border-radius:2px;">${name} — ${rangeKm}km</span>`;
+  const html = `<span style="font:600 9px 'JetBrains Mono',monospace;color:${color};white-space:nowrap;pointer-events:none;background:rgba(13,17,23,0.78);padding:1px 5px;border-radius:2px;border:1px solid ${color}55;">${name} — ${rangeKm}km</span>`;
   return L.divIcon({
     html,
     className: "",
-    iconSize: [120, 14],
-    iconAnchor: [60, 7],
+    iconSize: [190, 14],
+    iconAnchor: [95, 7],
   });
 }
 
@@ -1728,7 +1729,14 @@ export default function TacticalMap({
             const labelX = (eff.x ?? 0) + Math.cos(facingRad) * rangeKm;
             const labelY = (eff.y ?? 0) + Math.sin(facingRad) * rangeKm;
             const labelPos = gameXYToLatLng(labelX, labelY, baseLat, baseLng);
-            const fillOpacity = eff.type === "de_hpm" ? 0.08 : 0.04;
+            const isApkws = eff.type === "apkws" || (eff.name || "").toLowerCase().includes("apkws");
+            const fillOpacity = isApkws ? 0.12 : eff.type === "de_hpm" ? 0.08 : 0.04;
+            const leftEdge = points[1];
+            const rightEdge = points[points.length - 1];
+            const centerLine: [number, number][] = [ePos, labelPos];
+            const labelName = isApkws
+              ? `${eff.name || eff.id} FOV ${fov}° HDG ${Math.round(facing)}°`
+              : (eff.name || eff.id);
 
             return (
               <span key={`effector-ring-${eff.id}`}>
@@ -1736,16 +1744,32 @@ export default function TacticalMap({
                   positions={points}
                   pathOptions={{
                     color: style.color,
-                    weight: 2,
-                    opacity: 0.9,
+                    weight: isApkws ? 3 : 2,
+                    opacity: isApkws ? 1 : 0.9,
                     dashArray: style.dashArray,
                     fillColor: style.color,
                     fillOpacity,
                   }}
                 />
+                {isApkws && (
+                  <>
+                    <Polyline
+                      positions={[ePos, leftEdge]}
+                      pathOptions={{ color: style.color, weight: 1.5, opacity: 0.9, dashArray: "3,3" }}
+                    />
+                    <Polyline
+                      positions={[ePos, rightEdge]}
+                      pathOptions={{ color: style.color, weight: 1.5, opacity: 0.9, dashArray: "3,3" }}
+                    />
+                    <Polyline
+                      positions={centerLine}
+                      pathOptions={{ color: style.color, weight: 2, opacity: 0.95 }}
+                    />
+                  </>
+                )}
                 <Marker
                   position={labelPos}
-                  icon={createRingLabel(eff.name || eff.id, rangeKm, style.color)}
+                  icon={createRingLabel(labelName, rangeKm, style.color)}
                   interactive={false}
                 />
               </span>
@@ -2473,6 +2497,8 @@ export default function TacticalMap({
             screenX={wheelState.screenX}
             screenY={wheelState.screenY}
             effectors={effectors}
+            targetX={wheelTrack.x}
+            targetY={wheelTrack.y}
             holdFire={wheelTrack.hold_fire}
             onConfirmTrack={onConfirmTrack}
             onIdentify={onIdentify}

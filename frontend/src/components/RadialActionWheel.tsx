@@ -16,6 +16,8 @@ interface Props {
   screenX: number;
   screenY: number;
   effectors: EffectorStatus[];
+  targetX?: number;
+  targetY?: number;
   holdFire?: boolean;
   onConfirmTrack: (trackId: string) => void;
   onIdentify: (trackId: string, classification: string, affiliation: string) => void;
@@ -116,6 +118,29 @@ function getActionsForPhase(dtidPhase: DTIDPhase, holdFire?: boolean, iffStatus?
         { id: "monitor", label: "COMPLETE", icon: "\u2714", color: "#3fb950", disabled: true },
       ];
   }
+}
+
+function normalizeDeg(deg: number): number {
+  return ((deg % 360) + 360) % 360;
+}
+
+function angleDeltaDeg(a: number, b: number): number {
+  const diff = Math.abs(normalizeDeg(a) - normalizeDeg(b));
+  return diff > 180 ? 360 - diff : diff;
+}
+
+function bearingToTargetDeg(fromX: number, fromY: number, targetX: number, targetY: number): number {
+  return normalizeDeg((Math.atan2(targetX - fromX, targetY - fromY) * 180) / Math.PI);
+}
+
+function isApkwsEffector(eff: EffectorStatus): boolean {
+  return eff.type === "apkws" || (eff.name || "").toLowerCase().includes("apkws");
+}
+
+function effectorOrdinalLabel(eff: EffectorStatus, sameTypeOrdinal: number): string {
+  const name = (eff.name || eff.id).toUpperCase();
+  if (isApkwsEffector(eff)) return `APKWS ${sameTypeOrdinal}`;
+  return name.slice(0, 10);
 }
 
 const WHEEL_RADIUS = 80;
@@ -317,6 +342,8 @@ export default function RadialActionWheel({
   screenX,
   screenY,
   effectors,
+  targetX,
+  targetY,
   holdFire,
   onConfirmTrack,
   onIdentify,
@@ -454,17 +481,40 @@ export default function RadialActionWheel({
       color: cls.color,
     }));
   } else if (subMenu === "engage") {
-    subActions = effectors.map((eff) => {
+    subActions = effectors.map((eff, index) => {
       const color = EFFECTOR_COLORS[eff.id] || EFFECTOR_COLORS[eff.type || ""] || "#58a6ff";
       const isReady = eff.status === "ready";
       const isShenobi = eff.type === "shenobi_pm";
+      const isApkws = isApkwsEffector(eff);
+      let geometryStatus = eff.status.toUpperCase();
+      let geometryBlocked = false;
+
+      if (isApkws && targetX != null && targetY != null && eff.x != null && eff.y != null) {
+        const dx = targetX - eff.x;
+        const dy = targetY - eff.y;
+        const rangeKm = Math.sqrt(dx * dx + dy * dy);
+        const maxRangeKm = eff.range_km ?? Infinity;
+        const targetBearing = bearingToTargetDeg(eff.x, eff.y, targetX, targetY);
+        const facing = normalizeDeg(eff.facing_deg ?? 0);
+        const fov = eff.fov_deg ?? 360;
+        const offAxis = angleDeltaDeg(targetBearing, facing);
+        const inArc = fov >= 360 || offAxis <= fov / 2;
+        const inRange = rangeKm <= maxRangeKm;
+        geometryBlocked = !inArc || !inRange;
+        geometryStatus = !inRange
+          ? `RNG ${rangeKm.toFixed(1)}>${maxRangeKm.toFixed(0)}km`
+          : !inArc
+            ? `OFF ARC ${Math.round(offAxis)}°`
+            : `IN ARC ${Math.round(targetBearing)}°`;
+      }
+
       return {
         id: eff.id,
-        label: (eff.name || eff.id).toUpperCase().slice(0, 10),
-        icon: isShenobi ? "\u{1F977}" : isReady ? "\u25C6" : "\u25C7",
-        color: isReady ? color : "#484f58",
-        disabled: !isReady,
-        statusText: eff.status.toUpperCase(),
+        label: effectorOrdinalLabel(eff, effectors.slice(0, index + 1).filter(isApkwsEffector).length),
+        icon: isShenobi ? "\u{1F977}" : isReady && !geometryBlocked ? "\u25C6" : "\u25C7",
+        color: isReady && !geometryBlocked ? color : "#484f58",
+        disabled: !isReady || geometryBlocked,
+        statusText: geometryStatus,
       };
     });
   } else if (subMenu === "shenobi_cm") {
