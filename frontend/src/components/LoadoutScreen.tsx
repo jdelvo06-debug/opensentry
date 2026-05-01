@@ -33,6 +33,7 @@ const TYPE_COLORS: Record<string, string> = {
   acoustic: COLORS.green,
   electronic: COLORS.purple,
   kinetic: COLORS.red,
+  apkws: "#e8553a",
   interceptor: COLORS.blue,
   directed_energy: COLORS.yellow,
   de_laser: COLORS.yellow,

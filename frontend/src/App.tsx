@@ -554,6 +554,31 @@ export default function App() {
               setActiveIntercepts((prev) => prev.filter((a) => a.id !== interceptId));
             }, duration + 1500);
           }
+        } else if (effLower.includes("apkws")) {
+          // APKWS direct-fire rocket animation
+          const effObj = effectorsRef.current.find((e) => e.id === msg.effector)
+            || effectorConfigsRef.current.find((e) => e.id === msg.effector);
+          const target = tracksRef.current.find((t) => t.id === msg.target_id);
+          if (effObj && target && effObj.x != null) {
+            const interceptId = `apkws-${Date.now()}`;
+            const duration = 2000; // 2 seconds — faster direct fire
+            const newIntercept: InterceptAnimationData = {
+              id: interceptId,
+              effectorId: msg.effector,
+              targetId: msg.target_id,
+              startX: effObj.x ?? 0,
+              startY: effObj.y ?? 0,
+              targetX: target.x,
+              targetY: target.y,
+              effective: msg.effective,
+              startTime: Date.now(),
+              duration,
+            };
+            setActiveIntercepts((prev) => [...prev, newIntercept]);
+            setTimeout(() => {
+              setActiveIntercepts((prev) => prev.filter((a) => a.id !== interceptId));
+            }, duration + 1000);
+          }
         }
 
         // Track active jammer state for EW radiate visual
@@ -574,6 +599,8 @@ export default function App() {
         // Play engagement sound based on effector type, then success/fail
         const eff = msg.effector.toLowerCase();
         if (eff.includes("kinetic") || eff.includes("interceptor")) {
+          soundEngine.play("engagement_kinetic");
+        } else if (eff.includes("apkws")) {
           soundEngine.play("engagement_kinetic");
         } else if (eff.includes("jammer") || eff.includes("rf")) {
           soundEngine.play("engagement_electronic");

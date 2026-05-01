@@ -48,6 +48,7 @@ const EFFECTOR_COLORS: Record<string, string> = {
   jammer: "#58a6ff",
   rf_jam: "#58a6ff",
   kinetic: "#f85149",
+  apkws: "#e8553a",
   interceptor: "#3fb950",
   net_interceptor: "#3fb950",
   de_weapon: "#bc8cff",

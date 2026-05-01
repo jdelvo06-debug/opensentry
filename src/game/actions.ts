@@ -267,11 +267,19 @@ export function handleEngage(
       }
     }
 
+    // APKWS requires target to be identified
+    if (effState.type === 'apkws' && d.dtid_phase !== 'identified') {
+      msgs.push(_event(elapsed, `ENGAGEMENT: ${effState.name} \u2014 TARGET NOT IDENTIFIED (identify before engaging)`));
+      break;
+    }
+
     const effectiveness = effectorEffectiveness(effState.type, d.drone_type);
 
     // Dispatch by explicit effector type to avoid ordering ambiguity
     if (effState.type === 'kinetic') {
       msgs.push(..._engageJackal(gs, d, effState, effectorId, targetId, elapsed));
+    } else if (effState.type === 'apkws') {
+      msgs.push(..._engageApkws(gs, j, d, effState, effectorId, targetId, effectiveness, elapsed));
     } else if (effState.type === 'de_laser' || effState.type === 'de_hpm') {
       msgs.push(..._queueDirectedEnergyEngagement(gs, d, effState, effectorId, targetId, elapsed, 'engage'));
     } else if (isShenobi) {
@@ -546,6 +554,35 @@ function _engageJackal(
   gs.effector_used.set(targetId, effState.type);
   gs.actions.push({ action: 'engage', target_id: targetId, effector: effectorId, timestamp: elapsed });
   msgs.push(_event(elapsed, `JACKAL ENGAGE \u2014 ${jackalId} SPINUP INITIATED (${Math.round(spinupDuration)}s TO LAUNCH)`));
+  return msgs;
+}
+
+function _engageApkws(
+  gs: GameState, droneIdx: number, d: DroneState, effState: EffectorRuntimeState,
+  effectorId: string, targetId: string, effectiveness: number, elapsed: number,
+): Record<string, unknown>[] {
+  const msgs: Record<string, unknown>[] = [];
+
+  // Direct-fire kinetic kill — roll against effectiveness matrix
+  const neutralized = Math.random() < effectiveness;
+  gs.drones[droneIdx] = neutralized
+    ? markDroneNeutralized(d, elapsed)
+    : d;
+  gs.engage_times.set(targetId, elapsed);
+  gs.effector_used.set(targetId, effState.type);
+  gs.actions.push({ action: 'engage', target_id: targetId, effector: effectorId, timestamp: elapsed });
+
+  const label = _label(gs, targetId);
+  if (neutralized) {
+    msgs.push(_event(elapsed, `APKWS: ${effState.name} HIT \u2014 ${label.toUpperCase()} NEUTRALIZED`));
+  } else {
+    msgs.push(_event(elapsed, `APKWS: ${effState.name} MISS \u2014 ${label.toUpperCase()} still active`));
+  }
+  msgs.push({
+    type: 'engagement_result', target_id: targetId, effector: effectorId,
+    effective: neutralized, effectiveness: Math.round(effectiveness * 100) / 100,
+    effector_type: effState.type, effector_name: effState.name,
+  });
   return msgs;
 }
 

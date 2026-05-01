@@ -26,7 +26,8 @@ export type EffectorType =
   | 'directed_energy'
   | 'de_laser'
   | 'de_hpm'
-  | 'shenobi_pm';
+  | 'shenobi_pm'
+  | 'apkws';
 export type EffectorStatus = 'ready' | 'slewing' | 'recharging' | 'offline' | 'depleted';
 export type NexusCMType = 'shenobi_hold' | 'shenobi_land_now' | 'shenobi_deafen';
 export type NexusCMState = 'pending' | '1/2' | '2/2';

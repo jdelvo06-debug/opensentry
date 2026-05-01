@@ -157,6 +157,32 @@
       "requires_los": false,
       "collateral_risk": "low",
       "ammo_count": 4
+    },
+    {
+      "catalog_id": "apkws_launcher",
+      "name": "APKWS Launcher",
+      "type": "apkws",
+      "range_km": 5.0,
+      "fov_deg": 120,
+      "recharge_seconds": 2,
+      "single_use": false,
+      "ammo_count": 7,
+      "description": "Ground-launched laser-guided 70mm rocket launcher for precision C-UAS engagements. Effective against larger Group 2-3 UAS and one-way attack platforms when supported by a valid laser designation / target handoff. Limited magazine and elevated collateral/ROE considerations compared to non-kinetic systems.",
+      "pros": [
+        "Precision kinetic defeat option",
+        "Good effect against fixed-wing and larger UAS",
+        "Useful against autonomous or RF-silent threats",
+        "Lower unit cost than interceptor missiles"
+      ],
+      "cons": [
+        "Requires line of sight and laser designation / target handoff",
+        "Finite magazine",
+        "Collateral/ROE risk from kinetic intercept and debris",
+        "Less suitable for micro-UAS and dense swarms",
+        "Directional launcher placement matters"
+      ],
+      "requires_los": true,
+      "collateral_risk": "high"
     }
   ],
   "combined": [
