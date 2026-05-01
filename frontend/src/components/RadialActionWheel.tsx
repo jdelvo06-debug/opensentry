@@ -137,10 +137,115 @@ function isApkwsEffector(eff: EffectorStatus): boolean {
   return eff.type === "apkws" || (eff.name || "").toLowerCase().includes("apkws");
 }
 
-function effectorOrdinalLabel(eff: EffectorStatus, sameTypeOrdinal: number): string {
-  const name = (eff.name || eff.id).toUpperCase();
-  if (isApkwsEffector(eff)) return `APKWS ${sameTypeOrdinal}`;
-  return name.slice(0, 10);
+function isJackalEffector(eff: EffectorStatus): boolean {
+  const name = (eff.name || eff.id).toLowerCase();
+  return eff.type === "kinetic" || name.includes("jackal");
+}
+
+function isGroupedEffector(eff: EffectorStatus): boolean {
+  return isApkwsEffector(eff) || isJackalEffector(eff);
+}
+
+function effectorDisplayLabel(eff: EffectorStatus): string {
+  return (eff.name || eff.id).toUpperCase().slice(0, 10);
+}
+
+type GroupKind = "apkws" | "jackal";
+type CandidateEvaluation = {
+  eff: EffectorStatus;
+  rangeKm: number;
+  offAxis: number;
+  targetBearing: number;
+  ready: boolean;
+  hasAmmo: boolean;
+  inRange: boolean;
+  inArc: boolean;
+  eligible: boolean;
+};
+
+function evaluateCandidate(eff: EffectorStatus, targetX?: number, targetY?: number): CandidateEvaluation {
+  const ready = eff.status === "ready";
+  const hasAmmo = eff.ammo_remaining == null || eff.ammo_remaining > 0;
+  if (targetX == null || targetY == null || eff.x == null || eff.y == null) {
+    return {
+      eff,
+      rangeKm: Infinity,
+      offAxis: 0,
+      targetBearing: eff.facing_deg ?? 0,
+      ready,
+      hasAmmo,
+      inRange: true,
+      inArc: true,
+      eligible: ready && hasAmmo,
+    };
+  }
+
+  const dx = targetX - eff.x;
+  const dy = targetY - eff.y;
+  const rangeKm = Math.sqrt(dx * dx + dy * dy);
+  const maxRangeKm = eff.range_km ?? Infinity;
+  const targetBearing = bearingToTargetDeg(eff.x, eff.y, targetX, targetY);
+  const facing = normalizeDeg(eff.facing_deg ?? 0);
+  const fov = eff.fov_deg ?? 360;
+  const offAxis = angleDeltaDeg(targetBearing, facing);
+  const inRange = rangeKm <= maxRangeKm;
+  const inArc = fov >= 360 || offAxis <= fov / 2;
+  return { eff, rangeKm, offAxis, targetBearing, ready, hasAmmo, inRange, inArc, eligible: ready && hasAmmo && inRange && inArc };
+}
+
+function pickBestEffector(candidates: EffectorStatus[], targetX?: number, targetY?: number): CandidateEvaluation | null {
+  const evaluated = candidates.map((eff) => evaluateCandidate(eff, targetX, targetY));
+  const eligible = evaluated.filter((candidate) => candidate.eligible);
+  if (eligible.length === 0) return null;
+  return eligible.sort((a, b) => (
+    a.rangeKm - b.rangeKm
+    || a.offAxis - b.offAxis
+    || (b.eff.ammo_remaining ?? 0) - (a.eff.ammo_remaining ?? 0)
+    || a.eff.id.localeCompare(b.eff.id)
+  ))[0];
+}
+
+function groupedStatus(kind: GroupKind, candidates: EffectorStatus[], targetX?: number, targetY?: number): { action: WheelAction; selectedId?: string } {
+  const color = kind === "apkws" ? EFFECTOR_COLORS.apkws : EFFECTOR_COLORS.kinetic;
+  const best = pickBestEffector(candidates, targetX, targetY);
+  if (best) {
+    return {
+      selectedId: best.eff.id,
+      action: {
+        id: `group:${kind}`,
+        label: kind === "apkws" ? "APKWS" : "JACKAL",
+        icon: "◆",
+        color,
+        statusText: `${candidates.length} SYS ${best.rangeKm === Infinity ? "READY" : `${best.rangeKm.toFixed(1)}km`}`,
+      },
+    };
+  }
+
+  const evaluated = candidates.map((eff) => evaluateCandidate(eff, targetX, targetY));
+  const anyReady = evaluated.some((candidate) => candidate.ready);
+  const anyAmmo = evaluated.some((candidate) => candidate.hasAmmo);
+  const anyInRange = evaluated.some((candidate) => candidate.inRange);
+  const anyInArc = evaluated.some((candidate) => candidate.inArc);
+  const statusText = !anyReady
+    ? "NOT READY"
+    : !anyAmmo
+      ? "DEPLETED"
+      : !anyInRange
+        ? "OUT RNG"
+        : !anyInArc
+          ? "NO ARC"
+          : "BLOCKED";
+
+  return {
+    action: {
+      id: `group:${kind}`,
+      label: kind === "apkws" ? "APKWS" : "JACKAL",
+      icon: "◇",
+      color: "#484f58",
+      disabled: true,
+      statusText,
+    },
+  };
 }
 
 const WHEEL_RADIUS = 80;
@@ -446,17 +551,28 @@ export default function RadialActionWheel({
 
   const handleEngage = useCallback(
     (effectorId: string) => {
+      let resolvedEffectorId = effectorId;
+      if (effectorId === "group:apkws") {
+        const best = pickBestEffector(effectors.filter(isApkwsEffector), targetX, targetY);
+        if (!best) return;
+        resolvedEffectorId = best.eff.id;
+      } else if (effectorId === "group:jackal") {
+        const best = pickBestEffector(effectors.filter(isJackalEffector), targetX, targetY);
+        if (!best) return;
+        resolvedEffectorId = best.eff.id;
+      }
+
       // Check if this is a Shenobi effector — show CM submenu
-      const eff = effectors.find((e) => e.id === effectorId);
+      const eff = effectors.find((e) => e.id === resolvedEffectorId);
       if (eff && eff.type === "shenobi_pm") {
-        setSelectedNexusEffector(effectorId);
+        setSelectedNexusEffector(resolvedEffectorId);
         setSubMenu("shenobi_cm");
         return;
       }
-      onEngage(trackId, effectorId);
+      onEngage(trackId, resolvedEffectorId);
       animatedClose();
     },
-    [trackId, effectors, onEngage, animatedClose],
+    [trackId, effectors, targetX, targetY, onEngage, animatedClose],
   );
 
   const handleNexusCM = useCallback(
@@ -481,42 +597,27 @@ export default function RadialActionWheel({
       color: cls.color,
     }));
   } else if (subMenu === "engage") {
-    subActions = effectors.map((eff, index) => {
-      const color = EFFECTOR_COLORS[eff.id] || EFFECTOR_COLORS[eff.type || ""] || "#58a6ff";
-      const isReady = eff.status === "ready";
-      const isShenobi = eff.type === "shenobi_pm";
-      const isApkws = isApkwsEffector(eff);
-      let geometryStatus = eff.status.toUpperCase();
-      let geometryBlocked = false;
+    const apkws = effectors.filter(isApkwsEffector);
+    const jackals = effectors.filter(isJackalEffector);
+    const regularEffectors = effectors.filter((eff) => !isGroupedEffector(eff));
 
-      if (isApkws && targetX != null && targetY != null && eff.x != null && eff.y != null) {
-        const dx = targetX - eff.x;
-        const dy = targetY - eff.y;
-        const rangeKm = Math.sqrt(dx * dx + dy * dy);
-        const maxRangeKm = eff.range_km ?? Infinity;
-        const targetBearing = bearingToTargetDeg(eff.x, eff.y, targetX, targetY);
-        const facing = normalizeDeg(eff.facing_deg ?? 0);
-        const fov = eff.fov_deg ?? 360;
-        const offAxis = angleDeltaDeg(targetBearing, facing);
-        const inArc = fov >= 360 || offAxis <= fov / 2;
-        const inRange = rangeKm <= maxRangeKm;
-        geometryBlocked = !inArc || !inRange;
-        geometryStatus = !inRange
-          ? `RNG ${rangeKm.toFixed(1)}>${maxRangeKm.toFixed(0)}km`
-          : !inArc
-            ? `OFF ARC ${Math.round(offAxis)}°`
-            : `IN ARC ${Math.round(targetBearing)}°`;
-      }
-
-      return {
-        id: eff.id,
-        label: effectorOrdinalLabel(eff, effectors.slice(0, index + 1).filter(isApkwsEffector).length),
-        icon: isShenobi ? "\u{1F977}" : isReady && !geometryBlocked ? "\u25C6" : "\u25C7",
-        color: isReady && !geometryBlocked ? color : "#484f58",
-        disabled: !isReady || geometryBlocked,
-        statusText: geometryStatus,
-      };
-    });
+    subActions = [
+      ...(apkws.length > 0 ? [groupedStatus("apkws", apkws, targetX, targetY).action] : []),
+      ...(jackals.length > 0 ? [groupedStatus("jackal", jackals, targetX, targetY).action] : []),
+      ...regularEffectors.map((eff) => {
+        const color = EFFECTOR_COLORS[eff.id] || EFFECTOR_COLORS[eff.type || ""] || "#58a6ff";
+        const isReady = eff.status === "ready";
+        const isShenobi = eff.type === "shenobi_pm";
+        return {
+          id: eff.id,
+          label: effectorDisplayLabel(eff),
+          icon: isShenobi ? "\u{1F977}" : isReady ? "\u25C6" : "\u25C7",
+          color: isReady ? color : "#484f58",
+          disabled: !isReady,
+          statusText: eff.status.toUpperCase(),
+        };
+      }),
+    ];
   } else if (subMenu === "shenobi_cm") {
     subActions = Shenobi_CM_OPTIONS.map((cm) => ({
       id: cm.id,

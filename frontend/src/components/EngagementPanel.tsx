@@ -61,6 +61,85 @@ const CM_STATE_LABELS: Record<string, { label: string; color: string }> = {
   "2/2": { label: "FULL CONTROL 2/2", color: "#3fb950" },
 };
 
+function normalizeDeg(deg: number): number {
+  return ((deg % 360) + 360) % 360;
+}
+
+function angleDeltaDeg(a: number, b: number): number {
+  const diff = Math.abs(normalizeDeg(a) - normalizeDeg(b));
+  return diff > 180 ? 360 - diff : diff;
+}
+
+function bearingToTargetDeg(fromX: number, fromY: number, targetX: number, targetY: number): number {
+  return normalizeDeg((Math.atan2(targetX - fromX, targetY - fromY) * 180) / Math.PI);
+}
+
+function isApkwsEffector(eff: EffectorStatus): boolean {
+  return eff.type === "apkws" || (eff.name || "").toLowerCase().includes("apkws");
+}
+
+function isJackalEffector(eff: EffectorStatus): boolean {
+  const name = (eff.name || eff.id).toLowerCase();
+  return eff.type === "kinetic" || name.includes("jackal");
+}
+
+function isGroupedEffector(eff: EffectorStatus): boolean {
+  return isApkwsEffector(eff) || isJackalEffector(eff);
+}
+
+function evaluateEffector(eff: EffectorStatus, track: TrackData) {
+  const ready = eff.status === "ready";
+  const hasAmmo = eff.ammo_remaining == null || eff.ammo_remaining > 0;
+  if (eff.x == null || eff.y == null) {
+    return { eff, rangeKm: Infinity, offAxis: 0, ready, hasAmmo, inRange: true, inArc: true, eligible: ready && hasAmmo };
+  }
+  const dx = track.x - eff.x;
+  const dy = track.y - eff.y;
+  const rangeKm = Math.sqrt(dx * dx + dy * dy);
+  const targetBearing = bearingToTargetDeg(eff.x, eff.y, track.x, track.y);
+  const offAxis = angleDeltaDeg(targetBearing, eff.facing_deg ?? 0);
+  const inRange = rangeKm <= (eff.range_km ?? Infinity);
+  const fov = eff.fov_deg ?? 360;
+  const inArc = fov >= 360 || offAxis <= fov / 2;
+  return { eff, rangeKm, offAxis, ready, hasAmmo, inRange, inArc, eligible: ready && hasAmmo && inRange && inArc };
+}
+
+function pickBestEffector(candidates: EffectorStatus[], track: TrackData) {
+  const eligible = candidates.map((eff) => evaluateEffector(eff, track)).filter((candidate) => candidate.eligible);
+  return eligible.sort((a, b) => (
+    a.rangeKm - b.rangeKm
+    || a.offAxis - b.offAxis
+    || (b.eff.ammo_remaining ?? 0) - (a.eff.ammo_remaining ?? 0)
+    || a.eff.id.localeCompare(b.eff.id)
+  ))[0] ?? null;
+}
+
+function groupedButton(kind: "apkws" | "jackal", candidates: EffectorStatus[], track: TrackData) {
+  const best = pickBestEffector(candidates, track);
+  const color = kind === "apkws" ? EFFECTOR_COLORS.apkws : EFFECTOR_COLORS.kinetic;
+  if (best) {
+    return {
+      id: `group:${kind}`,
+      resolvedId: best.eff.id,
+      name: kind === "apkws" ? "APKWS" : "JACKAL",
+      color,
+      isReady: true,
+      isShenobi: false,
+      status: `${candidates.length} SYS — ${best.rangeKm === Infinity ? "READY" : `${best.rangeKm.toFixed(1)}km`}`,
+    };
+  }
+  const evaluated = candidates.map((eff) => evaluateEffector(eff, track));
+  const status = !evaluated.some((c) => c.ready)
+    ? "NOT READY"
+    : !evaluated.some((c) => c.hasAmmo)
+      ? "DEPLETED"
+      : !evaluated.some((c) => c.inRange)
+        ? "OUT RNG"
+        : !evaluated.some((c) => c.inArc)
+          ? "NO ARC"
+          : "BLOCKED";
+  return { id: `group:${kind}`, resolvedId: null, name: kind === "apkws" ? "APKWS" : "JACKAL", color: "#484f58", isReady: false, isShenobi: false, status };
+}
 
 export default function EngagementPanel({
   track,
@@ -536,26 +615,43 @@ export default function EngagementPanel({
                 </div>
               )}
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                {effectors.map((eff) => {
-                  const isShenobi = eff.type === "shenobi_pm";
-                  const color =
-                    EFFECTOR_COLORS[eff.type || ""] ||
-                    EFFECTOR_COLORS[eff.id] ||
-                    "#58a6ff";
-                  const name = eff.name || eff.id.toUpperCase();
-                  const isDepleted = eff.ammo_remaining != null && eff.ammo_remaining <= 0;
-                  const isReady = eff.status === "ready" && !isDepleted;
+                {(() => {
+                  const apkws = effectors.filter(isApkwsEffector);
+                  const jackals = effectors.filter(isJackalEffector);
+                  const regular = effectors.filter((eff) => !isGroupedEffector(eff)).map((eff) => {
+                    const isDepleted = eff.ammo_remaining != null && eff.ammo_remaining <= 0;
+                    return {
+                      id: eff.id,
+                      resolvedId: eff.id,
+                      name: eff.name || eff.id.toUpperCase(),
+                      color: EFFECTOR_COLORS[eff.type || ""] || EFFECTOR_COLORS[eff.id] || "#58a6ff",
+                      isReady: eff.status === "ready" && !isDepleted,
+                      isShenobi: eff.type === "shenobi_pm",
+                      status: isDepleted
+                        ? "DEPLETED"
+                        : eff.ammo_remaining != null
+                          ? `${eff.ammo_remaining}/${eff.ammo_count} — ${eff.status.toUpperCase()}`
+                          : eff.status.toUpperCase(),
+                    };
+                  });
+                  return [
+                    ...(apkws.length > 0 ? [groupedButton("apkws", apkws, track)] : []),
+                    ...(jackals.length > 0 ? [groupedButton("jackal", jackals, track)] : []),
+                    ...regular,
+                  ];
+                })().map((eff) => {
+                  const { color, name, isReady, isShenobi } = eff;
 
                   return (
                     <button
                       className={tutorialStep === 6 && isReady ? "tutorial-pulse" : undefined}
                       key={eff.id}
                       onClick={() => {
-                        if (!isReady) return;
+                        if (!isReady || !eff.resolvedId) return;
                         if (isShenobi) {
-                          setNexusSubMenu(eff.id);
+                          setNexusSubMenu(eff.resolvedId);
                         } else {
-                          onEngage(track.id, eff.id);
+                          onEngage(track.id, eff.resolvedId);
                         }
                       }}
                       disabled={!isReady}
@@ -600,11 +696,7 @@ export default function EngagementPanel({
                           opacity: 0.7,
                         }}
                       >
-                        {isDepleted
-                          ? "DEPLETED"
-                          : eff.ammo_remaining != null
-                            ? `${eff.ammo_remaining}/${eff.ammo_count} — ${eff.status.toUpperCase()}`
-                            : eff.status.toUpperCase()}
+                        {eff.status}
                       </span>
                     </button>
                   );
