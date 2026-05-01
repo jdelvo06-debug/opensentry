@@ -254,6 +254,22 @@ function MapPlacementClickHandler({
   return null;
 }
 
+function MapFacingClickHandler({
+  active,
+  onAimClick,
+}: {
+  active: boolean;
+  onAimClick: (lat: number, lng: number) => void;
+}) {
+  useMapEvents({
+    click: (e) => {
+      if (!active) return;
+      onAimClick(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
+}
+
 // Set view on mount
 function MapViewController({
   center,
@@ -442,6 +458,7 @@ export default function PlacementScreen({
   const [selectedPalette, setSelectedPalette] = useState<number | null>(null);
   const [selectedPlaced, setSelectedPlaced] = useState<number | null>(null);
   const [facingDeg, setFacingDeg] = useState(0);
+  const [aimMode, setAimMode] = useState(false);
   const [showRangeRings, setShowRangeRings] = useState(true);
   const [savePerimStatus, setSavePerimStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
@@ -581,14 +598,15 @@ export default function PlacementScreen({
   // Update facing of selected placed item
   const handleFacingChange = useCallback(
     (newFacing: number) => {
-      setFacingDeg(newFacing);
+      const normalizedFacing = ((Math.round(newFacing) % 360) + 360) % 360;
+      setFacingDeg(normalizedFacing);
       if (selectedPlaced !== null) {
         setPlacedItems((prev) =>
           prev.map((item, i) =>
             i === selectedPlaced
               ? {
                   ...item,
-                  equipment: { ...item.equipment, facing_deg: newFacing },
+                  equipment: { ...item.equipment, facing_deg: normalizedFacing },
                 }
               : item,
           ),
@@ -596,6 +614,17 @@ export default function PlacementScreen({
       }
     },
     [selectedPlaced],
+  );
+
+  const handleAimClick = useCallback(
+    (lat: number, lng: number) => {
+      if (selectedPlaced === null || !placedItems[selectedPlaced]) return;
+      const { x, y } = latLngToGameXY(lat, lng, baseLat, baseLng);
+      const eq = placedItems[selectedPlaced].equipment;
+      const bearing = (Math.atan2(x - eq.x, y - eq.y) * 180) / Math.PI;
+      handleFacingChange(bearing);
+    },
+    [selectedPlaced, placedItems, baseLat, baseLng, handleFacingChange],
   );
 
   // Get catalog data for a placed item
@@ -1288,15 +1317,48 @@ export default function PlacementScreen({
             </div>
             <div
               style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(8, 1fr)",
+                gap: 4,
+              }}
+            >
+              {[
+                [315, "NW"], [0, "N"], [45, "NE"], [90, "E"],
+                [135, "SE"], [180, "S"], [225, "SW"], [270, "W"],
+              ].map(([deg, label]) => (
+                <button
+                  key={String(label)}
+                  onClick={() => handleFacingChange(Number(deg))}
+                  disabled={activeItem === null}
+                  style={{
+                    padding: "5px 0",
+                    background: facingDeg === deg ? `${COLORS.accent}26` : "transparent",
+                    border: `1px solid ${facingDeg === deg ? COLORS.accent : COLORS.border}`,
+                    borderRadius: 4,
+                    color: activeItem === null ? COLORS.border : facingDeg === deg ? COLORS.accent : COLORS.text,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    cursor: activeItem === null ? "not-allowed" : "pointer",
+                    opacity: activeItem === null ? 0.3 : 1,
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div
+              style={{
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
+                marginTop: 8,
               }}
             >
               <input
                 type="range"
                 min={0}
-                max={360}
+                max={359}
                 step={1}
                 value={facingDeg}
                 onChange={(e) => handleFacingChange(Number(e.target.value))}
@@ -1312,7 +1374,7 @@ export default function PlacementScreen({
                   fontFamily: "'JetBrains Mono', monospace",
                   fontSize: 12,
                   color: activeItem === null ? COLORS.border : COLORS.text,
-                  minWidth: 36,
+                  minWidth: 42,
                   textAlign: "right",
                 }}
               >
@@ -1328,6 +1390,7 @@ export default function PlacementScreen({
                     alignItems: "center",
                     gap: 6,
                     marginTop: 8,
+                    flexWrap: "wrap",
                   }}
                 >
                   <button
@@ -1359,6 +1422,23 @@ export default function PlacementScreen({
                     }}
                   >
                     -15°
+                  </button>
+                  <button
+                    onClick={() => setAimMode((v) => !v)}
+                    style={{
+                      flex: 1.25,
+                      padding: "4px 0",
+                      background: aimMode ? `${COLORS.accent}22` : "transparent",
+                      border: `1px solid ${aimMode ? COLORS.accent : COLORS.border}`,
+                      borderRadius: 4,
+                      color: aimMode ? COLORS.accent : COLORS.text,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      fontFamily: "'JetBrains Mono', monospace",
+                      cursor: "pointer",
+                    }}
+                  >
+                    AIM ON MAP
                   </button>
                   <button
                     onClick={() => handleFacingChange((facingDeg + 15) % 360)}
@@ -1398,7 +1478,7 @@ export default function PlacementScreen({
               }}
             >
               {activeItem
-                ? `${activeItem.catalog.name} — ${activeItem.catalog.fov_deg >= 360 ? "omnidirectional" : `${activeItem.catalog.fov_deg}° FOV`}`
+                ? `${activeItem.catalog.name} — ${activeItem.catalog.fov_deg >= 360 ? "omnidirectional" : `${activeItem.catalog.fov_deg}° FOV`}${aimMode ? " — click map to aim" : ""}`
                 : "Select an item to adjust"}
             </div>
           </div>
@@ -1426,7 +1506,8 @@ export default function PlacementScreen({
             }}
           >
             <MapViewController center={baseCenter} zoom={zoom} />
-            <MapPlacementClickHandler onMapClick={handleMapClick} />
+            <MapPlacementClickHandler onMapClick={aimMode ? () => {} : handleMapClick} />
+            <MapFacingClickHandler active={aimMode && selectedPlaced !== null} onAimClick={handleAimClick} />
             <ScaleControl position="bottomleft" />
 
             <LayersControl position="topright">
@@ -1589,6 +1670,10 @@ export default function PlacementScreen({
               const labelX = eq.x + Math.cos(labelAngleRad) * primaryRange;
               const labelY = eq.y + Math.sin(labelAngleRad) * primaryRange;
               const labelPos = gameXYToLatLng(labelX, labelY, baseLat, baseLng);
+              const aimHandleKm = Math.min(primaryRange, Math.max(0.35, primaryRange * 0.35));
+              const aimHandleX = eq.x + Math.cos(labelAngleRad) * aimHandleKm;
+              const aimHandleY = eq.y + Math.sin(labelAngleRad) * aimHandleKm;
+              const aimHandlePos = gameXYToLatLng(aimHandleX, aimHandleY, baseLat, baseLng);
 
               return (
                 <span key={`item-${pi}`}>
@@ -1619,6 +1704,36 @@ export default function PlacementScreen({
                       }}
                     />
                   ))}
+
+                  {/* Facing centerline and draggable aim handle for directional systems */}
+                  {isSelected && primaryFov < 360 && (
+                    <>
+                      <Polyline
+                        positions={[pos, aimHandlePos]}
+                        pathOptions={{ color: ringStyle.color, weight: 2.5, opacity: 0.95 }}
+                      />
+                      <Marker
+                        position={aimHandlePos}
+                        draggable
+                        icon={L.divIcon({
+                          html: `<div style="width:18px;height:18px;border-radius:50%;background:${ringStyle.color};border:2px solid #fff;box-shadow:0 0 10px ${ringStyle.color};display:flex;align-items:center;justify-content:center;color:#0d1117;font:900 11px monospace;">↗</div>`,
+                          className: "",
+                          iconSize: [18, 18],
+                          iconAnchor: [9, 9],
+                        })}
+                        eventHandlers={{
+                          drag: (e) => {
+                            const marker = e.target as L.Marker;
+                            const ll = marker.getLatLng();
+                            handleAimClick(ll.lat, ll.lng);
+                          },
+                          click: (e) => {
+                            L.DomEvent.stopPropagation(e.originalEvent);
+                          },
+                        }}
+                      />
+                    </>
+                  )}
 
                   {/* Combined systems: second ring for defeat range */}
                   {shouldShowRing && isCombined && combCat && (
