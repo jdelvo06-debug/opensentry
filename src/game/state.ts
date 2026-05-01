@@ -10,12 +10,12 @@ export type Affiliation = 'unknown' | 'hostile' | 'friendly' | 'neutral';
 export type DroneType =
   | 'commercial_quad' | 'fixed_wing' | 'micro' | 'swarm'
   | 'bird' | 'passenger_aircraft' | 'military_jet'
-  | 'weather_balloon' | 'jackal' | 'shahed' | 'improvised' | 'improvised_hardened';
+  | 'weather_balloon' | 'jackal' | 'apkws_rocket' | 'shahed' | 'improvised' | 'improvised_hardened';
 
 export type ThreatClassification =
   | 'commercial_quad' | 'fixed_wing' | 'micro' | 'bird'
   | 'weather_balloon' | 'improvised' | 'passenger_aircraft'
-  | 'jackal' | 'shahed' | 'military_jet';
+  | 'jackal' | 'apkws_rocket' | 'shahed' | 'military_jet';
 
 export type SensorType = 'radar' | 'rf' | 'eoir' | 'acoustic';
 export type EffectorType =
@@ -73,6 +73,7 @@ export interface DroneState {
   intercept_phase: string | null;
   spinup_remaining: number;
   intercept_attempts: number;
+  effectiveness: number;  // kill probability for APKWS rockets
   frequency_band: string | null;
   uplink_detected: boolean;
   downlink_detected: boolean;
@@ -84,6 +85,8 @@ export interface DroneState {
   last_jam_attempt_ts?: number;
   jam_cooldown: number;
   remove_at: number | null;
+  launcher_id?: string;
+  impact_effective?: boolean;
 }
 
 export function createDefaultDrone(overrides: Partial<DroneState> & Pick<DroneState, 'id' | 'drone_type' | 'x' | 'y' | 'altitude' | 'speed' | 'heading'>): DroneState {
@@ -116,6 +119,7 @@ export function createDefaultDrone(overrides: Partial<DroneState> & Pick<DroneSt
     intercept_phase: null,
     spinup_remaining: 0,
     intercept_attempts: 0,
+    effectiveness: 0,
     frequency_band: null,
     uplink_detected: false,
     downlink_detected: false,
@@ -126,6 +130,8 @@ export function createDefaultDrone(overrides: Partial<DroneState> & Pick<DroneSt
     display_label: '',
     jam_cooldown: 0,
     remove_at: null,
+    launcher_id: undefined,
+    impact_effective: undefined,
     ...overrides,
   };
 }

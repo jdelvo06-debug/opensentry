@@ -90,6 +90,7 @@ export function createDroneFromConfig(config: DroneStartConfig): DroneState {
     intercept_phase: null,
     spinup_remaining: 0,
     intercept_attempts: 0,
+    effectiveness: 0,
     frequency_band: null,
     uplink_detected: false,
     downlink_detected: false,
@@ -100,6 +101,8 @@ export function createDroneFromConfig(config: DroneStartConfig): DroneState {
     display_label: '',
     jam_cooldown: 0,
     remove_at: null,
+    launcher_id: undefined,
+    impact_effective: undefined,
   };
 }
 

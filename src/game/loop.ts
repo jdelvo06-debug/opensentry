@@ -37,6 +37,7 @@ import { updateJammedDrone, updatePntJammedDrone, pickJamBehavior, applyPntJammi
 import { updateShenobiDrone } from './shenobi.js';
 import { handleDirectedEnergyResolution } from './actions.js';
 import { updateJackal } from './jackal.js';
+import { updateApkws } from './apkws.js';
 import { updateSensors, calculateConfidence } from './detection.js';
 import type { RfReading, SensorReading } from './detection.js';
 
@@ -578,16 +579,30 @@ export function tickDrones(gs: GameState, elapsed: number): Msg[] {
       continue;
     }
 
-    // JACKAL interceptor
+    // JACKAL interceptor or APKWS rocket
     if (drone.is_interceptor) {
-      const [updated, mutations, cevents, engResults] = updateJackal(drone, gs.drones, gs.tick_rate, elapsed);
-      gs.drones[i] = updated;
-      events.push(...cevents, ...engResults);
-      for (const mutated of mutations) {
-        for (let mi = 0; mi < gs.drones.length; mi++) {
-          if (gs.drones[mi].id === mutated.id) {
-            gs.drones[mi] = mutated;
-            break;
+      if (drone.drone_type === 'apkws_rocket') {
+        const [updated, mutations, cevents, engResults] = updateApkws(drone, gs.drones, gs.tick_rate, elapsed);
+        gs.drones[i] = updated;
+        events.push(...cevents, ...engResults);
+        for (const mutated of mutations) {
+          for (let mi = 0; mi < gs.drones.length; mi++) {
+            if (gs.drones[mi].id === mutated.id) {
+              gs.drones[mi] = mutated;
+              break;
+            }
+          }
+        }
+      } else {
+        const [updated, mutations, cevents, engResults] = updateJackal(drone, gs.drones, gs.tick_rate, elapsed);
+        gs.drones[i] = updated;
+        events.push(...cevents, ...engResults);
+        for (const mutated of mutations) {
+          for (let mi = 0; mi < gs.drones.length; mi++) {
+            if (gs.drones[mi].id === mutated.id) {
+              gs.drones[mi] = mutated;
+              break;
+            }
           }
         }
       }

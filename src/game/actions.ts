@@ -279,7 +279,7 @@ export function handleEngage(
     if (effState.type === 'kinetic') {
       msgs.push(..._engageJackal(gs, d, effState, effectorId, targetId, elapsed));
     } else if (effState.type === 'apkws') {
-      msgs.push(..._engageApkws(gs, j, d, effState, effectorId, targetId, effectiveness, elapsed));
+      msgs.push(..._engageApkws(gs, d, effState, effectorId, targetId, effectiveness, elapsed));
     } else if (effState.type === 'de_laser' || effState.type === 'de_hpm') {
       msgs.push(..._queueDirectedEnergyEngagement(gs, d, effState, effectorId, targetId, elapsed, 'engage'));
     } else if (isShenobi) {
@@ -534,6 +534,7 @@ function _engageJackal(
     confidence: 1.0, is_interceptor: true,
     interceptor_target: targetId, intercept_phase: 'spinup',
     spinup_remaining: spinupDuration,
+    effectiveness: 0,
     trail: [], sensors_detecting: [], rf_emitting: true,
     coasting: false, coast_start_time: 0, last_known_heading: 0, last_known_speed: 0,
     hold_fire: false, wave_number: 0, is_ambient: false,
@@ -558,30 +559,68 @@ function _engageJackal(
 }
 
 function _engageApkws(
-  gs: GameState, droneIdx: number, d: DroneState, effState: EffectorRuntimeState,
+  gs: GameState, d: DroneState, effState: EffectorRuntimeState,
   effectorId: string, targetId: string, effectiveness: number, elapsed: number,
 ): Record<string, unknown>[] {
   const msgs: Record<string, unknown>[] = [];
 
-  // Direct-fire kinetic kill — roll against effectiveness matrix
-  const neutralized = Math.random() < effectiveness;
-  gs.drones[droneIdx] = neutralized
-    ? markDroneNeutralized(d, elapsed)
-    : d;
+  // Prevent launching multiple APKWS rockets at the same target
+  const existingRocket = gs.drones.find(
+    dd => dd.drone_type === 'apkws_rocket' && !dd.neutralized && dd.interceptor_target === targetId && dd.intercept_phase !== 'self_destruct',
+  );
+  if (existingRocket) {
+    msgs.push(_event(elapsed, `APKWS: BLOCKED \u2014 ${(existingRocket.display_label || existingRocket.id).toUpperCase()} already engaging ${_label(gs, targetId).toUpperCase()}`));
+    return msgs;
+  }
+
+  // Spawn APKWS rocket entity — flies to target, then applies pre-rolled effect at impact
+  const impactEffective = Math.random() < effectiveness;
+  const rocketCount = gs.drones.filter(dd => dd.drone_type === 'apkws_rocket').length;
+  const rocketId = `APK-${String(rocketCount + 1).padStart(2, '0')}`;
+  const effX = effState.x ?? 0;
+  const effY = effState.y ?? 0;
+  const dxTgt = d.x - effX;
+  const dyTgt = d.y - effY;
+  const headingTo = ((Math.atan2(dxTgt, dyTgt) * 180 / Math.PI) % 360 + 360) % 360;
+
+  const rocketDrone: DroneState = {
+    id: rocketId, drone_type: 'apkws_rocket',
+    x: effX, y: effY, altitude: 10, speed: 0,
+    heading: headingTo, detected: true, classified: true,
+    classification: 'apkws_rocket', neutralized: false, dtid_phase: 'identified', affiliation: 'friendly',
+    confidence: 1.0, is_interceptor: true,
+    interceptor_target: targetId, intercept_phase: 'launch',
+    spinup_remaining: 0, effectiveness,
+    trail: [], sensors_detecting: [], rf_emitting: false,
+    coasting: false, coast_start_time: 0, last_known_heading: 0, last_known_speed: 0,
+    hold_fire: false, wave_number: 0, is_ambient: false,
+    jammed: false, jammed_behavior: null, jammed_time_remaining: 0,
+    pnt_jammed: false, pnt_drift_magnitude: 0, pnt_jammed_time_remaining: 0,
+    intercept_attempts: 0,
+    frequency_band: null, uplink_detected: false, downlink_detected: false,
+    shenobi_cm_active: null, shenobi_cm_state: null,
+    shenobi_cm_time_remaining: 0, shenobi_cm_initial_duration: 0,
+    display_label: rocketId,
+    jam_cooldown: 0, remove_at: null,
+    launcher_id: effectorId,
+    impact_effective: impactEffective,
+  };
+
+  gs.drones.push(rocketDrone);
   gs.engage_times.set(targetId, elapsed);
   gs.effector_used.set(targetId, effState.type);
   gs.actions.push({ action: 'engage', target_id: targetId, effector: effectorId, timestamp: elapsed });
 
-  const label = _label(gs, targetId);
-  if (neutralized) {
-    msgs.push(_event(elapsed, `APKWS: ${effState.name} HIT \u2014 ${label.toUpperCase()} NEUTRALIZED`));
-  } else {
-    msgs.push(_event(elapsed, `APKWS: ${effState.name} MISS \u2014 ${label.toUpperCase()} still active`));
-  }
+  msgs.push(_event(elapsed, `APKWS: ${effState.name} ROCKET AWAY \u2014 ${rocketId} guiding to ${_label(gs, targetId).toUpperCase()}`));
   msgs.push({
-    type: 'engagement_result', target_id: targetId, effector: effectorId,
-    effective: neutralized, effectiveness: Math.round(effectiveness * 100) / 100,
-    effector_type: effState.type, effector_name: effState.name,
+    type: 'apkws_launch',
+    target_id: targetId,
+    effector: effectorId,
+    rocket_id: rocketId,
+    effective: impactEffective,
+    effectiveness: Math.round(effectiveness * 100) / 100,
+    effector_type: effState.type,
+    effector_name: effState.name,
   });
   return msgs;
 }

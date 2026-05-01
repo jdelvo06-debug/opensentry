@@ -569,7 +569,8 @@ function EWRadiateOverlay({
   return null;
 }
 
-// Jackal intercept animation: triangle flying from effector to target
+// Guided munition intercept animation: triangle flying from effector to target
+// Used for both JACKAL interceptors and APKWS rockets
 function JackalInterceptOverlay({
   startXY,
   targetXY,
@@ -578,6 +579,8 @@ function JackalInterceptOverlay({
   duration,
   baseLat,
   baseLng,
+  color = "#f85149",
+  label = "JACKAL",
 }: {
   startXY: [number, number];
   targetXY: [number, number];
@@ -586,6 +589,8 @@ function JackalInterceptOverlay({
   duration: number;
   baseLat: number;
   baseLng: number;
+  color?: string;
+  label?: string;
 }) {
   const map = useMap();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -634,24 +639,29 @@ function JackalInterceptOverlay({
       const cx = sp.x + dx * t + perpX * arcOffset;
       const cy = sp.y + dy * t + perpY * arcOffset;
 
+      const trailColor = color === "#e8553a" ? "rgba(232, 85, 58, 0.65)" : "rgba(248, 81, 73, 0.6)";
+      const fadeTrailColor = (alpha: number) => color === "#e8553a"
+        ? `rgba(232, 85, 58, ${alpha})`
+        : `rgba(248, 81, 73, ${alpha})`;
+
       if (t < 1) {
-        // Draw trail (red dashed line from start to current)
-        ctx.setLineDash([6, 4]);
-        ctx.strokeStyle = "rgba(248, 81, 73, 0.6)";
-        ctx.lineWidth = 1.5;
+        // Draw trail from launcher to current rocket/interceptor position
+        ctx.setLineDash(label === "APKWS" ? [8, 3] : [6, 4]);
+        ctx.strokeStyle = trailColor;
+        ctx.lineWidth = label === "APKWS" ? 2 : 1.5;
         ctx.beginPath();
         ctx.moveTo(sp.x, sp.y);
         ctx.lineTo(cx, cy);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Draw interceptor triangle
+        // Draw guided munition triangle
         const angle = Math.atan2(tp.y - sp.y, tp.x - sp.x);
-        const sz = 8;
+        const sz = label === "APKWS" ? 6 : 8;
         ctx.save();
         ctx.translate(cx, cy);
         ctx.rotate(angle);
-        ctx.fillStyle = "#f85149";
+        ctx.fillStyle = color;
         ctx.beginPath();
         ctx.moveTo(sz, 0);
         ctx.lineTo(-sz * 0.6, -sz * 0.5);
@@ -659,9 +669,9 @@ function JackalInterceptOverlay({
         ctx.closePath();
         ctx.fill();
 
-        // Glow behind interceptor
-        ctx.shadowColor = "#f85149";
-        ctx.shadowBlur = 8;
+        // Glow behind munition
+        ctx.shadowColor = color;
+        ctx.shadowBlur = label === "APKWS" ? 10 : 8;
         ctx.fill();
         ctx.restore();
       } else {
@@ -699,12 +709,12 @@ function JackalInterceptOverlay({
               ctx.fill();
             }
           } else {
-            // Failed: small flash at target then interceptor self-destructs
+            // Failed: small flash at target then interceptor/rocket self-destructs
             const flashRadius = 12 * (1 - explosionT);
             const opacity = 1 - explosionT;
             ctx.beginPath();
             ctx.arc(tp.x, tp.y, flashRadius, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(248, 81, 73, ${opacity * 0.5})`;
+            ctx.fillStyle = fadeTrailColor(opacity * 0.5);
             ctx.fill();
 
             // Small sparks
@@ -714,7 +724,7 @@ function JackalInterceptOverlay({
                 const sd = 8 + explosionT * 15;
                 ctx.beginPath();
                 ctx.arc(tp.x + Math.cos(sa) * sd, tp.y + Math.sin(sa) * sd, 2, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(248, 81, 73, ${(1 - explosionT * 2) * 0.8})`;
+                ctx.fillStyle = fadeTrailColor((1 - explosionT * 2) * 0.8);
                 ctx.fill();
               }
             }
@@ -722,8 +732,8 @@ function JackalInterceptOverlay({
         }
 
         // Still draw trail during explosion
-        ctx.setLineDash([6, 4]);
-        ctx.strokeStyle = `rgba(248, 81, 73, ${Math.max(0, 0.4 - explosionT * 0.4)})`;
+        ctx.setLineDash(label === "APKWS" ? [8, 3] : [6, 4]);
+        ctx.strokeStyle = fadeTrailColor(Math.max(0, 0.4 - explosionT * 0.4));
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(sp.x, sp.y);
@@ -1787,19 +1797,24 @@ export default function TacticalMap({
           });
         })()}
 
-        {/* JACKAL intercept animations */}
-        {activeIntercepts.map((intercept) => (
-          <JackalInterceptOverlay
-            key={intercept.id}
-            startXY={[intercept.startX, intercept.startY]}
-            targetXY={[intercept.targetX, intercept.targetY]}
-            effective={intercept.effective}
-            startTime={intercept.startTime}
-            duration={intercept.duration}
-            baseLat={baseLat}
-            baseLng={baseLng}
-          />
-        ))}
+        {/* Guided munition intercept animations: JACKAL and APKWS */}
+        {activeIntercepts.map((intercept) => {
+          const isApkws = intercept.id.startsWith("apkws-");
+          return (
+            <JackalInterceptOverlay
+              key={intercept.id}
+              startXY={[intercept.startX, intercept.startY]}
+              targetXY={[intercept.targetX, intercept.targetY]}
+              effective={intercept.effective}
+              startTime={intercept.startTime}
+              duration={intercept.duration}
+              baseLat={baseLat}
+              baseLng={baseLng}
+              color={isApkws ? "#e8553a" : "#f85149"}
+              label={isApkws ? "APKWS" : "JACKAL"}
+            />
+          );
+        })}
 
         {/* Directed Energy beam animations */}
         {activeDEBeams.map((beam) => (

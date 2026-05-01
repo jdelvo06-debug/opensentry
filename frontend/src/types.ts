@@ -174,6 +174,17 @@ export interface BaseBreachMsg {
   message: string;
 }
 
+export interface ApkwsLaunchMsg {
+  type: "apkws_launch";
+  target_id: string;
+  effector: string;
+  rocket_id: string;
+  effective: boolean;
+  effectiveness: number;
+  effector_type?: string;
+  effector_name?: string;
+}
+
 export interface EngagementResultMsg {
   type: "engagement_result";
   target_id: string;
@@ -207,6 +218,7 @@ export type ServerMessage =
   | StateMsg
   | EventMsg
   | BaseBreachMsg
+  | ApkwsLaunchMsg
   | EngagementResultMsg
   | DebriefMsg
   | TutorialMsg

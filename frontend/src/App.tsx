@@ -493,6 +493,42 @@ export default function App() {
         break;
       }
 
+      case "apkws_launch": {
+        setEvents((prev) => [
+          ...prev,
+          {
+            timestamp: 0,
+            message: `APKWS: ${msg.rocket_id.toUpperCase()} ROCKET AWAY → ${msg.target_id.toUpperCase()} (${(msg.effectiveness * 100).toFixed(0)}%)`,
+          },
+        ]);
+
+        const effObj = effectorsRef.current.find((e) => e.id === msg.effector)
+          || effectorConfigsRef.current.find((e) => e.id === msg.effector);
+        const target = tracksRef.current.find((t) => t.id === msg.target_id);
+        if (effObj && target && effObj.x != null) {
+          const interceptId = `apkws-${Date.now()}`;
+          const duration = 4500; // guided rocket flight, not instant hit
+          const newIntercept: InterceptAnimationData = {
+            id: interceptId,
+            effectorId: msg.effector,
+            targetId: msg.target_id,
+            startX: effObj.x ?? 0,
+            startY: effObj.y ?? 0,
+            targetX: target.x,
+            targetY: target.y,
+            effective: msg.effective,
+            startTime: Date.now(),
+            duration,
+          };
+          setActiveIntercepts((prev) => [...prev, newIntercept]);
+          setTimeout(() => {
+            setActiveIntercepts((prev) => prev.filter((a) => a.id !== interceptId));
+          }, duration + 1500);
+        }
+        soundEngine.play("engagement_kinetic");
+        break;
+      }
+
       case "engagement_result": {
         setEvents((prev) => [
           ...prev,
@@ -554,31 +590,8 @@ export default function App() {
               setActiveIntercepts((prev) => prev.filter((a) => a.id !== interceptId));
             }, duration + 1500);
           }
-        } else if (effLower.includes("apkws")) {
-          // APKWS direct-fire rocket animation
-          const effObj = effectorsRef.current.find((e) => e.id === msg.effector)
-            || effectorConfigsRef.current.find((e) => e.id === msg.effector);
-          const target = tracksRef.current.find((t) => t.id === msg.target_id);
-          if (effObj && target && effObj.x != null) {
-            const interceptId = `apkws-${Date.now()}`;
-            const duration = 2000; // 2 seconds — faster direct fire
-            const newIntercept: InterceptAnimationData = {
-              id: interceptId,
-              effectorId: msg.effector,
-              targetId: msg.target_id,
-              startX: effObj.x ?? 0,
-              startY: effObj.y ?? 0,
-              targetX: target.x,
-              targetY: target.y,
-              effective: msg.effective,
-              startTime: Date.now(),
-              duration,
-            };
-            setActiveIntercepts((prev) => [...prev, newIntercept]);
-            setTimeout(() => {
-              setActiveIntercepts((prev) => prev.filter((a) => a.id !== interceptId));
-            }, duration + 1000);
-          }
+        } else if (effLower.includes("apkws") || effType === "apkws") {
+          // APKWS flight animation starts on apkws_launch; result message only updates feedback/scoring.
         }
 
         // Track active jammer state for EW radiate visual

@@ -109,10 +109,11 @@ Recommendation: only use as a temporary prototype.
 - Add `apkws` to backend/frontend type unions.
 - Add APKWS-specific effectiveness matrix row.
 - Add UI color/letter mapping.
-- Treat as direct kinetic kill with ammo decrement and recharge.
+- Spawn a guided APKWS rocket entity with short flight time, ammo decrement, and recharge.
+- Resolve hit/miss at impact using the APKWS effectiveness matrix.
 - Use existing range/FOV/LOS checks.
 
-Recommendation: best first real implementation.
+Recommendation: best first real implementation. Earlier direct-kill behavior was rejected as too arcade-like; APKWS should behave like a flown guided rocket, without JACKAL's long spin-up/re-engagement cycle.
 
 ### Option C — Laser Designator-Gated APKWS
 
@@ -130,10 +131,11 @@ Recommendation: best training model, but should follow after basic system works.
 - APKWS appears in BDA equipment selection as an effector.
 - Player can place launcher and see range/FOV footprint.
 - Engagement consumes one rocket per shot.
+- Engagement spawns a visible guided APKWS rocket flight before hit/miss resolution.
 - Launcher enters recharge between shots and depleted state at zero ammo.
 - Requires target in range/FOV and LOS when placement terrain is active.
 - Effectiveness differs from JACKAL, especially lower Pk vs micro/swarms.
-- Event log names APKWS clearly and reports out-of-range/depleted/LOS blocks.
+- Event log names APKWS clearly, reports rocket-away/terminal/hit/miss events, and reports out-of-range/depleted/LOS blocks.
 - Scoring records APKWS as the effector used.
 - No classified or sensitive operational data is introduced.
 
