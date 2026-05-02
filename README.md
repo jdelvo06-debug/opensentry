@@ -12,7 +12,7 @@
 
 > 🗺️ **Train at your actual base.** Drop a pin anywhere on Earth — real satellite imagery loads automatically. Set your perimeter, place your sensors, and run scenarios on terrain your operators actually defend. Not a demo airfield. Your location.
 
-**Version:** v1.13.0 | **Status:** Active development
+**Version:** v1.14.0 | **Status:** Active development
 
 ---
 
@@ -32,6 +32,7 @@ Scoring is based on operational doctrine: detection speed, identification accura
 | **Lone Wolf** | 8 min | Single drone threat; build the kill chain start to finish | Easy |
 | **Recon Probe** | 12 min | Multi-contact with trigger discipline — not everything gets engaged | Medium |
 | **Swarm Attack** | 15 min | High-volume multi-wave with Shahed-style autonomous threat | Hard |
+| **APKWS Test** | 5 min | Two hostiles — quad + Shahed; two APKWS launchers, JACKAL backup | Medium |
 | **THERMOPYLAE** | 20 min+ | Unscripted free-play — 3 escalating phases, endless mode, all threat types | Variable |
 | **Free Play** | Unlimited | Open sandbox — mixed threats, one of each system, no timer | Casual |
 
@@ -54,7 +55,8 @@ All systems are fictional but specification-accurate — no real program of reco
 | RF/PNT Jammer | Electronic warfare | 5 km | Disrupts RF command links + GPS/PNT nav; rechargeable |
 | DE-LASER-3km | Directed energy | 3 km | Precision single-target effector; LOS required; can pre-slew onto tracks before they enter range |
 | DE-HPM-3km | Directed energy | 3 km | Wide-area microwave pulse; no LOS required; best against clustered swarms |
-| JACKAL Pallet | Kinetic interceptor | 10 km | 4 interceptors; 10–15s spinup; requires Ku-Band FCS |
+| JACKAL Pallet | Kinetic interceptor | 10 km | 4 interceptors; 8–12s spinup; ~220 kts cruise, ~280 kts terminal; requires Ku-Band FCS |
+| APKWS Launcher | Guided rocket | 5 km | 6 rockets per launcher; 8s recycle; laser-guided; high Pk vs slow targets |
 | Shenobi | RF detect + Protocol Manipulation | 8km/6km | Downlink acquisition → uplink defeat (HOLD / LAND NOW / DEAFEN); library scoped to commercial quad + micro control links |
 
 ### Threats

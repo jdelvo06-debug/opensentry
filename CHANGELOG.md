@@ -8,6 +8,21 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.14.0] — 2026-05-02
+
+### Added
+- **APKWS Launcher effector** — Laser-guided rocket system (5 km range, 6 rockets per launcher, 8s recycle). Spawns a live APKWS rocket entity that flies from launcher to target with trail rendering on the tactical map.
+- **APKWS Test scenario** — Quick 5-minute exercise with two hostiles (commercial quad + Shahed), two APKWS launchers, and JACKAL backup. Medium difficulty.
+- **APKWS launchers added to Swarm Attack** — Two APKWS launchers (6 rockets each) added to the Swarm Attack effector loadout.
+
+### Changed
+- **JACKAL speed buffed to Coyote Block 2C specs** — Midcourse speed 150→220 kts, terminal sprint 200→280 kts, spinup time 10–15s→8–12s. Interceptor now flies realistic engagement timelines.
+- **APKWS commercial_quad effectiveness 55%→75%** — Laser-guided rockets have high Pk against slow, low-altitude quads.
+
+### Fixed
+- **Duplicate APKWS projectile visual** — Removed redundant `JackalInterceptOverlay` canvas animation for APKWS engagements. The live rocket track + trail already renders the projectile on the map; the canvas overlay was drawing a second projectile on top.
+- **Intercept vector line removed** — Straight dashed line from interceptor to target was visually indistinguishable from a second projectile. Only the actual flight trail renders now.
+
 ## [1.13.0] — 2026-04-23
 
 ### Added

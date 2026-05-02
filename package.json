@@ -1,6 +1,6 @@
 {
   "name": "opensentry",
-  "version": "1.12.0",
+  "version": "1.14.0",
   "description": "OpenSentry — Browser-based C-UAS training simulator",
   "type": "module",
   "scripts": {
