@@ -262,6 +262,24 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 - [x] Mission map pan/zoom no longer gets reset on every render tick
 - [x] Curated preset authoring now defaults to traced/source-derived aerodrome outlines via `geojson.io` / OSM geometry + `scripts/import_geojson_preset.py`
 
+### Completed (v1.13.0)
+- [x] **48 new curated base presets** — Bulk addition of major USAF/Space Force installations across all MAJCOMs (98 total + 3 generics)
+- [x] `preset-aliases.json` expanded with name/ICAO variants for all new presets
+- [x] Box boundary support — flight-line-centered approximate boxes for all bulk presets
+- [x] Base center coordinate accuracy pass — all 95 presets cross-referenced against ICAO/OurAirports
+- [x] GeoJSON preset importer (`scripts/import_geojson_preset.py`)
+- [x] Figure-8 polygon bug fixed (vertex winding order)
+- [x] Missing `max_sensors`/`max_effectors` fields added to 48 preset index entries
+
+### Completed (v1.14.0)
+- [x] **APKWS Launcher effector** — 5 km range, 6 rockets per launcher, 8s recycle, live rocket entity with trail rendering
+- [x] **APKWS Test scenario** — Two hostiles (commercial quad + Shahed), two APKWS launchers, JACKAL backup
+- [x] **APKWS launchers added to Swarm Attack** loadout
+- [x] **JACKAL speed buffed** — Midcourse 150→220 kts, terminal 200→280 kts, spinup 10–15s→8–12s (Coyote Block 2C realistic specs)
+- [x] **APKWS commercial_quad effectiveness** 55%→75%
+- [x] **Duplicate APKWS projectile visual fixed** — removed redundant canvas overlay animation (live track trail renders projectile)
+- [x] **Intercept vector line removed** — straight dashed line to target looked like a second projectile
+
 ### Pending / Future
 - [ ] **Preset polygon quality** — 20 curated presets in main, quality varies; many OSM-relation-sourced polygons still need manual tracing or shapely-based processing
 - [ ] **Langley AFB** — script-generated preset exists but polygon still mangled
