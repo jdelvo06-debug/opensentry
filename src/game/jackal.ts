@@ -151,7 +151,7 @@ export function updateJackal(
   // --- Launch phase ---
   if (phase === 'launch') {
     const newAlt = Math.min(300, jackal.altitude + 250 * tickRate);
-    const newSpeed = Math.min(150, jackal.speed + 50 * tickRate);
+    const newSpeed = Math.min(220, jackal.speed + 80 * tickRate);
     const speedKms = newSpeed * KTS_TO_KMS;
     const headingRad = (headingToTarget * Math.PI) / 180;
     const newX = jackal.x + Math.sin(headingRad) * speedKms * tickRate;
@@ -173,7 +173,7 @@ export function updateJackal(
 
   // --- Midcourse phase ---
   if (phase === 'midcourse') {
-    const speed = 150.0;
+    const speed = 220.0;  // Coyote Block 2+ cruise ~220 kts
     const speedKms = speed * KTS_TO_KMS;
     const headingRad = (headingToTarget * Math.PI) / 180;
     const newX = jackal.x + Math.sin(headingRad) * speedKms * tickRate;
@@ -210,7 +210,7 @@ export function updateJackal(
 
   // --- Terminal phase ---
   if (phase === 'terminal') {
-    const speed = 200.0;
+    const speed = 280.0;  // Coyote Block 2+ terminal sprint ~280 kts
     const speedKms = speed * KTS_TO_KMS;
     const headingRad = (headingToTarget * Math.PI) / 180;
     const newX = jackal.x + Math.sin(headingRad) * speedKms * tickRate;

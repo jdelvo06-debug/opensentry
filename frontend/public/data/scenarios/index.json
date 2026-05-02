@@ -34,5 +34,11 @@
     "name": "Free Play",
     "description": "Open sandbox with a steady mix of threat types. One of each system, no timer. Practice at your own pace.",
     "difficulty": "Casual"
+  },
+  {
+    "id": "apkws_test",
+    "name": "APKWS Test",
+    "description": "Quick APKWS targeting exercise. Two hostiles inbound \u2014 one quad and one Shahed. Two APKWS launchers, JACKAL backup. Fast and focused.",
+    "difficulty": "Medium"
   }
 ]

@@ -1823,10 +1823,10 @@ export default function TacticalMap({
           });
         })()}
 
-        {/* Guided munition intercept animations: JACKAL and APKWS */}
-        {activeIntercepts.map((intercept) => {
-          const isApkws = intercept.id.startsWith("apkws-");
-          return (
+        {/* JACKAL impact animations — APKWS removed since live track + trail renders directly on map */}
+        {activeIntercepts
+          .filter((intercept) => !intercept.id.startsWith("apkws-"))
+          .map((intercept) => (
             <JackalInterceptOverlay
               key={intercept.id}
               startXY={[intercept.startX, intercept.startY]}
@@ -1836,11 +1836,10 @@ export default function TacticalMap({
               duration={intercept.duration}
               baseLat={baseLat}
               baseLng={baseLng}
-              color={isApkws ? "#e8553a" : "#f85149"}
-              label={isApkws ? "APKWS" : "JACKAL"}
+              color="#f85149"
+              label="JACKAL"
             />
-          );
-        })}
+          ))}
 
         {/* Directed Energy beam animations */}
         {activeDEBeams.map((beam) => (
@@ -2091,10 +2090,6 @@ export default function TacticalMap({
           const isApkwsRocketIcon = track.drone_type === "apkws_rocket";
           const color = isInterceptor ? (isApkwsRocketIcon ? "#e8553a" : "#3fb950") : AFFILIATION_COLORS[track.affiliation];
 
-          // Find target track for intercept vector line
-          const interceptTarget = isInterceptor && !track.neutralized && track.interceptor_target
-            ? tracks.find((t) => t.id === track.interceptor_target)
-            : null;
 
           // Terminal phase blink for interceptors
           const blinkClass = isInterceptor && track.intercept_phase === "terminal"
@@ -2116,18 +2111,7 @@ export default function TacticalMap({
                 />
               )}
 
-              {/* Intercept vector line (JACKAL / APKWS to target) */}
-              {interceptTarget && (
-                <Polyline
-                  positions={[pos, trackPosition(interceptTarget)]}
-                  pathOptions={{
-                    color: isApkwsRocketIcon ? "#e8553a" : "#3fb950",
-                    weight: 1,
-                    opacity: 0.5,
-                    dashArray: "3,3",
-                  }}
-                />
-              )}
+              {/* Intercept vector line removed — only show actual flight trail */}
 
               {/* Projected path (dashed) — skip for interceptors */}
               {!isInterceptor && projectedEnd(track) && (

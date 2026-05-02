@@ -524,7 +524,7 @@ function _engageJackal(
   const dxTgt = d.x - effX;
   const dyTgt = d.y - effY;
   const headingTo = ((Math.atan2(dxTgt, dyTgt) * 180 / Math.PI) % 360 + 360) % 360;
-  const spinupDuration = _randUniform(10.0, 15.0);
+  const spinupDuration = _randUniform(8.0, 12.0);
 
   const jackalDrone: DroneState = {
     id: jackalId, drone_type: 'jackal',

@@ -1,0 +1,143 @@
+{
+  "id": "apkws_test",
+  "name": "APKWS Test",
+  "description": "Quick APKWS test. Two hostile drones inbound — one commercial quad and one Shahed. Two APKWS launchers and a JACKAL pallet for backup. Fast-paced, tight range. Test your kinetic targeting.",
+  "difficulty": "Medium",
+  "duration_seconds": 300,
+  "base_radius_km": 0.1,
+  "roe_briefing": [
+    "Quick APKWS targeting exercise.",
+    "Two hostiles inbound — a commercial quad (close, fast) and a Shahed (far, high).",
+    "APKWS launchers are your primary effectors — 6 rockets each, 8-second recycle.",
+    "JACKAL available as backup (single interceptor, spinup required).",
+    "Weapons free on all HOSTILE contacts."
+  ],
+  "engagement_zones": {
+    "detection_range_km": 5.0,
+    "identification_range_km": 1.5,
+    "engagement_range_km": 2.5
+  },
+  "sensors": [
+    {
+      "id": "radar",
+      "name": "L-Band Multi-Mission Radar",
+      "type": "radar",
+      "range_km": 10.0,
+      "status": "active"
+    },
+    {
+      "id": "kufcs",
+      "name": "Ku-Band Fire Control Radar",
+      "type": "radar",
+      "range_km": 16.0,
+      "status": "active"
+    },
+    {
+      "id": "eoir",
+      "name": "EO/IR Camera",
+      "type": "eoir",
+      "range_km": 8.0,
+      "status": "active",
+      "fov_deg": 15
+    }
+  ],
+  "effectors": [
+    {
+      "id": "apkws-1",
+      "name": "APKWS Launcher-1",
+      "type": "apkws",
+      "range_km": 5.0,
+      "status": "ready",
+      "recharge_seconds": 8,
+      "single_use": false,
+      "ammo_count": 6,
+      "ammo_remaining": 6
+    },
+    {
+      "id": "apkws-2",
+      "name": "APKWS Launcher-2",
+      "type": "apkws",
+      "range_km": 5.0,
+      "status": "ready",
+      "recharge_seconds": 8,
+      "single_use": false,
+      "ammo_count": 6,
+      "ammo_remaining": 6
+    },
+    {
+      "id": "jackal",
+      "name": "JACKAL Pallet",
+      "type": "kinetic",
+      "range_km": 5.0,
+      "status": "ready",
+      "recharge_seconds": 0,
+      "single_use": true,
+      "ammo_count": 2,
+      "ammo_remaining": 2
+    }
+  ],
+  "correct_classification": "commercial_quad",
+  "correct_affiliation": "hostile",
+  "optimal_effectors": [
+    "apkws",
+    "kinetic"
+  ],
+  "acceptable_effectors": [
+    "apkws",
+    "kinetic",
+    "electronic",
+    "de_laser",
+    "de_hpm"
+  ],
+  "roe_violations": [],
+  "drones": [
+    {
+      "id": "bogey-1",
+      "drone_type": "commercial_quad",
+      "start_x": 3.5,
+      "start_y": 2.0,
+      "altitude": 120,
+      "speed": 40,
+      "heading": 225,
+      "behavior": "direct_approach",
+      "rf_emitting": true,
+      "spawn_delay": 0,
+      "correct_classification": "commercial_quad",
+      "correct_affiliation": "hostile",
+      "optimal_effectors": ["apkws", "kinetic"],
+      "acceptable_effectors": ["apkws", "kinetic", "electronic", "de_laser", "de_hpm"],
+      "roe_violations": [],
+      "should_engage": true,
+      "spawn_variance": {
+        "x_range": [-1.0, 1.0],
+        "y_range": [-1.0, 1.0],
+        "heading_variance": 20,
+        "speed_variance": 5
+      }
+    },
+    {
+      "id": "bogey-2",
+      "drone_type": "shahed",
+      "start_x": -8.0,
+      "start_y": -3.0,
+      "altitude": 400,
+      "speed": 120,
+      "heading": 55,
+      "behavior": "direct_approach",
+      "rf_emitting": false,
+      "spawn_delay": 15,
+      "correct_classification": "shahed",
+      "correct_affiliation": "hostile",
+      "optimal_effectors": ["apkws", "kinetic"],
+      "acceptable_effectors": ["apkws", "kinetic"],
+      "roe_violations": [],
+      "should_engage": true,
+      "spawn_variance": {
+        "x_range": [-1.5, 1.5],
+        "y_range": [-1.5, 1.5],
+        "heading_variance": 15,
+        "speed_variance": 10
+      }
+    }
+  ]
+}
