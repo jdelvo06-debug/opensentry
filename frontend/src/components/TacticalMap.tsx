@@ -1108,9 +1108,11 @@ function TrackDataBlock({
   offsetIndex: number;
 }) {
   const isInterceptor = !!track.is_interceptor;
+  const isApkwsRocket = track.drone_type === "apkws_rocket";
+  const interceptorColor = isApkwsRocket ? "#e8553a" : "#3fb950";
   const color = track.neutralized
     ? "#484f58"
-    : isInterceptor ? "#3fb950" : AFFILIATION_COLORS[track.affiliation];
+    : isInterceptor ? interceptorColor : AFFILIATION_COLORS[track.affiliation];
   const phaseChar = isInterceptor ? "I" : (DTID_PHASE_LETTER[track.dtid_phase] || "?");
   const range = Math.sqrt(track.x * track.x + track.y * track.y);
   const bearing = ((Math.atan2(track.x, track.y) * 180) / Math.PI + 360) % 360;
@@ -1154,10 +1156,10 @@ function TrackDataBlock({
     identified: track.affiliation === "hostile" ? "#f85149" : track.affiliation === "friendly" ? "#3fb950" : "#d29922",
     defeated: "#484f58",
   };
-  const phaseColor = isInterceptor ? "#3fb950" : (phaseColors[track.dtid_phase] || "#8b949e");
+  const phaseColor = isInterceptor ? (isApkwsRocket ? "#e8553a" : "#3fb950") : (phaseColors[track.dtid_phase] || "#8b949e");
 
   // Affiliation border color for left accent
-  const borderAccent = track.neutralized ? "#484f58" : (isInterceptor ? "#3fb950" : AFFILIATION_COLORS[track.affiliation]);
+  const borderAccent = track.neutralized ? "#484f58" : (isInterceptor ? (isApkwsRocket ? "#e8553a" : "#3fb950") : AFFILIATION_COLORS[track.affiliation]);
 
   // ETA to protected area
   const eta = track.eta_protected;
@@ -2086,7 +2088,8 @@ export default function TacticalMap({
           const pos = trackPosition(track);
           const isSelected = track.id === selectedTrackId;
           const isInterceptor = !!track.is_interceptor;
-          const color = isInterceptor ? "#3fb950" : AFFILIATION_COLORS[track.affiliation];
+          const isApkwsRocketIcon = track.drone_type === "apkws_rocket";
+          const color = isInterceptor ? (isApkwsRocketIcon ? "#e8553a" : "#3fb950") : AFFILIATION_COLORS[track.affiliation];
 
           // Find target track for intercept vector line
           const interceptTarget = isInterceptor && !track.neutralized && track.interceptor_target
