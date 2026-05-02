@@ -2116,12 +2116,12 @@ export default function TacticalMap({
                 />
               )}
 
-              {/* Intercept vector line (JACKAL to target) */}
+              {/* Intercept vector line (JACKAL / APKWS to target) */}
               {interceptTarget && (
                 <Polyline
                   positions={[pos, trackPosition(interceptTarget)]}
                   pathOptions={{
-                    color: "#3fb950",
+                    color: isApkwsRocketIcon ? "#e8553a" : "#3fb950",
                     weight: 1,
                     opacity: 0.5,
                     dashArray: "3,3",
