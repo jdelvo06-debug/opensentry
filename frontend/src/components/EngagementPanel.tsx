@@ -349,7 +349,7 @@ export default function EngagementPanel({
                 <button
                   className={(tutorialStep === 4) ? "tutorial-pulse" : undefined}
                   key={`${cls.value}-${cls.affiliation}-${idx}`}
-                  onClick={() => onIdentify(track.id, cls.value, "unknown")}
+                  onClick={() => onIdentify(track.id, cls.value, cls.affiliation === "hostile" ? "unknown" : cls.affiliation)}
                   style={{
                     width: "100%",
                     padding: "7px 12px",

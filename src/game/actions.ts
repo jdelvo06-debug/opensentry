@@ -115,12 +115,22 @@ export function handleIdentify(
     if (d.id === targetId && (d.dtid_phase === 'tracked' || d.dtid_phase === 'identified')) {
       _recordFirstClick(gs, targetId, elapsed);
       const isReset = classification === 'unknown';
+      const correctClass = d.drone_type === 'weather_balloon' ? 'weather_balloon' : d.drone_type;
+      const isCorrectFalseAlarm =
+        !isReset
+        && (d.drone_type === 'bird' || d.drone_type === 'weather_balloon')
+        && classification === correctClass
+        && affiliationStr === 'neutral';
+      const tacticalNote = isCorrectFalseAlarm
+        ? `${classification === 'weather_balloon' ? 'BALLOON' : 'BIRD'} — FALSE ALARM`
+        : null;
       gs.drones[j] = {
         ...d,
         dtid_phase: isReset ? 'tracked' : 'identified',
         classification: isReset ? null : ((classification as DroneState['classification']) ?? null),
         classified: !isReset,
         affiliation: isReset ? 'unknown' as DroneState['affiliation'] : affiliationStr as DroneState['affiliation'],
+        tactical_note: isReset ? null : tacticalNote,
       };
       gs.identify_times.set(targetId, elapsed);
       gs.classification_given.set(targetId, classification ?? '');
@@ -150,10 +160,18 @@ export function handleDeclareAffiliation(
   for (let j = 0; j < gs.drones.length; j++) {
     const d = gs.drones[j];
     if (d.id === targetId && (d.dtid_phase === 'identified' || d.dtid_phase === 'tracked')) {
+      const isCorrectFalseAlarm =
+        (d.drone_type === 'bird' || d.drone_type === 'weather_balloon')
+        && d.classification === d.drone_type
+        && affiliation === 'neutral';
+      const tacticalNote = isCorrectFalseAlarm
+        ? `${d.drone_type === 'weather_balloon' ? 'BALLOON' : 'BIRD'} — FALSE ALARM`
+        : null;
       gs.drones[j] = {
         ...d,
         affiliation: affiliation as DroneState['affiliation'],
         dtid_phase: 'identified',
+        tactical_note: tacticalNote,
       };
       gs.affiliation_given.set(targetId, affiliation);
       const label = gs.drones[j].display_label || targetId;

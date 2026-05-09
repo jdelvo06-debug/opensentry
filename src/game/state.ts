@@ -82,6 +82,7 @@ export interface DroneState {
   shenobi_cm_time_remaining: number;
   shenobi_cm_initial_duration: number;
   display_label: string;
+  tactical_note?: string | null;
   last_jam_attempt_ts?: number;
   jam_cooldown: number;
   remove_at: number | null;
@@ -128,6 +129,7 @@ export function createDefaultDrone(overrides: Partial<DroneState> & Pick<DroneSt
     shenobi_cm_time_remaining: 0,
     shenobi_cm_initial_duration: 0,
     display_label: '',
+    tactical_note: null,
     jam_cooldown: 0,
     remove_at: null,
     launcher_id: undefined,

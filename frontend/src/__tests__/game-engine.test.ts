@@ -14,9 +14,9 @@ import type { BaseTemplate, DroneState, EffectorConfig, EffectorRuntimeState, Pl
 import { createDroneFromConfig, moveDrone, distanceToBase } from '@opensentry/game/drone';
 import { pickJamBehavior, updatePntJammedDrone } from '@opensentry/game/jamming';
 import { KTS_TO_KMS, calculateDirectedEnergySlewSeconds } from '@opensentry/game/helpers';
-import { handleEngage } from '@opensentry/game/actions';
+import { handleDeclareAffiliation, handleEngage, handleIdentify } from '@opensentry/game/actions';
 import { calculateScore } from '@opensentry/game/scoring';
-import { buildStateMsg, tickDrones, tickPassiveJamming, tickPendingDirectedEnergyEngagements } from '@opensentry/game/loop';
+import { buildStateMsg, initGameState, tickDrones, tickPassiveJamming, tickPendingDirectedEnergyEngagements } from '@opensentry/game/loop';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -1255,12 +1255,79 @@ describe('targeted realism rules', () => {
     expect(gs.drones[0].shenobi_cm_active).toBeNull();
   });
 
-  it('keeps shahed doctrine kinetic-only in swarm attack', () => {
+  it('keeps shahed doctrine kinetic-primary with APKWS acceptable in swarm attack', () => {
     const scenario = readScenarioFixture('swarm_attack');
     const shahed = scenario.drones.find((drone) => drone.drone_type === 'shahed');
 
     expect(shahed).toBeDefined();
     expect(shahed?.optimal_effectors).toEqual(['kinetic']);
-    expect(shahed?.acceptable_effectors).toEqual(['kinetic']);
+    expect(shahed?.acceptable_effectors).toEqual(['kinetic', 'apkws']);
+  });
+});
+
+describe('FarmStreet/Robo scoring feedback', () => {
+  it('does not always make the Swarm Attack bird the sixth track', () => {
+    const scenario = readScenarioFixture('swarm_attack');
+    const randomSpy = vi.spyOn(Math, 'random').mockImplementation(() => 0.1);
+
+    try {
+      const gs = initGameState(scenario, [], [], null, null, []);
+      const bird = gs.drones.find((drone) => drone.drone_type === 'bird');
+
+      expect(bird).toBeDefined();
+      expect(bird?.display_label).toBe('TRN-003');
+      expect(bird?.id).toBe('bogey-6');
+      expect(bird?.x).not.toBe(1.5);
+      expect(bird?.y).not.toBe(4.5);
+    } finally {
+      randomSpy.mockRestore();
+    }
+  });
+
+  it('adds a C2 false-alarm note after correctly identifying a bird', () => {
+    const gs = createGameState(makeScenario(), [], [], null, null, []);
+    gs.drones.push(makeDrone({
+      id: 'bogey-bird',
+      drone_type: 'bird',
+      display_label: 'TRN-006',
+      dtid_phase: 'tracked',
+      detected: true,
+      classification: null,
+      classified: false,
+      affiliation: 'unknown',
+      rf_emitting: false,
+    }));
+
+    handleIdentify(gs, 'bogey-bird', 'bird', 'neutral', 42);
+    const state = buildStateMsg(gs, 42, 100);
+    const birdTrack = state.tracks.find((track: { id: string }) => track.id === 'bogey-bird');
+
+    expect(gs.drones[0].tactical_note).toBe('BIRD — FALSE ALARM');
+    expect(birdTrack?.tactical_note).toBe('BIRD — FALSE ALARM');
+  });
+
+  it('adds the false-alarm note when neutral affiliation is declared after classifying a bird', () => {
+    const gs = createGameState(makeScenario(), [], [], null, null, []);
+    gs.drones.push(makeDrone({
+      id: 'bogey-bird',
+      drone_type: 'bird',
+      display_label: 'TRN-006',
+      dtid_phase: 'tracked',
+      detected: true,
+      classification: null,
+      classified: false,
+      affiliation: 'unknown',
+      rf_emitting: false,
+    }));
+
+    handleIdentify(gs, 'bogey-bird', 'bird', 'unknown', 42);
+    expect(gs.drones[0].tactical_note).toBeNull();
+
+    handleDeclareAffiliation(gs, 'bogey-bird', 'neutral', 45);
+    const state = buildStateMsg(gs, 45, 100);
+    const birdTrack = state.tracks.find((track: { id: string }) => track.id === 'bogey-bird');
+
+    expect(gs.drones[0].tactical_note).toBe('BIRD — FALSE ALARM');
+    expect(birdTrack?.tactical_note).toBe('BIRD — FALSE ALARM');
   });
 });

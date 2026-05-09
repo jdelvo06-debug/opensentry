@@ -79,6 +79,39 @@ function applySpawnVariance(cfg: DroneStartConfig): DroneStartConfig {
   };
 }
 
+function randomizeSwarmAttackFalseAlarms(scenario: ScenarioConfig): DroneStartConfig[] {
+  const drones = scenario.drones.map(cfg => ({ ...cfg }));
+  if (scenario.id !== 'swarm_attack') return drones;
+
+  const falseAlarmTypes = new Set(['bird', 'weather_balloon']);
+  const falseAlarmIdxs = drones
+    .map((cfg, idx) => ({ cfg, idx }))
+    .filter(({ cfg }) => falseAlarmTypes.has(cfg.drone_type) && cfg.correct_affiliation === 'neutral' && cfg.should_engage === false)
+    .map(({ idx }) => idx);
+  if (falseAlarmIdxs.length === 0) return drones;
+
+  const spawnDelays = Array.from(new Set(drones.map(cfg => cfg.spawn_delay))).sort((a, b) => a - b);
+  for (const idx of falseAlarmIdxs) {
+    const angleRad = uniformRandom(0, 2 * Math.PI);
+    const radiusKm = uniformRandom(3.5, 5.8);
+    const x = Math.cos(angleRad) * radiusKm;
+    const y = Math.sin(angleRad) * radiusKm;
+    const crossingOffset = uniformRandom(-35, 35);
+    const headingToBase = ((Math.atan2(-x, -y) * 180 / Math.PI) % 360 + 360) % 360;
+
+    drones[idx] = {
+      ...drones[idx],
+      start_x: Math.round(x * 100) / 100,
+      start_y: Math.round(y * 100) / 100,
+      heading: Math.round((headingToBase + crossingOffset + 360) % 360),
+      spawn_delay: spawnDelays[Math.floor(Math.random() * spawnDelays.length)] ?? drones[idx].spawn_delay,
+      waypoints: null,
+      behavior: 'erratic_wander',
+    };
+  }
+  return drones;
+}
+
 // ---------------------------------------------------------------------------
 // Init helpers
 // ---------------------------------------------------------------------------
@@ -93,8 +126,8 @@ export function initGameState(
 ): GameState {
   const gs = createGameState(scenario, sensorConfigs, effectorConfigsList, placementConfig, baseTemplate, terrain);
 
-  // Spawn initial drones (apply spawn variance for randomization)
-  for (const droneCfg of scenario.drones) {
+  // Spawn initial drones (apply scenario-specific replayability and spawn variance)
+  for (const droneCfg of randomizeSwarmAttackFalseAlarms(scenario)) {
     const cfg = applySpawnVariance(droneCfg);
     gs.drone_configs.set(cfg.id, cfg);
     if (cfg.spawn_delay <= 0) {
@@ -915,6 +948,7 @@ export function buildStateMsg(gs: GameState, elapsed: number, timeRemaining: num
         shenobi_cm_state: drone.shenobi_cm_state,
         drone_type: drone.drone_type,
         spinup_remaining: Math.round(drone.spinup_remaining * 10) / 10,
+        tactical_note: drone.tactical_note ?? null,
       });
     }
   }

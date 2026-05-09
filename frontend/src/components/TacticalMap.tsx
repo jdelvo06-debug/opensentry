@@ -1173,6 +1173,9 @@ function TrackDataBlock({
     : isPntJammed
       ? `<div style="color:#e3b341;font-size:8px;font-weight:600;">PNT DEGRADED</div>`
       : "";
+  const tacticalNote = track.tactical_note && !track.neutralized
+    ? `<div style="color:#3fb950;font-size:8px;font-weight:700;letter-spacing:0.4px;">${track.tactical_note}</div>`
+    : "";
 
   const html = `<div style="
     pointer-events:none;
@@ -1206,7 +1209,7 @@ function TrackDataBlock({
     <div style="color:#8b949e;font-size:8px;opacity:${isSelected ? 0.9 : 0.65};">
       BRG:${Math.round(bearing)}\u00B0 | RNG:${range.toFixed(1)}km
     </div>
-    ${etaLabel}${effectDetail}` : isShenobiCM ? `
+    ${tacticalNote}${etaLabel}${effectDetail}` : isShenobiCM ? `
     <div style="color:#a371f7;font-size:8px;font-weight:600;">Shenobi ${(track.shenobi_cm_active || "").replace("shenobi_", "").replace("_", " ").toUpperCase()} [${track.shenobi_cm_state || "?"}]</div>` : isJammed ? `
     <div style="color:#58a6ff;font-size:8px;font-weight:600;">EW EFFECT ACTIVE</div>` : `
     <div style="color:#484f58;font-size:8px;">NEUTRALIZED</div>`}

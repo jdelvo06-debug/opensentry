@@ -39,6 +39,7 @@ import {
 import { useGameEngine as useWebSocket } from "./hooks/useGameEngine";
 import "./app.css";
 import { soundEngine } from "./audio/SoundEngine";
+import { requiresAtcDeconfliction } from "./utils/atc";
 import type {
   BaseTemplate,
   CatalogCombined,
@@ -1118,7 +1119,7 @@ export default function App() {
   const confirmTrack = (trackId: string) => {
     // BLUE-ON-BLUE check for confirm on UNKNOWN track without ATC
     const ct = tracks.find((t) => t.id === trackId);
-    if (ct?.iff_status === "unknown" && !ct.atc_response_received) {
+    if (ct && requiresAtcDeconfliction(ct)) {
       const label = ct.display_label ?? trackId;
       blueOnBlueRef.current++;
       roeViolationsRef.current.push(`Confirmed UNKNOWN track ${label.toUpperCase()} without ATC clearance`);
@@ -1156,7 +1157,7 @@ export default function App() {
   const engage = (trackId: string, effectorId: string, shenobiCm?: string) => {
     // BLUE-ON-BLUE check: engaging UNKNOWN track without ATC response
     const engTrack = tracks.find((t) => t.id === trackId);
-    if (engTrack?.iff_status === "unknown" && !engTrack.atc_response_received) {
+    if (engTrack && requiresAtcDeconfliction(engTrack)) {
       const label = engTrack.display_label ?? trackId;
       blueOnBlueRef.current++;
       roeViolationsRef.current.push(`Engaged UNKNOWN track ${label.toUpperCase()} without ATC clearance`);

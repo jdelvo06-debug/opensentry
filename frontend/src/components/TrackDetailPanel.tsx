@@ -167,6 +167,25 @@ export default function TrackDetailPanel({ track }: Props) {
         )}
       </div>
 
+      {/* C2 false-alarm note */}
+      {track.tactical_note && (
+        <div
+          style={{
+            marginBottom: 4,
+            padding: "2px 6px",
+            background: "rgba(63, 185, 80, 0.12)",
+            border: "1px solid rgba(63, 185, 80, 0.35)",
+            borderRadius: 3,
+            fontSize: 9,
+            color: "#3fb950",
+            letterSpacing: 0.8,
+            fontWeight: 700,
+          }}
+        >
+          {track.tactical_note}
+        </div>
+      )}
+
       {/* Jammed indicator */}
       {track.jammed && (
         <div
