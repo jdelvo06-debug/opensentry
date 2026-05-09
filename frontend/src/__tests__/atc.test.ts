@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { requiresAtcDeconfliction } from '../utils/atc';
+import { requiresAtcDeconfliction, shouldOfferAtc, trackHasAtcRequirement } from '../utils/atc';
 import type { TrackData } from '../types';
 
 function makeTrack(overrides: Partial<TrackData> = {}): TrackData {
@@ -20,22 +20,37 @@ function makeTrack(overrides: Partial<TrackData> = {}): TrackData {
     sensors_detecting: [],
     neutralized: false,
     iff_status: 'unknown',
+    atc_called: false,
     atc_response_received: false,
+    atc_required: false,
     ...overrides,
   };
 }
 
 describe('ATC deconfliction gating', () => {
+  it('does not require ATC for normal C-UAS tracks just because IFF is unknown', () => {
+    expect(requiresAtcDeconfliction(makeTrack({ drone_type: 'commercial_quad' }))).toBe(false);
+    expect(requiresAtcDeconfliction(makeTrack({ drone_type: 'fixed_wing' }))).toBe(false);
+    expect(requiresAtcDeconfliction(makeTrack({ drone_type: 'shahed' }))).toBe(false);
+  });
+
   it('does not require ATC before confirming known false alarms', () => {
     expect(requiresAtcDeconfliction(makeTrack({ drone_type: 'bird' }))).toBe(false);
     expect(requiresAtcDeconfliction(makeTrack({ drone_type: 'weather_balloon' }))).toBe(false);
   });
 
-  it('still requires ATC for non-exempt unknown tracks', () => {
-    expect(requiresAtcDeconfliction(makeTrack({ drone_type: 'fixed_wing' }))).toBe(true);
+  it('requires ATC only for tracks marked or inferred as controlled-airspace deconfliction contacts', () => {
+    expect(requiresAtcDeconfliction(makeTrack({ atc_required: true, drone_type: 'passenger_aircraft' }))).toBe(true);
+    expect(requiresAtcDeconfliction(makeTrack({ atc_required: undefined, drone_type: 'military_jet' }))).toBe(true);
+    expect(trackHasAtcRequirement(makeTrack({ atc_required: true, drone_type: 'commercial_quad' }))).toBe(true);
   });
 
   it('does not require ATC once a response has been received', () => {
-    expect(requiresAtcDeconfliction(makeTrack({ atc_response_received: true }))).toBe(false);
+    expect(requiresAtcDeconfliction(makeTrack({ atc_required: true, atc_response_received: true }))).toBe(false);
+  });
+
+  it('does not offer repeat ATC calls once already called', () => {
+    expect(shouldOfferAtc(makeTrack({ atc_required: true }))).toBe(true);
+    expect(shouldOfferAtc(makeTrack({ atc_required: true, atc_called: true }))).toBe(false);
   });
 });

@@ -2500,6 +2500,7 @@ export default function TacticalMap({
             onDeclareAffiliation={onDeclareAffiliation}
             iffStatus={wheelTrack.iff_status ?? (wheelTrack.affiliation?.toLowerCase() === "unknown" ? "unknown" : undefined)}
             atcCalled={wheelTrack.atc_called}
+            atcRequired={wheelTrack.atc_required}
             classification={wheelTrack.classification ?? undefined}
             onClose={() => setWheelState(null)}
           />

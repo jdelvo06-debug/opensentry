@@ -83,6 +83,8 @@ export interface DroneState {
   shenobi_cm_initial_duration: number;
   display_label: string;
   tactical_note?: string | null;
+  /** True when this track requires tower/ATC deconfliction before engagement. */
+  atc_required: boolean;
   last_jam_attempt_ts?: number;
   jam_cooldown: number;
   remove_at: number | null;
@@ -130,6 +132,7 @@ export function createDefaultDrone(overrides: Partial<DroneState> & Pick<DroneSt
     shenobi_cm_initial_duration: 0,
     display_label: '',
     tactical_note: null,
+    atc_required: false,
     jam_cooldown: 0,
     remove_at: null,
     launcher_id: undefined,
@@ -220,6 +223,8 @@ export interface DroneStartConfig {
   optimal_effectors?: string[] | null;
   acceptable_effectors?: string[] | null;
   roe_violations?: string[] | null;
+  /** Optional scenario override for whether tower/ATC deconfliction is required before engagement. */
+  atc_required?: boolean | null;
   should_engage: boolean;
   spawn_variance?: SpawnVariance | null;
 }

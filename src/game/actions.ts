@@ -564,6 +564,8 @@ function _engageJackal(
     shenobi_cm_time_remaining: 0, shenobi_cm_initial_duration: 0,
     neutralized: false,
     display_label: jackalId,
+    tactical_note: null,
+    atc_required: false,
     jam_cooldown: 0,
     remove_at: null,
   };
@@ -619,6 +621,8 @@ function _engageApkws(
     shenobi_cm_active: null, shenobi_cm_state: null,
     shenobi_cm_time_remaining: 0, shenobi_cm_initial_duration: 0,
     display_label: rocketId,
+    tactical_note: null,
+    atc_required: false,
     jam_cooldown: 0, remove_at: null,
     launcher_id: effectorId,
     impact_effective: impactEffective,

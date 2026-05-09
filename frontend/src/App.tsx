@@ -39,7 +39,7 @@ import {
 import { useGameEngine as useWebSocket } from "./hooks/useGameEngine";
 import "./app.css";
 import { soundEngine } from "./audio/SoundEngine";
-import { requiresAtcDeconfliction } from "./utils/atc";
+import { requiresAtcDeconfliction, trackHasAtcRequirement } from "./utils/atc";
 import type {
   BaseTemplate,
   CatalogCombined,
@@ -362,11 +362,12 @@ export default function App() {
                 affiliation: t.affiliation,
               };
             }
-            // Assign iff_status to new tracks: 15% chance of UNKNOWN, or if affiliation is already unknown/UNKNOWN
+            // Assign IFF state to new tracks. ATC is only mission-critical for tracks
+            // explicitly marked as requiring deconfliction; UAS/false alarms should not
+            // create a random tower-call tax just because their affiliation starts unknown.
             if (!atcIffAssignedRef.current.has(t.id)) {
               atcIffAssignedRef.current.add(t.id);
-              const isUnknownAffil = t.affiliation?.toLowerCase() === "unknown";
-              if (!t.is_ambient && !t.is_interceptor && (isUnknownAffil || Math.random() < 0.15)) {
+              if (trackHasAtcRequirement(t)) {
                 return {
                   ...t,
                   affiliation: "unknown" as const,
@@ -377,6 +378,14 @@ export default function App() {
                   atc_response_text: "",
                 };
               }
+              return {
+                ...t,
+                iff_status: t.affiliation?.toLowerCase() === "unknown" ? "unknown" as const : "confirmed" as const,
+                atc_called: false,
+                atc_response_pending: false,
+                atc_response_received: false,
+                atc_response_text: "",
+              };
             }
             return t;
           });
@@ -1117,17 +1126,8 @@ export default function App() {
   };
 
   const confirmTrack = (trackId: string) => {
-    // BLUE-ON-BLUE check for confirm on UNKNOWN track without ATC
-    const ct = tracks.find((t) => t.id === trackId);
-    if (ct && requiresAtcDeconfliction(ct)) {
-      const label = ct.display_label ?? trackId;
-      blueOnBlueRef.current++;
-      roeViolationsRef.current.push(`Confirmed UNKNOWN track ${label.toUpperCase()} without ATC clearance`);
-      setEvents((prev) => [
-        ...prev,
-        { timestamp: elapsed, message: `BLUE-ON-BLUE: Action on unverified track ${label.toUpperCase()} — ATC not consulted! Score penalty applied.` },
-      ]);
-    }
+    // Confirming is internal track correlation, not an ATC/tower deconfliction decision.
+    // ATC penalties apply only when engaging a track that requires deconfliction.
     send({ type: "action", action: "confirm_track", target_id: trackId });
   };
 
@@ -1265,8 +1265,10 @@ export default function App() {
     const delay = 6000 + Math.random() * 2000;
     const track = tracksRef.current.find((t) => t.id === trackId);
     const cls = (track?.classification ?? "").toLowerCase();
-    // Only manned aircraft can be ATC-authorized; UAS/drone/quad/rotor are never in the system
-    const canBeAuthorized = cls.includes("fixed-wing") || cls.includes("manned") || cls.includes("helicopter") || cls.includes("aircraft");
+    const droneType = (track?.drone_type ?? "").toLowerCase();
+    // Only manned aviation can be ATC-authorized; UAS/drone/quad/rotor are never in the system.
+    const canBeAuthorized = cls.includes("passenger_aircraft") || cls.includes("military_jet")
+      || droneType.includes("passenger_aircraft") || droneType.includes("military_jet");
     const isAuthorized = canBeAuthorized && Math.random() < 0.5;
     const responseText = isAuthorized
       ? `Track ${label.toUpperCase()} — confirmed authorized aircraft`

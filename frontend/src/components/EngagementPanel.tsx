@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { EffectorStatus, TrackData } from "../types";
+import { shouldOfferAtc } from "../utils/atc";
 import { getTrackEffectState } from "../utils/trackEffects";
 
 interface AtcMessage {
@@ -249,8 +250,8 @@ export default function EngagementPanel({
           >
             SLEW CAMERA
           </button>
-          {/* CALL ATC button — only for UNKNOWN IFF tracks */}
-          {(track.iff_status === "unknown" || track.affiliation?.toLowerCase() === "unknown") && track.classification !== "bird" && track.classification !== "weather_balloon" && onCallATC && (
+          {/* CALL ATC button — only for tracks that actually require tower deconfliction */}
+          {shouldOfferAtc(track) && onCallATC && (
             <button
               onClick={() => !track.atc_called && onCallATC(track.id)}
               disabled={!!track.atc_called}

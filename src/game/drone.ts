@@ -13,6 +13,13 @@ import { KTS_TO_KMS } from './helpers';
 // ---------------------------------------------------------------------------
 
 const MAX_TRAIL_LENGTH = 20;
+const ATC_DECONFLICTION_TYPES = new Set(['passenger_aircraft', 'military_jet']);
+
+function inferAtcRequired(config: DroneStartConfig): boolean {
+  if (typeof config.atc_required === 'boolean') return config.atc_required;
+  const classification = config.correct_classification ?? config.drone_type;
+  return ATC_DECONFLICTION_TYPES.has(config.drone_type) || ATC_DECONFLICTION_TYPES.has(classification);
+}
 
 // ---------------------------------------------------------------------------
 // Evasive state type (stored per-GameState, not module-level)
@@ -99,6 +106,7 @@ export function createDroneFromConfig(config: DroneStartConfig): DroneState {
     shenobi_cm_time_remaining: 0,
     shenobi_cm_initial_duration: 0,
     display_label: '',
+    atc_required: inferAtcRequired(config),
     jam_cooldown: 0,
     remove_at: null,
     launcher_id: undefined,

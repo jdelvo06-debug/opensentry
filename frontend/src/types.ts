@@ -48,6 +48,8 @@ export interface TrackData {
   atc_response_pending?: boolean;
   atc_response_received?: boolean;
   atc_response_text?: string;
+  /** True when tower/ATC deconfliction is required before engagement. */
+  atc_required?: boolean;
 }
 
 export interface SensorStatus {

@@ -949,6 +949,7 @@ export function buildStateMsg(gs: GameState, elapsed: number, timeRemaining: num
         drone_type: drone.drone_type,
         spinup_remaining: Math.round(drone.spinup_remaining * 10) / 10,
         tactical_note: drone.tactical_note ?? null,
+        atc_required: drone.atc_required,
       });
     }
   }

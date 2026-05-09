@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { EventEntry, TrackData } from "../types";
+import { shouldOfferAtc } from "../utils/atc";
 
 interface Props {
   events: EventEntry[];
@@ -83,8 +84,8 @@ function HookCard({ track, onUnhook, onCallATC, onTagFriendly }: { track: TrackD
         <Field label="TYPE" value={track.drone_type ?? "---"} />
         <Field label="RF" value={track.frequency_band ?? "---"} />
       </div>
-      {/* ATC buttons for UNKNOWN tracks */}
-      {track.iff_status === "unknown" && track.classification !== "bird" && track.classification !== "weather_balloon" && (
+      {/* ATC button for tracks that actually require tower deconfliction */}
+      {shouldOfferAtc(track) && (
         <div style={{ display: "flex", gap: 4, marginTop: 2 }}>
           <button
             onClick={() => onCallATC?.(track.id)}

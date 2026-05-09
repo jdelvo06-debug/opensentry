@@ -292,7 +292,55 @@ describe('createDroneFromConfig', () => {
     expect(drone.altitude).toBe(300);
     expect(drone.neutralized).toBe(false);
     expect(drone.dtid_phase).toBe('detected');
+    expect(drone.atc_required).toBe(false);
     expect(drone.trail).toEqual([[5, 3]]);
+  });
+
+  it('infers ATC deconfliction only for manned aviation unless overridden', () => {
+    const airliner = createDroneFromConfig({
+      id: 'civil-1',
+      drone_type: 'passenger_aircraft',
+      start_x: 5,
+      start_y: 3,
+      altitude: 15000,
+      speed: 450,
+      heading: 90,
+      behavior: 'waypoint_path',
+      rf_emitting: true,
+      spawn_delay: 0,
+      should_engage: false,
+    });
+    const uas = createDroneFromConfig({
+      id: 'uas-1',
+      drone_type: 'fixed_wing',
+      start_x: 5,
+      start_y: 3,
+      altitude: 300,
+      speed: 50,
+      heading: 90,
+      behavior: 'direct_approach',
+      rf_emitting: true,
+      spawn_delay: 0,
+      should_engage: true,
+    });
+    const override = createDroneFromConfig({
+      id: 'override-1',
+      drone_type: 'commercial_quad',
+      start_x: 5,
+      start_y: 3,
+      altitude: 300,
+      speed: 50,
+      heading: 90,
+      behavior: 'direct_approach',
+      rf_emitting: true,
+      spawn_delay: 0,
+      atc_required: true,
+      should_engage: true,
+    });
+
+    expect(airliner.atc_required).toBe(true);
+    expect(uas.atc_required).toBe(false);
+    expect(override.atc_required).toBe(true);
   });
 });
 
