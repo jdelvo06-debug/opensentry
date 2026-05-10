@@ -280,6 +280,11 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 - [x] **Duplicate APKWS projectile visual fixed** — removed redundant canvas overlay animation (live track trail renders projectile)
 - [x] **Intercept vector line removed** — straight dashed line to target looked like a second projectile
 
+### Completed (Unreleased)
+- [x] **False-alarm scoring workflow fixed** — Bird and weather balloon tracks can be correctly identified/tagged as neutral false alarms without unnecessary ATC coordination or Blue-on-Blue penalties
+- [x] **Track-specific ATC deconfliction scoring** — ATC calls and penalties now apply only to controlled-airspace deconfliction contacts instead of every UNKNOWN-IFF C-UAS track
+- [x] **Swarm Attack false-alarm replayability** — false-alarm timing, position, heading, and wandering behavior are randomized to avoid memorized responses
+
 ### Pending / Future
 - [ ] **Preset polygon quality** — 20 curated presets in main, quality varies; many OSM-relation-sourced polygons still need manual tracing or shapely-based processing
 - [ ] **Langley AFB** — script-generated preset exists but polygon still mangled

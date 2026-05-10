@@ -8,6 +8,11 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- **False-alarm scoring workflow** — Bird and weather balloon tracks can now be correctly identified/tagged as neutral false alarms without forcing unnecessary ATC coordination or Blue-on-Blue penalties.
+- **Track-specific ATC deconfliction scoring** — ATC calls and penalties now apply only to tracks marked/inferred as controlled-airspace deconfliction contacts, so normal C-UAS tracks no longer create random tower-call tax just because IFF starts UNKNOWN.
+- **Swarm Attack false-alarm replayability** — False-alarm spawns are randomized across timing, position, heading, and wandering behavior to keep the scenario from training memorized responses.
+
 ## [1.14.0] — 2026-05-02
 
 ### Added
