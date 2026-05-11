@@ -1,4 +1,4 @@
-# AGENTS.md — OpenSentry Project Guide (Updated 2026-04-21)
+# AGENTS.md — OpenSentry Project Guide (Updated 2026-05-10)
 
 ## What Is This?
 OpenSentry is a **free, browser-based C-UAS training simulator** designed to teach military operators the **DTID kill chain** (Detect → Track → Identify → Defeat). It's built to emulate real-world C-UAS command and control systems. No clearance required — purely training.
@@ -38,7 +38,7 @@ frontend/                   ← React app (the game UI)
     types.ts                ← TypeScript interfaces for all ServerMessage types
     __tests__/              ← vitest unit tests for game engine
   public/data/              ← Static JSON data (served on GitHub Pages)
-    scenarios/              ← lone_wolf.json, swarm_attack.json, recon_probe.json, tutorial.json, thermopylae.json, free_play.json + index.json
+    scenarios/              ← lone_wolf.json, swarm_attack.json, recon_probe.json, tutorial.json, thermopylae.json, free_play.json, apkws_test.json, maul_test.json + index.json
     bases/                  ← generic templates + curated presets + preset-aliases.json
     equipment/catalog.json  ← All equipment definitions
 
@@ -52,6 +52,8 @@ src/game/                   ← TypeScript game engine (ported from Python)
   jamming.ts                ← RF + PNT jamming, resistance tables, drift tick
   shenobi.ts                ← Shenobi CM state machine (pending→1/2→2/2)
   jackal.ts                 ← JACKAL lifecycle (spinup→launch→midcourse→terminal)
+  maul.ts                   ← MAUL interceptor lifecycle (spinup→launch→midcourse→terminal→ram)
+  apkws.ts                  ← APKWS rocket lifecycle (launch→midcourse→terminal→impact)
   detection.ts              ← Multi-sensor detection with FOV, LOS, noise
   waves.ts                  ← Wave generation + ambient traffic spawning
   scoring.ts                ← DTID scoring engine + placement scoring
@@ -77,10 +79,14 @@ backend/                    ← Python/FastAPI reference implementation (DO NOT 
 | Ku-Band Fire Control Radar | `kufcs` | Sensor | 16km | Yes | Required for JACKAL guidance |
 | EO/IR Camera | `eoir_camera` | Sensor | 8km | Yes | 15° FOV, thermal + daylight |
 | RF/PNT Jammer | `rf_jammer` | Effector | 5km | Yes | RF energy blocked by terrain |
-| JACKAL Pallet | `jackal_pallet` | Effector | 10km | No | 4 interceptors, guided flight path |
+| JACKAL Pallet | `jackal_pallet` | Effector | 10km | No | 4 interceptors, Ku-band FCS guided |
+| MAUL Coffin Launcher | `maul_launcher` | Effector | 4km | No | 4 autonomous ramming interceptors, no FCS needed |
+| APKWS Launcher | `apkws_launcher` | Effector | 5km | Yes | 7 laser-guided rockets, requires designation |
+| DE-LASER-3km | `de_laser_3k` | Effector | 3km | Yes | Precision, single-target, requires slew |
+| DE-HPM-3km | `de_hpm_3k` | Effector | 3km | No | Area-effect, anti-swarm, requires slew |
 | Shenobi | `shenobi` | Combined | 8km/6km | Yes | RF detect + protocol manipulation |
 
-**LOS = Line of Sight.** Systems with LOS=Yes get terrain-aware viewshed visualization in Base Defense Architect. Only JACKAL (kinetic interceptor with guided flight) operates without LOS.
+**LOS = Line of Sight.** Systems with LOS=Yes get terrain-aware viewshed visualization in Base Defense Architect. MAUL and JACKAL (kinetic interceptors) operate without LOS.
 
 ---
 
@@ -102,17 +108,28 @@ Two independent jamming layers:
 
 DroneState fields added for PNT: `pnt_jammed`, `pnt_drift_magnitude`, `pnt_jammed_time_remaining`
 
+## Ambient Traffic Behavior
+
+Birds and balloons are ambient objects handled exclusively by the ambient traffic system. They are not combat threats and never spawn through the combat pipeline.
+
+- **Birds:** spawn every 180-300s (max 4 active), fly cross-map on erratic_wander behavior with proper exit waypoints, exit the map or fly out of radar range. Never fly toward base center.
+- **Balloons:** spawn every 300-480s (max 2 active), drift_ascend in a random direction while climbing, eventually climb above detection range.
+- **Auto-classification:** when the operator IDENTIFY's a track as "bird" or "weather_balloon", the affiliation auto-resolves to NEUTRAL and a "C2: FALSE ALARM" tactical note appears. No separate affiliation declaration step is needed.
+
 ---
 
 ## Doctrine Loadouts (hardcoded in App.tsx `handleScenarioLaunch`)
 
 | Scenario | Sensors | Effectors | Note |
 |----------|---------|-----------|------|
-| Tutorial | L-Band + EO/IR | RF Jammer + Shenobi | Learn basics, no JACKAL |
-| Lone Wolf | L-Band + Ku-Band + EO/IR | RF Jammer + 2× JACKAL + Shenobi | Standard loadout |
-| Swarm Attack | L-Band + Ku-Band + 2× EO/IR | 2× RF Jammer + 2× JACKAL + 2× Shenobi | High volume |
-| Recon Probe | L-Band + Ku-Band + 2× EO/IR | RF Jammer + 1× JACKAL + Shenobi | ROE discipline |
-| Free Play | L-Band + Ku-Band + EO/IR | RF Jammer + 1× JACKAL + Shenobi | One of each, casual sandbox |
+| Tutorial | L-Band + EO/IR | RF Jammer + Shenobi + DE-LASER | Learn basics, no JACKAL/MAUL |
+| Lone Wolf | L-Band + Ku-Band + EO/IR | RF Jammer + 2x JACKAL + DE-LASER + Shenobi | Standard loadout |
+| Swarm Attack | L-Band + Ku-Band + 2x EO/IR | 2x RF Jammer + 2x JACKAL + DE-LASER + DE-HPM + 2x APKWS + 2x Shenobi | High volume |
+| Recon Probe | L-Band + Ku-Band + 2x EO/IR | RF Jammer + 1x JACKAL + DE-LASER + DE-HPM + Shenobi | ROE discipline |
+| Free Play | L-Band + Ku-Band + EO/IR | RF Jammer + 1x JACKAL + MAUL + DE-LASER + Shenobi | One of each, casual sandbox |
+| Thermopylae | L-Band + Ku-Band + 2x EO/IR | 2x RF Jammer + 2x JACKAL + MAUL + DE-LASER + DE-HPM + 2x Shenobi | Heavy threat environment |
+| MAUL Test | L-Band + Ku-Band + EO/IR | 1x MAUL + 1x JACKAL | Quick MAUL exercise |
+| APKWS Test | L-Band + Ku-Band + EO/IR | 2x APKWS + 1x JACKAL | Quick APKWS exercise |
 
 ---
 
@@ -237,8 +254,8 @@ These are Codex subagent types, not custom-built tools. They run as part of the 
 - After-action replay (timeline scrub) — deferred
 
 ## Testing
-- **Frontend:** vitest with 62 unit tests across `frontend/src/__tests__/game-engine.test.ts`, `camera-panel.test.ts`, `tactical-map.test.ts`, `de-engagement.test.ts`, and `track-effects.test.ts`
-  - Coverage: detection math (radar/RF/EO-IR/acoustic), FOV, terrain LOS, confidence calculation, segment intersection, drone creation/movement/trail limits, jam behavior rolls, PNT drift, GameState factory, directed-energy LOS/HPM behavior, DE slew/pre-slew timing, DE dwell/resolution timing, EO/IR proximity camera selection, tactical-map selected-camera routing, realism-rule gating, and PNT-only effect-state visibility
+- **Frontend:** vitest with 78 unit tests across 6 test files
+  - Coverage: detection math, FOV, terrain LOS, confidence, JACKAL/APKWS/MAUL lifecycles, DE laser/HPM, EO/IR camera selection, tactical-map routing, realism gating, PNT-only effect-state, bird false-alarm auto-classification, ambient spawn behavior
   - Run: `cd frontend && npm test`
 - **Backend:** pytest with 147 tests across 6 modules in `backend/tests/`
   - Coverage: security, detection, drone, models, scoring, and NEXUS/Shenobi eligibility
@@ -293,7 +310,18 @@ These are Codex subagent types, not custom-built tools. They run as part of the 
 - **Infrastructure overlays removed** — protected-asset / terrain marker clutter is hidden in planning and mission views
 - **Curated perimeter workflow updated** — current default is traced/source-derived aerodrome outlines; recent quality pass reworked Scott, Prince Sultan, Kunsan, Kadena, Nellis, RAF Lakenheath, and Al Udeid away from runway-bubble shapes
 - **GeoJSON importer shipped** — `scripts/import_geojson_preset.py` converts traced polygons into curated preset format
-- **62/62 frontend tests passing**
+- **78/78 frontend tests passing**
+
+## Shipped in v1.14.0 (2026-05-10)
+- **MAUL autonomous kinetic interceptor** — coffin-launched ramming quadcopter, 4km range, autonomous CV guidance (no Ku-band FCS), up to 3 re-engagement attempts, 0.90 Pk vs quads / 0.25 Pk vs Shahed
+- **MAUL Test scenario** — dedicated 3-threat exercise (quad + micro + Shahed)
+- **MAUL added to Free Play and Thermopylae doctrine loadouts**
+- **MAUL camera silhouette** — armored body, blunt nose cone, heavy stubby arms
+- **Altitude tracking** — MAUL, JACKAL, and APKWS now climb/descend toward target altitude during pursuit
+- **Bird/balloon consistency** — removed from all combat spawn pools; ambient system handles everything identically across all scenarios
+- **Bird/balloon auto-classification** — identifying as bird/balloon auto-resolves to NEUTRAL with false-alarm note
+- **16 new MAUL tests** — lifecycle, re-engagement, ammo depletion, duplicate prevention, target loss, Shahed Pk, Ku-FC independence
+- **78/78 tests passing**
 
 ## WIP (on `wip/preset-generation-script` branch)
 - `scripts/generate-preset.py` — deterministic OSM-based preset generator (experimental only; not the default preset-authoring workflow)
