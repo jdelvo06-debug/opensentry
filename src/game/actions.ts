@@ -119,8 +119,9 @@ export function handleIdentify(
       const isCorrectFalseAlarm =
         !isReset
         && (d.drone_type === 'bird' || d.drone_type === 'weather_balloon')
-        && classification === correctClass
-        && affiliationStr === 'neutral';
+        && classification === correctClass;
+      // Birds and balloons auto-resolve to NEUTRAL — no separate affiliation step needed
+      const effectiveAffiliation = isCorrectFalseAlarm ? 'neutral' : (affiliationStr as DroneState['affiliation']);
       const tacticalNote = isCorrectFalseAlarm
         ? `${classification === 'weather_balloon' ? 'BALLOON' : 'BIRD'} — FALSE ALARM`
         : null;
@@ -129,7 +130,7 @@ export function handleIdentify(
         dtid_phase: isReset ? 'tracked' : 'identified',
         classification: isReset ? null : ((classification as DroneState['classification']) ?? null),
         classified: !isReset,
-        affiliation: isReset ? 'unknown' as DroneState['affiliation'] : affiliationStr as DroneState['affiliation'],
+        affiliation: isReset ? 'unknown' as DroneState['affiliation'] : effectiveAffiliation,
         tactical_note: isReset ? null : tacticalNote,
       };
       gs.identify_times.set(targetId, elapsed);
@@ -277,7 +278,7 @@ export function handleEngage(
       }
     }
 
-    // JACKAL requires Ku-Band FCS
+    // JACKAL requires Ku-Band FCS; MAUL is autonomous and does not.
     if (effState.ammo_count !== null && effState.ammo_count !== undefined && effState.type === 'kinetic') {
       if (!checkKuFcsTracking(gs.sensor_configs, d)) {
         msgs.push(_event(elapsed, 'ENGAGEMENT: NO Ku-FC TRACK \u2014 CANNOT GUIDE INTERCEPTOR'));
@@ -294,7 +295,9 @@ export function handleEngage(
     const effectiveness = effectorEffectiveness(effState.type, d.drone_type);
 
     // Dispatch by explicit effector type to avoid ordering ambiguity
-    if (effState.type === 'kinetic') {
+    if (effState.type === 'maul') {
+      msgs.push(..._engageMaul(gs, d, effState, effectorId, targetId, effectiveness, elapsed));
+    } else if (effState.type === 'kinetic') {
       msgs.push(..._engageJackal(gs, d, effState, effectorId, targetId, elapsed));
     } else if (effState.type === 'apkws') {
       msgs.push(..._engageApkws(gs, d, effState, effectorId, targetId, effectiveness, elapsed));
@@ -644,6 +647,63 @@ function _engageApkws(
     effector_type: effState.type,
     effector_name: effState.name,
   });
+  return msgs;
+}
+
+function _engageMaul(
+  gs: GameState, d: DroneState, effState: EffectorRuntimeState,
+  effectorId: string, targetId: string, effectiveness: number, elapsed: number,
+): Record<string, unknown>[] {
+  const msgs: Record<string, unknown>[] = [];
+
+  // Prevent launching multiple MAUL interceptors at the same target
+  const existingMaul = gs.drones.find(
+    dd => dd.drone_type === 'maul' && !dd.neutralized && dd.interceptor_target === targetId && dd.intercept_phase !== 'self_destruct',
+  );
+  if (existingMaul) {
+    msgs.push(_event(elapsed, `MAUL: BLOCKED — ${(existingMaul.display_label || existingMaul.id).toUpperCase()} already engaging ${_label(gs, targetId).toUpperCase()}`));
+    return msgs;
+  }
+
+  const maulCount = gs.drones.filter(dd => dd.drone_type === 'maul').length;
+  const maulId = `MAUL-${String(maulCount + 1).padStart(2, '0')}`;
+  const effX = effState.x ?? 0;
+  const effY = effState.y ?? 0;
+  const dxTgt = d.x - effX;
+  const dyTgt = d.y - effY;
+  const headingTo = ((Math.atan2(dxTgt, dyTgt) * 180 / Math.PI) % 360 + 360) % 360;
+  const spinupDuration = _randUniform(5.0, 8.0);
+
+  const maulDrone: DroneState = {
+    id: maulId, drone_type: 'maul',
+    x: effX, y: effY, altitude: 5, speed: 0,
+    heading: headingTo, detected: true, classified: true,
+    classification: 'maul', neutralized: false, dtid_phase: 'identified', affiliation: 'friendly',
+    confidence: 1.0, is_interceptor: true,
+    interceptor_target: targetId, intercept_phase: 'spinup',
+    spinup_remaining: spinupDuration, effectiveness,
+    trail: [], sensors_detecting: [], rf_emitting: true,
+    coasting: false, coast_start_time: 0, last_known_heading: 0, last_known_speed: 0,
+    hold_fire: false, wave_number: 0, is_ambient: false,
+    jammed: false, jammed_behavior: null, jammed_time_remaining: 0,
+    pnt_jammed: false, pnt_drift_magnitude: 0, pnt_jammed_time_remaining: 0,
+    intercept_attempts: 0,
+    frequency_band: null, uplink_detected: false, downlink_detected: false,
+    shenobi_cm_active: null, shenobi_cm_state: null,
+    shenobi_cm_time_remaining: 0, shenobi_cm_initial_duration: 0,
+    display_label: maulId,
+    tactical_note: null,
+    atc_required: false,
+    jam_cooldown: 0, remove_at: null,
+    launcher_id: effectorId,
+  };
+
+  gs.drones.push(maulDrone);
+  gs.engage_times.set(targetId, elapsed);
+  gs.effector_used.set(targetId, effState.type);
+  gs.actions.push({ action: 'engage', target_id: targetId, effector: effectorId, timestamp: elapsed });
+
+  msgs.push(_event(elapsed, `MAUL: ${effState.name} COFFIN LAUNCH INITIATED — ${maulId} autonomous intercept (${Math.round(spinupDuration)}s)`));
   return msgs;
 }
 

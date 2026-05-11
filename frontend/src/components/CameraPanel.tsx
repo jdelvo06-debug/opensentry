@@ -985,6 +985,116 @@ function drawJackal(ctx: CanvasRenderingContext2D, s: number, time: number) {
   ctx.fill();
 }
 
+function drawMaul(ctx: CanvasRenderingContext2D, s: number, time: number) {
+  // Heavy autonomous ramming quadcopter — coffin-launched kinetic interceptor
+  // Larger than a commercial quad, armored central body, 4 heavy arms,
+  // no gimbal camera, blunt nose cone for kinetic impact.
+  const isThermal = (ctx.fillStyle as string).includes("230");
+
+  const bodyColor   = isThermal ? "rgba(255,235,175,0.95)" : "rgba(22,22,22,0.95)";
+  const armColor    = isThermal ? "rgba(235,215,135,0.85)" : "rgba(35,35,35,0.92)";
+  const rotorColor  = isThermal ? "rgba(255,200,100,0.45)" : "rgba(80,80,80,0.40)";
+
+  const wobbleY = Math.sin(time * 1.8) * 0.8 * s;
+  const wobbleRot = Math.sin(time * 1.2) * 0.02;
+  ctx.save();
+  ctx.translate(0, wobbleY);
+  ctx.rotate(wobbleRot);
+
+  // Body: armored rectangular housing with blunt nose (ramming nose cone)
+  const bodyW = 22 * s;
+  const bodyH = 28 * s;
+  const noseLen = 8 * s;
+
+  // --- Armored central body (nose-up convention: nose at -Y, tail at +Y) ---
+  ctx.fillStyle = bodyColor;
+  ctx.beginPath();
+  const br = 3 * s;
+  ctx.moveTo(-bodyW / 2 + br, bodyH / 2);
+  ctx.lineTo(bodyW / 2 - br, bodyH / 2);
+  ctx.quadraticCurveTo(bodyW / 2, bodyH / 2, bodyW / 2, bodyH / 2 - br);
+  ctx.lineTo(bodyW / 2, -bodyH / 2 + br + noseLen);
+  ctx.quadraticCurveTo(bodyW / 2, -bodyH / 2 + noseLen, bodyW / 2 - br, -bodyH / 2 + noseLen);
+  // Taper to blunt nose
+  ctx.lineTo(bodyW * 0.3, -bodyH / 2);
+  ctx.lineTo(-bodyW * 0.3, -bodyH / 2);
+  ctx.lineTo(-bodyW / 2 + br, -bodyH / 2 + noseLen);
+  ctx.quadraticCurveTo(-bodyW / 2, -bodyH / 2 + noseLen, -bodyW / 2, -bodyH / 2 + noseLen + br);
+  ctx.lineTo(-bodyW / 2, bodyH / 2 - br);
+  ctx.closePath();
+  ctx.fill();
+
+  // Body armor plate highlight
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.roundRect(-bodyW * 0.35, -bodyH / 2 + 2 * s, bodyW * 0.7, bodyH * 0.5, 2 * s);
+  ctx.fill();
+  ctx.restore();
+
+  // --- 4 heavy arms (stubby, thick — not delicate like a Phantom) ---
+  ctx.fillStyle = armColor;
+  ctx.strokeStyle = armColor;
+  ctx.lineWidth = Math.max(2, 3.5 * s);
+  const armLen = 20 * s;
+  const armAngle = Math.PI / 4 + 0.15;
+
+  const armOrigins = [
+    { ax: -armAngle, label: "FL" },
+    { ax: armAngle, label: "FR" },
+    { ax: Math.PI - armAngle, label: "RL" },
+    { ax: -(Math.PI - armAngle), label: "RR" },
+  ].map(a => ({
+    sx: Math.cos(a.ax) * bodyW * 0.4,
+    sy: Math.sin(a.ax) * (bodyH * 0.35 - noseLen * 0.15),
+    ex: Math.cos(a.ax) * armLen,
+    ey: Math.sin(a.ax) * armLen,
+  }));
+
+  armOrigins.forEach(arm => {
+    ctx.beginPath();
+    ctx.moveTo(arm.sx, arm.sy);
+    ctx.lineTo(arm.ex, arm.ey);
+    ctx.stroke();
+  });
+
+  // --- Motor hubs + rotors at arm tips ---
+  armOrigins.forEach((arm, i) => {
+    // Heavy motor housing
+    ctx.fillStyle = armColor;
+    ctx.beginPath();
+    ctx.arc(arm.ex, arm.ey, 4 * s, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Rotor disc (thick blur)
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = rotorColor;
+    ctx.beginPath();
+    ctx.arc(arm.ex, arm.ey, 10 * s, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 2-blade prop
+    const phase = time * 18 + i * (Math.PI / 2);
+    ctx.save();
+    ctx.globalAlpha = 0.65;
+    ctx.strokeStyle = rotorColor;
+    ctx.lineWidth = Math.max(1.5, 2.5 * s);
+    for (let b = 0; b < 2; b++) {
+      const angle = phase + b * Math.PI;
+      ctx.beginPath();
+      ctx.moveTo(arm.ex + Math.cos(angle) * 10 * s, arm.ey + Math.sin(angle) * 10 * s);
+      ctx.lineTo(arm.ex - Math.cos(angle) * 10 * s, arm.ey - Math.sin(angle) * 10 * s);
+      ctx.stroke();
+    }
+    ctx.restore();
+  });
+
+  ctx.restore();
+}
+
 function drawUnknownBlob(ctx: CanvasRenderingContext2D, s: number, time: number) {
   // Ambiguous heat smear — looks like a real unresolved thermal contact, not a placeholder
   const pulse = 1 + Math.sin(time * 2.1) * 0.06;
@@ -1169,6 +1279,10 @@ function drawSilhouette(
     case "jackal":
     case "interceptor":
       drawJackal(ctx, scale, time);
+      break;
+    case "maul":
+    case "maul_interceptor":
+      drawMaul(ctx, scale, time);
       break;
     default:
       drawUnknownBlob(ctx, scale, time);

@@ -120,14 +120,15 @@ export function updateApkws(
   // --- Launch phase (rapid climb + acceleration, ~1 sec) ---
   if (phase === 'launch') {
     // APKWS accelerates very fast — approximate Mach 2+ rocket flight in game scale.
-    const newAlt = Math.min(200, rocket.altitude + 400 * tickRate);  // Fast climb
+    const targetAlt = targetDrone.altitude;
+    const newAlt = Math.min(targetAlt, rocket.altitude + 400 * tickRate);  // Fast climb toward target
     const newSpeed = Math.min(1800, rocket.speed + 1800 * tickRate); // ~0.93 km/s cruise
     const speedKms = newSpeed * KTS_TO_KMS;
     const headingRad = (headingToTarget * Math.PI) / 180;
     const newX = rocket.x + Math.sin(headingRad) * speedKms * tickRate;
     const newY = rocket.y + Math.cos(headingRad) * speedKms * tickRate;
     const trail = appendTrail(rocket, newX, newY);
-    const nextPhase = newAlt >= 200 ? 'midcourse' : 'launch';
+    const nextPhase = newAlt >= targetAlt ? 'midcourse' : 'launch';
     rocket = {
       ...rocket,
       x: newX, y: newY,
@@ -149,6 +150,12 @@ export function updateApkws(
     const newY = rocket.y + Math.cos(headingRad) * speedKms * tickRate;
     const trail = appendTrail(rocket, newX, newY);
 
+    // Fine-tune altitude toward target
+    const targetAlt = targetDrone.altitude;
+    const altDiff = targetAlt - rocket.altitude;
+    const altStep = Math.sign(altDiff) * Math.min(Math.abs(altDiff), 120 * tickRate);
+    const newAlt = rocket.altitude + altStep;
+
     // Guidance callouts every ~2 sec
     if (Math.floor(elapsed * 10) % 20 === 0) {
       events.push({
@@ -169,6 +176,7 @@ export function updateApkws(
     rocket = {
       ...rocket,
       x: newX, y: newY,
+      altitude: newAlt,
       speed,
       heading: headingToTarget,
       trail,
@@ -185,9 +193,17 @@ export function updateApkws(
     const newX = rocket.x + Math.sin(headingRad) * speedKms * tickRate;
     const newY = rocket.y + Math.cos(headingRad) * speedKms * tickRate;
     const trail = appendTrail(rocket, newX, newY);
+
+    // Coarse altitude intercept — rocket homes in fast
+    const targetAlt = targetDrone.altitude;
+    const altDiff = targetAlt - rocket.altitude;
+    const altStep = Math.sign(altDiff) * Math.min(Math.abs(altDiff), 200 * tickRate);
+    const newAlt = rocket.altitude + altStep;
+
     rocket = {
       ...rocket,
       x: newX, y: newY,
+      altitude: newAlt,
       speed,
       heading: headingToTarget,
       trail,

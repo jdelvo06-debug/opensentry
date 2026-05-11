@@ -16,7 +16,7 @@
       "end_seconds": 300,
       "max_active": 2,
       "spawn_interval": 35,
-      "threat_types": ["commercial_quad", "commercial_quad", "micro", "bird"]
+      "threat_types": ["commercial_quad", "commercial_quad", "micro"]
     },
     {
       "name": "BUILDUP",
@@ -24,7 +24,7 @@
       "end_seconds": 720,
       "max_active": 5,
       "spawn_interval": 25,
-      "threat_types": ["commercial_quad", "commercial_quad", "micro", "fixed_wing", "improvised", "bird", "weather_balloon"]
+      "threat_types": ["commercial_quad", "commercial_quad", "micro", "fixed_wing", "improvised"]
     },
     {
       "name": "OVERWHELM",
@@ -32,7 +32,7 @@
       "end_seconds": 1200,
       "max_active": 10,
       "spawn_interval": 12,
-      "threat_types": ["commercial_quad", "commercial_quad", "micro", "fixed_wing", "improvised", "shahed", "shahed", "bird"]
+      "threat_types": ["commercial_quad", "commercial_quad", "micro", "fixed_wing", "improvised", "shahed", "shahed"]
     }
   ],
   "location": {

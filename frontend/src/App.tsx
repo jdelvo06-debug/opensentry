@@ -1493,6 +1493,7 @@ export default function App() {
       effectors: [
         { catalog_id: "rf_jammer", x: 0.0, y: 0.05, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: 0.15, y: 0.0, facing_deg: 0 },
+        { catalog_id: "maul_launcher", x: -0.15, y: 0.0, facing_deg: 180 },
         { catalog_id: "de_laser_3k", x: -0.18, y: -0.12, facing_deg: 30 },
       ],
       combined: [
@@ -1514,6 +1515,7 @@ export default function App() {
         { catalog_id: "rf_jammer", x: -0.2, y: -0.1, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: 0.15, y: 0.0, facing_deg: 0 },
         { catalog_id: "jackal_pallet", x: -0.15, y: 0.0, facing_deg: 180 },
+        { catalog_id: "maul_launcher", x: 0.0, y: 0.18, facing_deg: 0 },
         { catalog_id: "de_laser_3k", x: 0.22, y: -0.18, facing_deg: 315 },
         { catalog_id: "de_hpm_3k", x: -0.22, y: -0.18, facing_deg: 45 },
       ],

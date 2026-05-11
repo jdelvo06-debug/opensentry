@@ -10,12 +10,13 @@ export type Affiliation = 'unknown' | 'hostile' | 'friendly' | 'neutral';
 export type DroneType =
   | 'commercial_quad' | 'fixed_wing' | 'micro' | 'swarm'
   | 'bird' | 'passenger_aircraft' | 'military_jet'
-  | 'weather_balloon' | 'jackal' | 'apkws_rocket' | 'shahed' | 'improvised' | 'improvised_hardened';
+  | 'weather_balloon' | 'jackal' | 'apkws_rocket' | 'shahed' | 'improvised' | 'improvised_hardened'
+  | 'maul';
 
 export type ThreatClassification =
   | 'commercial_quad' | 'fixed_wing' | 'micro' | 'bird'
   | 'weather_balloon' | 'improvised' | 'passenger_aircraft'
-  | 'jackal' | 'apkws_rocket' | 'shahed' | 'military_jet';
+  | 'jackal' | 'apkws_rocket' | 'shahed' | 'military_jet' | 'maul';
 
 export type SensorType = 'radar' | 'rf' | 'eoir' | 'acoustic';
 export type EffectorType =
@@ -27,7 +28,8 @@ export type EffectorType =
   | 'de_laser'
   | 'de_hpm'
   | 'shenobi_pm'
-  | 'apkws';
+  | 'apkws'
+  | 'maul';
 export type EffectorStatus = 'ready' | 'slewing' | 'recharging' | 'offline' | 'depleted';
 export type NexusCMType = 'shenobi_hold' | 'shenobi_land_now' | 'shenobi_deafen';
 export type NexusCMState = 'pending' | '1/2' | '2/2';

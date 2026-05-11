@@ -109,6 +109,15 @@ const EFFECTIVENESS_MATRIX: Record<string, Record<string, number>> = {
     improvised_hardened: 0.75,
     shahed: 0.80,
   },
+  maul: {
+    commercial_quad: 0.90,
+    fixed_wing: 0.65,
+    micro: 0.85,
+    swarm: 0.70,
+    improvised: 0.75,
+    improvised_hardened: 0.65,
+    shahed: 0.25,
+  },
 };
 
 // ---------------------------------------------------------------------------

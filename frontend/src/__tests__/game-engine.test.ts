@@ -472,6 +472,237 @@ describe('createGameState', () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// MAUL autonomous kinetic interceptor
+// ---------------------------------------------------------------------------
+
+describe('MAUL engagements', () => {
+  it('launches without Ku-Band fire-control tracking', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'maul_1',
+      name: 'MAUL Coffin Launcher',
+      type: 'maul',
+      range_km: 4,
+      status: 'ready',
+      recharge_seconds: 0,
+      x: 0,
+      y: 0,
+      fov_deg: 360,
+      facing_deg: 0,
+      requires_los: false,
+      single_use: false,
+      ammo_count: 4,
+      ammo_remaining: 4,
+    }];
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
+    gs.effector_states.push({
+      ...effectors[0],
+      recharge_remaining: 0,
+    });
+    gs.drones.push(makeDrone({
+      id: 'bogey-1',
+      display_label: 'TRN-001',
+      x: 2.0,
+      y: 0,
+      drone_type: 'commercial_quad',
+      dtid_phase: 'identified',
+      classification: 'commercial_quad',
+      classified: true,
+      affiliation: 'hostile',
+    }));
+
+    const msgs = handleEngage(gs, 'bogey-1', 'maul_1', 10);
+
+    expect(msgs.some((msg) => String(msg.message ?? '').includes('NO Ku-FC TRACK'))).toBe(false);
+    expect(msgs.some((msg) => String(msg.message ?? '').includes('COFFIN LAUNCH INITIATED'))).toBe(true);
+    const interceptor = gs.drones.find((drone) => drone.drone_type === 'maul');
+    expect(interceptor).toBeDefined();
+    expect(interceptor?.is_interceptor).toBe(true);
+    expect(interceptor?.interceptor_target).toBe('bogey-1');
+    expect(interceptor?.intercept_phase).toBe('spinup');
+    expect(gs.effector_states[0].ammo_remaining).toBe(3);
+  });
+
+  it('blocks duplicate MAUL engagements on the same target', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'maul_1', name: 'MAUL Coffin Launcher', type: 'maul',
+      range_km: 4, status: 'ready', recharge_seconds: 0,
+      x: 0, y: 0, fov_deg: 360, facing_deg: 0, requires_los: false,
+      single_use: false, ammo_count: 4, ammo_remaining: 4,
+    }];
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
+    gs.effector_states.push({ ...effectors[0], recharge_remaining: 0 });
+    gs.drones.push(makeDrone({
+      id: 'bogey-1', display_label: 'TRN-001', x: 2.0, y: 0,
+      drone_type: 'commercial_quad', dtid_phase: 'identified',
+      classification: 'commercial_quad', classified: true, affiliation: 'hostile',
+    }));
+    // First launch
+    handleEngage(gs, 'bogey-1', 'maul_1', 10);
+    expect(gs.drones.filter(d => d.drone_type === 'maul')).toHaveLength(1);
+
+    // Second launch — blocked
+    const msgs = handleEngage(gs, 'bogey-1', 'maul_1', 10);
+    expect(msgs.some((msg) => String(msg.message ?? '').includes('BLOCKED'))).toBe(true);
+    expect(gs.drones.filter(d => d.drone_type === 'maul')).toHaveLength(1);
+  });
+
+  it('runs full lifecycle: spinup → launch → midcourse → terminal → ram kill', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'maul_1', name: 'MAUL Coffin Launcher', type: 'maul',
+      range_km: 4, status: 'ready', recharge_seconds: 0,
+      x: 0, y: 0, fov_deg: 360, facing_deg: 0, requires_los: false,
+      single_use: false, ammo_count: 4, ammo_remaining: 4,
+    }];
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
+    gs.effector_states.push({ ...effectors[0], recharge_remaining: 0 });
+    gs.drones.push(makeDrone({
+      id: 'bogey-1', display_label: 'TRN-001', x: 0.3, y: 0, heading: 180,
+      drone_type: 'commercial_quad', speed: 0, dtid_phase: 'identified',
+      classification: 'commercial_quad', classified: true, affiliation: 'hostile',
+    }));
+
+    vi.spyOn(Math, 'random').mockReturnValue(0.1); // spinup=5.3s, hit (0.1 < 0.90)
+    handleEngage(gs, 'bogey-1', 'maul_1', 10);
+    let elapsed = 10.0;
+
+    // spinup 5.3s + launch 0.4s + terminal 3.9s = ~9.6s ≈ 100 ticks. Do 150.
+    for (let i = 0; i < 150; i++) { tickDrones(gs, elapsed); elapsed += 0.1; }
+    const refetched = gs.drones.find(d => d.drone_type === 'maul')!;
+    expect(refetched.intercept_phase === 'self_destruct' || refetched.neutralized).toBe(true);
+    const target = gs.drones.find(d => d.id === 'bogey-1')!;
+    expect(target.neutralized).toBe(true);
+    vi.restoreAllMocks();
+  });
+
+  it('re-engages after a miss, up to 3 attempts then self-destructs', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'maul_1', name: 'MAUL Coffin Launcher', type: 'maul',
+      range_km: 4, status: 'ready', recharge_seconds: 0,
+      x: 0, y: 0, fov_deg: 360, facing_deg: 0, requires_los: false,
+      single_use: false, ammo_count: 4, ammo_remaining: 4,
+    }];
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
+    gs.effector_states.push({ ...effectors[0], recharge_remaining: 0 });
+    gs.drones.push(makeDrone({
+      id: 'bogey-1', display_label: 'TRN-001', x: 0.3, y: 0, heading: 180,
+      drone_type: 'commercial_quad', speed: 0, dtid_phase: 'identified',
+      classification: 'commercial_quad', classified: true, affiliation: 'hostile',
+    }));
+
+    vi.spyOn(Math, 'random').mockReturnValue(0.99); // spinup=7.97s, always miss
+    handleEngage(gs, 'bogey-1', 'maul_1', 10);
+    let elapsed = 10.0;
+
+    // Cycle 1: spinup 8s + launch 0.5s + terminal 3.9s → miss → midcourse, attempts=1
+    for (let i = 0; i < 130; i++) { tickDrones(gs, elapsed); elapsed += 0.1; }
+    let refetched = gs.drones.find(d => d.drone_type === 'maul')!;
+    expect(refetched.intercept_attempts).toBeGreaterThanOrEqual(1);
+
+    // Cycle 2: midcourse (immediate terminal since 0.3km) + terminal → miss → attempts=2
+    for (let i = 0; i < 60; i++) { tickDrones(gs, elapsed); elapsed += 0.1; }
+    refetched = gs.drones.find(d => d.drone_type === 'maul')!;
+    expect(refetched.intercept_attempts).toBeGreaterThanOrEqual(2);
+
+    // Cycle 3: terminal → miss → max → self_destruct
+    for (let i = 0; i < 80; i++) { tickDrones(gs, elapsed); elapsed += 0.1; }
+    refetched = gs.drones.find(d => d.drone_type === 'maul')!;
+    expect(refetched.intercept_attempts).toBe(3);
+    expect(refetched.intercept_phase).toBe('self_destruct');
+
+    const target = gs.drones.find(d => d.id === 'bogey-1')!;
+    expect(target.neutralized).toBe(false);
+    vi.restoreAllMocks();
+  });
+
+  it('self-destructs when target is neutralized by another effector during flight', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'maul_1', name: 'MAUL Coffin Launcher', type: 'maul',
+      range_km: 4, status: 'ready', recharge_seconds: 0,
+      x: 0, y: 0, fov_deg: 360, facing_deg: 0, requires_los: false,
+      single_use: false, ammo_count: 4, ammo_remaining: 4,
+    }];
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
+    gs.effector_states.push({ ...effectors[0], recharge_remaining: 0 });
+    gs.drones.push(makeDrone({
+      id: 'bogey-1', display_label: 'TRN-001', x: 2.0, y: 0, heading: 180,
+      drone_type: 'commercial_quad', speed: 30, dtid_phase: 'identified',
+      classification: 'commercial_quad', classified: true, affiliation: 'hostile',
+    }));
+
+    handleEngage(gs, 'bogey-1', 'maul_1', 10);
+
+    // Tick through spinup into midcourse
+    let elapsed = 10.0;
+    for (let i = 0; i < 100; i++) { tickDrones(gs, elapsed); elapsed += 0.1; }
+    const refetched = gs.drones.find(d => d.drone_type === 'maul')!;
+    expect(refetched.intercept_phase).toBe('midcourse');
+
+    // Target gets killed by another system
+    const targetIdx = gs.drones.findIndex(d => d.id === 'bogey-1');
+    gs.drones[targetIdx] = { ...gs.drones[targetIdx], neutralized: true };
+
+    // MAUL detects the lost target next tick
+    tickDrones(gs, elapsed);
+    const finalMaul = gs.drones.find(d => d.drone_type === 'maul')!;
+    expect(finalMaul.intercept_phase).toBe('self_destruct');
+  });
+
+  it('has poor effectiveness (0.25) against Shahed-class threats', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'maul_1', name: 'MAUL Coffin Launcher', type: 'maul',
+      range_km: 4, status: 'ready', recharge_seconds: 0,
+      x: 0, y: 0, fov_deg: 360, facing_deg: 0, requires_los: false,
+      single_use: false, ammo_count: 4, ammo_remaining: 4,
+    }];
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
+    gs.effector_states.push({ ...effectors[0], recharge_remaining: 0 });
+    gs.drones.push(makeDrone({
+      id: 'bogey-1', display_label: 'TRN-001', x: 2.0, y: 0, heading: 180,
+      drone_type: 'shahed', speed: 120, dtid_phase: 'identified',
+      classification: 'shahed', classified: true, affiliation: 'hostile',
+    }));
+
+    handleEngage(gs, 'bogey-1', 'maul_1', 10);
+
+    // Tick through to terminal, force misses
+    vi.spyOn(Math, 'random').mockReturnValue(0.99);
+    let elapsed = 10.0;
+    for (let i = 0; i < 500; i++) { tickDrones(gs, elapsed); elapsed += 0.1; }
+    const refetched = gs.drones.find(d => d.drone_type === 'maul')!;
+    expect(refetched.intercept_attempts).toBe(3);
+    expect(refetched.intercept_phase).toBe('self_destruct');
+    const target = gs.drones.find(d => d.id === 'bogey-1')!;
+    expect(target.neutralized).toBe(false);
+    vi.restoreAllMocks();
+  });
+
+  it('depletes ammo correctly across multiple launches', () => {
+    const effectors: EffectorConfig[] = [{
+      id: 'maul_1', name: 'MAUL Coffin Launcher', type: 'maul',
+      range_km: 4, status: 'ready', recharge_seconds: 0,
+      x: 0, y: 0, fov_deg: 360, facing_deg: 0, requires_los: false,
+      single_use: false, ammo_count: 4, ammo_remaining: 4,
+    }];
+    const gs = createGameState(makeScenario({ effectors }), [], effectors, null, null, []);
+    gs.effector_states.push({ ...effectors[0], recharge_remaining: 0 });
+
+    // Launch 4 interceptors at 4 different targets
+    for (let i = 1; i <= 4; i++) {
+      gs.drones.push(makeDrone({
+        id: `bogey-${i}`, display_label: `TRN-00${i}`, x: 2.0, y: i * 0.5,
+        drone_type: 'commercial_quad', dtid_phase: 'identified',
+        classification: 'commercial_quad', classified: true, affiliation: 'hostile',
+      }));
+      handleEngage(gs, `bogey-${i}`, 'maul_1', 10);
+    }
+
+    expect(gs.effector_states[0].ammo_remaining).toBe(0);
+    expect(gs.effector_states[0].status).toBe('depleted');
+    expect(gs.drones.filter(d => d.drone_type === 'maul')).toHaveLength(4);
+  });
+});
+
 describe('directed energy engagements', () => {
   it('ignores terrain LOS for DE-LASER in standard scenarios', () => {
     const effectors: EffectorConfig[] = [{

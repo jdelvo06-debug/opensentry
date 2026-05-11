@@ -38,6 +38,7 @@ import { updateShenobiDrone } from './shenobi.js';
 import { handleDirectedEnergyResolution } from './actions.js';
 import { updateJackal } from './jackal.js';
 import { updateApkws } from './apkws.js';
+import { updateMaul } from './maul.js';
 import { updateSensors, calculateConfidence } from './detection.js';
 import type { RfReading, SensorReading } from './detection.js';
 
@@ -409,9 +410,22 @@ export function tickFreePlaySpawns(gs: GameState, elapsed: number): Msg[] {
     spawn_delay: 0,
   };
 
-  // For balloons, add a waypoint
-  if (chosenType === 'balloon') {
-    cfg.waypoints = [[round2(startX + (Math.random() - 0.5)), round2(startY + (Math.random() - 0.5))]];
+  // Ambient types (birds, balloons) get proper cross-map exit waypoints
+  // so they fly across the airspace instead of toward the base.
+  if (chosenType === 'bird') {
+    const exitAngle = angle + Math.PI + (Math.random() - 0.5) * 1.2;
+    const exitDist = 8.0 + Math.random() * 3.0;
+    const exitX = exitDist * Math.cos(exitAngle);
+    const exitY = exitDist * Math.sin(exitAngle);
+    cfg.waypoints = [[round2(exitX), round2(exitY)]];
+    // Override heading to point toward exit
+    cfg.heading = ((Math.atan2(exitY - startY, exitX - startX) * 180) / Math.PI + 360) % 360;
+  } else if (chosenType === 'balloon') {
+    const driftAngle = angle + (Math.random() - 0.5) * 1.5;
+    const driftDist = dist + 2.0 + Math.random() * 3.0;
+    const driftX = driftDist * Math.cos(driftAngle);
+    const driftY = driftDist * Math.sin(driftAngle);
+    cfg.waypoints = [[round2(driftX), round2(driftY)]];
   }
 
   gs.drone_configs.set(cfg.id, cfg);
@@ -612,10 +626,22 @@ export function tickDrones(gs: GameState, elapsed: number): Msg[] {
       continue;
     }
 
-    // JACKAL interceptor or APKWS rocket
+    // JACKAL, APKWS, or MAUL interceptor
     if (drone.is_interceptor) {
       if (drone.drone_type === 'apkws_rocket') {
         const [updated, mutations, cevents, engResults] = updateApkws(drone, gs.drones, gs.tick_rate, elapsed);
+        gs.drones[i] = updated;
+        events.push(...cevents, ...engResults);
+        for (const mutated of mutations) {
+          for (let mi = 0; mi < gs.drones.length; mi++) {
+            if (gs.drones[mi].id === mutated.id) {
+              gs.drones[mi] = mutated;
+              break;
+            }
+          }
+        }
+      } else if (drone.drone_type === 'maul') {
+        const [updated, mutations, cevents, engResults] = updateMaul(drone, gs.drones, gs.tick_rate, elapsed);
         gs.drones[i] = updated;
         events.push(...cevents, ...engResults);
         for (const mutated of mutations) {

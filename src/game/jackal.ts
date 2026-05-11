@@ -150,14 +150,15 @@ export function updateJackal(
 
   // --- Launch phase ---
   if (phase === 'launch') {
-    const newAlt = Math.min(300, jackal.altitude + 250 * tickRate);
+    const targetAlt = targetDrone.altitude;
+    const newAlt = Math.min(targetAlt, jackal.altitude + 250 * tickRate);
     const newSpeed = Math.min(220, jackal.speed + 80 * tickRate);
     const speedKms = newSpeed * KTS_TO_KMS;
     const headingRad = (headingToTarget * Math.PI) / 180;
     const newX = jackal.x + Math.sin(headingRad) * speedKms * tickRate;
     const newY = jackal.y + Math.cos(headingRad) * speedKms * tickRate;
     const trail = appendTrail(jackal, newX, newY);
-    const nextPhase = newAlt >= 300 ? 'midcourse' : 'launch';
+    const nextPhase = newAlt >= targetAlt ? 'midcourse' : 'launch';
     jackal = {
       ...jackal,
       x: newX,
@@ -180,6 +181,12 @@ export function updateJackal(
     const newY = jackal.y + Math.cos(headingRad) * speedKms * tickRate;
     const trail = appendTrail(jackal, newX, newY);
 
+    // Climb/descend toward target altitude at 80 ft/s
+    const targetAlt = targetDrone.altitude;
+    const altDiff = targetAlt - jackal.altitude;
+    const altStep = Math.sign(altDiff) * Math.min(Math.abs(altDiff), 80 * tickRate);
+    const newAlt = jackal.altitude + altStep;
+
     if (Math.floor(elapsed * 10) % 20 === 0) {
       events.push({
         type: 'event',
@@ -200,6 +207,7 @@ export function updateJackal(
       ...jackal,
       x: newX,
       y: newY,
+      altitude: newAlt,
       speed,
       heading: headingToTarget,
       trail,
@@ -216,10 +224,18 @@ export function updateJackal(
     const newX = jackal.x + Math.sin(headingRad) * speedKms * tickRate;
     const newY = jackal.y + Math.cos(headingRad) * speedKms * tickRate;
     const trail = appendTrail(jackal, newX, newY);
+
+    // Fine-tune altitude toward target
+    const targetAlt = targetDrone.altitude;
+    const altDiff = targetAlt - jackal.altitude;
+    const altStep = Math.sign(altDiff) * Math.min(Math.abs(altDiff), 100 * tickRate);
+    const newAlt = jackal.altitude + altStep;
+
     jackal = {
       ...jackal,
       x: newX,
       y: newY,
+      altitude: newAlt,
       speed,
       heading: headingToTarget,
       trail,

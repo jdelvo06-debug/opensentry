@@ -1,0 +1,156 @@
+{
+  "id": "maul_test",
+  "name": "MAUL Test",
+  "description": "Quick MAUL coffin-launcher exercise. Three hostiles inbound — a close-range commercial quad, a medium-range micro, and a distant Shahed (autonomous, jam-immune). One MAUL coffin launcher and one JACKAL pallet for backup. Test your close-in autonomous kinetic targeting.",
+  "difficulty": "Medium",
+  "duration_seconds": 300,
+  "base_radius_km": 0.1,
+  "roe_briefing": [
+    "Quick MAUL coffin-launcher targeting exercise.",
+    "MAUL is autonomous — no fire-control radar required. Launch and it chases on its own.",
+    "Three hostiles inbound: commercial quad (close, slow), micro (medium, evasive), Shahed (far, fast, jam-immune).",
+    "MAUL is best against quads and micros. Poor against Shahed — save JACKAL for it.",
+    "Weapons free on all HOSTILE contacts."
+  ],
+  "engagement_zones": {
+    "detection_range_km": 5.0,
+    "identification_range_km": 1.5,
+    "engagement_range_km": 2.5
+  },
+  "sensors": [
+    {
+      "id": "radar",
+      "name": "L-Band Multi-Mission Radar",
+      "type": "radar",
+      "range_km": 10.0,
+      "status": "active"
+    },
+    {
+      "id": "kufcs",
+      "name": "Ku-Band Fire Control Radar",
+      "type": "radar",
+      "range_km": 16.0,
+      "status": "active"
+    },
+    {
+      "id": "eoir",
+      "name": "EO/IR Camera",
+      "type": "eoir",
+      "range_km": 8.0,
+      "status": "active",
+      "fov_deg": 15
+    }
+  ],
+  "effectors": [
+    {
+      "id": "maul",
+      "name": "MAUL Coffin Launcher",
+      "type": "maul",
+      "range_km": 4.0,
+      "status": "ready",
+      "recharge_seconds": 0,
+      "single_use": false,
+      "ammo_count": 4,
+      "ammo_remaining": 4
+    },
+    {
+      "id": "jackal",
+      "name": "JACKAL Pallet",
+      "type": "kinetic",
+      "range_km": 5.0,
+      "status": "ready",
+      "recharge_seconds": 0,
+      "single_use": true,
+      "ammo_count": 2,
+      "ammo_remaining": 2
+    }
+  ],
+  "correct_classification": "commercial_quad",
+  "correct_affiliation": "hostile",
+  "optimal_effectors": [
+    "maul",
+    "kinetic"
+  ],
+  "acceptable_effectors": [
+    "maul",
+    "kinetic",
+    "electronic",
+    "de_laser",
+    "de_hpm"
+  ],
+  "roe_violations": [],
+  "drones": [
+    {
+      "id": "bogey-1",
+      "drone_type": "commercial_quad",
+      "start_x": 3.0,
+      "start_y": 1.5,
+      "altitude": 120,
+      "speed": 35,
+      "heading": 225,
+      "behavior": "direct_approach",
+      "rf_emitting": true,
+      "spawn_delay": 0,
+      "correct_classification": "commercial_quad",
+      "correct_affiliation": "hostile",
+      "optimal_effectors": ["maul", "electronic"],
+      "acceptable_effectors": ["maul", "kinetic", "electronic", "de_laser", "de_hpm", "shenobi_pm"],
+      "roe_violations": [],
+      "should_engage": true,
+      "spawn_variance": {
+        "x_range": [-1.0, 1.0],
+        "y_range": [-1.0, 1.0],
+        "heading_variance": 20,
+        "speed_variance": 5
+      }
+    },
+    {
+      "id": "bogey-2",
+      "drone_type": "micro",
+      "start_x": -2.5,
+      "start_y": 2.0,
+      "altitude": 80,
+      "speed": 25,
+      "heading": 135,
+      "behavior": "evasive",
+      "rf_emitting": true,
+      "spawn_delay": 10,
+      "correct_classification": "micro",
+      "correct_affiliation": "hostile",
+      "optimal_effectors": ["maul", "de_hpm"],
+      "acceptable_effectors": ["maul", "kinetic", "electronic", "de_hpm", "de_laser", "shenobi_pm"],
+      "roe_violations": [],
+      "should_engage": true,
+      "spawn_variance": {
+        "x_range": [-1.0, 1.0],
+        "y_range": [-1.0, 1.0],
+        "heading_variance": 20,
+        "speed_variance": 5
+      }
+    },
+    {
+      "id": "bogey-3",
+      "drone_type": "shahed",
+      "start_x": -9.0,
+      "start_y": -2.5,
+      "altitude": 450,
+      "speed": 125,
+      "heading": 60,
+      "behavior": "direct_approach",
+      "rf_emitting": false,
+      "spawn_delay": 25,
+      "correct_classification": "shahed",
+      "correct_affiliation": "hostile",
+      "optimal_effectors": ["kinetic"],
+      "acceptable_effectors": ["kinetic", "apkws"],
+      "roe_violations": [],
+      "should_engage": true,
+      "spawn_variance": {
+        "x_range": [-1.5, 1.5],
+        "y_range": [-1.5, 1.5],
+        "heading_variance": 15,
+        "speed_variance": 10
+      }
+    }
+  ]
+}

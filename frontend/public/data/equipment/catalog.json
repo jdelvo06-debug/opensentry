@@ -159,6 +159,33 @@
       "ammo_count": 4
     },
     {
+      "catalog_id": "maul_launcher",
+      "name": "MAUL Coffin Launcher",
+      "type": "maul",
+      "range_km": 4.0,
+      "fov_deg": 360,
+      "recharge_seconds": 0,
+      "single_use": false,
+      "ammo_count": 4,
+      "description": "Autonomous heavy-quad interceptor launched from a compact coffin-style container. Uses onboard computer vision and terminal guidance to physically ram small UAS. Designed as a short-range kinetic option that does not require fire-control radar support.",
+      "pros": [
+        "Autonomous guidance — no fire-control radar required",
+        "Short-range kinetic defeat for RF-silent or autonomous drones",
+        "Good against commercial quadcopters and micro-UAS",
+        "Can re-attack after a near miss",
+        "Lower collateral footprint than explosive interceptors"
+      ],
+      "cons": [
+        "Shorter range than missile interceptors",
+        "Slower time-to-intercept",
+        "Limited magazine",
+        "Poor against large one-way attack UAS",
+        "Physical impact creates debris risk near defended assets"
+      ],
+      "requires_los": false,
+      "collateral_risk": "medium"
+    },
+    {
       "catalog_id": "apkws_launcher",
       "name": "APKWS Launcher",
       "type": "apkws",

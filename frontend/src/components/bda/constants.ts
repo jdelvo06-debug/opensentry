@@ -29,6 +29,7 @@ export const TYPE_COLORS: Record<string, string> = {
   de_laser: "#ff6a00",
   de_hpm: "#00d4ff",
   apkws: "#e8553a",
+  maul: "#7c3aed",
 };
 
 export interface AltitudeBand {
@@ -112,7 +113,7 @@ export function buildSystemDefs(catalog: EquipmentCatalog): SystemDef[] {
       range_km: e.range_km,
       fov_deg: e.fov_deg,
       color: TYPE_COLORS[e.type] || COLORS.muted,
-      letter: e.catalog_id === "rf_jammer" ? "R" : e.catalog_id === "de_laser_3k" ? "D" : e.catalog_id === "de_hpm_3k" ? "M" : e.catalog_id === "apkws_launcher" ? "A" : "J",
+      letter: e.catalog_id === "rf_jammer" ? "R" : e.catalog_id === "de_laser_3k" ? "D" : e.catalog_id === "de_hpm_3k" ? "M" : e.catalog_id === "apkws_launcher" ? "A" : e.catalog_id === "maul_launcher" ? "U" : "J",
       description: e.description,
       requires_los: e.requires_los,
     });

@@ -38,7 +38,13 @@
   {
     "id": "apkws_test",
     "name": "APKWS Test",
-    "description": "Quick APKWS targeting exercise. Two hostiles inbound \u2014 one quad and one Shahed. Two APKWS launchers, JACKAL backup. Fast and focused.",
+    "description": "Quick APKWS targeting exercise. Two hostiles inbound — one quad and one Shahed. Two APKWS launchers, JACKAL backup. Fast and focused.",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "maul_test",
+    "name": "MAUL Test",
+    "description": "Quick MAUL coffin-launcher exercise. Three hostiles inbound — a commercial quad, a micro, and a Shahed. Test your close-in autonomous kinetic targeting.",
     "difficulty": "Medium"
   }
 ]
