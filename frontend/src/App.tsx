@@ -24,6 +24,7 @@ import ROEBriefing from "./components/ROEBriefing";
 import StudyLibrary from "./components/StudyLibrary";
 import StudyModule from "./components/StudyModule";
 import BaseDefenseArchitect from "./components/BaseDefenseArchitect";
+import ScenarioBuilder from "./components/ScenarioBuilder";
 import { buildDeBeamFromFiringEvent } from "./utils/deEngagement";
 import { buildGenericCustomBase } from "./utils/customLocationBase";
 import {
@@ -35,6 +36,8 @@ import {
   recenterCustomBase,
   stripCustomBaseScaffold,
 } from "./utils/recenterCustomBase";
+import type { CustomScenario } from "./utils/customScenarios";
+import { loadCustomScenario } from "./utils/customScenarios";
 
 import { useGameEngine as useWebSocket } from "./hooks/useGameEngine";
 import "./app.css";
@@ -167,6 +170,8 @@ export default function App() {
   const [scenarioId, setScenarioId] = useState<string>("");
   const [baseId, setBaseId] = useState<string>("");
   const [baseTemplate, setBaseTemplate] = useState<BaseTemplate | null>(null);
+  const [customScenario, setCustomScenario] = useState<Record<string, unknown> | null>(null);
+  const [instructorNotes, setInstructorNotes] = useState<string>("");
   const [selectedCustomLocation, setSelectedCustomLocation] = useState<{
     lat: number;
     lng: number;
@@ -912,6 +917,8 @@ export default function App() {
   ) => {
     setScenarioId(selScenarioId);
     setBaseId(selBaseId);
+    setCustomScenario(null);
+    setInstructorNotes("");
     setSelectedCustomLocation(customLocation ?? null);
 
     if (customLocation) {
@@ -1060,7 +1067,64 @@ export default function App() {
       placement: normalized.placement,
       baseTemplate: normalized.baseTemplate,
       scorePlacement: true,
+      customScenario: customScenario ?? undefined,
     });
+  };
+
+  const handleScenarioBuildLaunch = async (
+    scenario: Record<string, unknown>,
+    baseId: string,
+    placement: PlacementConfig,
+  ) => {
+    const scenarioRecord = scenario as CustomScenario["scenarioData"] & {
+      id?: string;
+      instructorNotes?: string;
+      description?: string;
+    };
+    const savedScenario = scenarioRecord.id
+      ? loadCustomScenario(String(scenarioRecord.id))
+      : null;
+
+    setScenarioId("custom_built");
+    setBaseId(baseId);
+    setCustomScenario(scenario);
+    setInstructorNotes(
+      String(
+        scenarioRecord.instructorNotes
+          ?? savedScenario?.instructorNotes
+          ?? scenarioRecord.description
+          ?? "",
+      ),
+    );
+    setPlacementConfig(placement);
+
+    // Set base template from placement.
+    try {
+      const loadedBase = await loadBaseTemplateWithBrowserOverride(baseId);
+      if (loadedBase) {
+        const data = normalizeLoadedBaseTemplate(loadedBase);
+        setBaseTemplate(data);
+        setMissionBaseCenter({ lat: data.center_lat, lng: data.center_lng, zoom: data.default_zoom });
+        setMaxSensors(data.max_sensors);
+        setMaxEffectors(data.max_effectors);
+      }
+    } catch {
+      setMaxSensors(4);
+      setMaxEffectors(3);
+    }
+
+    // Extract ROE if present, or use defaults.
+    const roe = Array.isArray(scenario.roe_briefing)
+      ? scenario.roe_briefing.map(String)
+      : [];
+    setRoeBriefing(roe);
+    setRoeScenarioName(String(scenario.name ?? "Custom Scenario"));
+    pendingRoeLaunchRef.current = () => setPhase("equip");
+    setPhase("roe_briefing");
+  };
+
+  const handleScenarioBuilder = () => {
+    setPhase("scenario_build");
   };
 
   const resetAllState = () => {
@@ -1094,6 +1158,8 @@ export default function App() {
     setWaveNumber(1);
     setSelectedCustomLocation(null);
     setMissionBaseCenter(null);
+    setCustomScenario(null);
+    setInstructorNotes("");
     setShowRoeOverlay(false);
     // ATC reset
     setAtcCommsMessages({});
@@ -1401,6 +1467,8 @@ export default function App() {
   const handleScenarioLaunch = async (scenarioId: string) => {
     if (phase !== "waiting") return;
     soundEngine.init();
+    setCustomScenario(null);
+    setInstructorNotes("");
 
     const isTut = scenarioId === "tutorial";
     const baseId = isTut ? "small_fob" : "medium_airbase";
@@ -1613,12 +1681,23 @@ export default function App() {
         <LandingPage
           onScenarioLaunch={(id) => handleScenarioLaunch(id)}
           onCustomMission={() => { soundEngine.init(); setPhase("scenario_select"); }}
+          onScenarioBuilder={handleScenarioBuilder}
           onBDA={() => { soundEngine.init(); setPhase("architect"); }}
           onFeedback={() => setShowFeedback(true)}
           onStudy={() => { setPhase("study"); setActiveStudyModule(null); }}
         />
         {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
       </>
+    );
+  }
+
+  // --- Phase: Scenario Builder ---
+  if (phase === "scenario_build") {
+    return (
+      <ScenarioBuilder
+        onBack={() => setPhase("waiting")}
+        onLaunchScenario={handleScenarioBuildLaunch}
+      />
     );
   }
 
@@ -1754,6 +1833,7 @@ export default function App() {
     return (
       <DebriefScreen
         stats={debriefStats}
+        instructorNotes={instructorNotes}
         onMainMenu={() => { setDebriefStats(null); handleMainMenu(); }}
         onReplay={() => { setDebriefStats(null); handleRestart(); }}
       />

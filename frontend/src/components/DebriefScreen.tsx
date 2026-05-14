@@ -4,6 +4,7 @@ interface Props {
   stats: DebriefStats;
   onMainMenu: () => void;
   onReplay: () => void;
+  instructorNotes?: string;
 }
 
 function formatDuration(seconds: number): string {
@@ -37,7 +38,7 @@ const GRADE_COLORS: Record<string, string> = {
   F: "#f85149",
 };
 
-export default function DebriefScreen({ stats, onMainMenu, onReplay }: Props) {
+export default function DebriefScreen({ stats, onMainMenu, onReplay, instructorNotes }: Props) {
   const detectionRate = stats.tracksSpawned > 0 ? stats.tracksDetected / stats.tracksSpawned : 0;
   const neutralizationRate = stats.tracksSpawned > 0 ? stats.tracksDefeated / stats.tracksSpawned : 0;
   const { score, grade } = computeRating(stats);
@@ -251,8 +252,15 @@ export default function DebriefScreen({ stats, onMainMenu, onReplay }: Props) {
           </div>
         </div>
 
+        {instructorNotes && (
+          <div style={{ marginTop: 24, padding: 16, background: "rgba(34,211,238,0.05)", border: "1px solid rgba(34,211,238,0.2)", borderRadius: 4 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#22d3ee", marginBottom: 8, letterSpacing: 1 }}>INSTRUCTOR NOTES</div>
+            <div style={{ fontSize: 13, color: "#c9d1d9", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{instructorNotes}</div>
+          </div>
+        )}
+
         {/* Buttons */}
-        <div style={{ display: "flex", gap: 12 }}>
+        <div style={{ display: "flex", gap: 12, marginTop: instructorNotes ? 24 : 0 }}>
           <button
             onClick={onMainMenu}
             style={{
