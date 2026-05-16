@@ -12,6 +12,9 @@ interface Props {
   onUpdateEquipment: (equipment: SelectedEquipment) => void;
   onBack: () => void;
   onNext: () => void;
+  /** Optional per-category maximum totals (enforced when set). */
+  maxSensors?: number;
+  maxEffectors?: number;
 }
 
 const TABS: { key: FilterTab; label: string; color: string }[] = [
@@ -69,6 +72,8 @@ export default function BdaEquipmentSelection({
   onUpdateEquipment,
   onBack,
   onNext,
+  maxSensors,
+  maxEffectors,
 }: Props) {
   const [catalog, setCatalog] = useState<EquipmentCatalog | null>(null);
   const [loading, setLoading] = useState(true);
@@ -95,15 +100,22 @@ export default function BdaEquipmentSelection({
 
   // ─── Derived limit counters ───────────────────────────────────────────────
 
-
+  const sensorTotal = useMemo(
+    () => totalCount(selectedEquipment.sensors) + totalCount(selectedEquipment.combined),
+    [selectedEquipment],
+  );
+  const effectorTotal = useMemo(
+    () => totalCount(selectedEquipment.effectors) + totalCount(selectedEquipment.combined),
+    [selectedEquipment],
+  );
 
   const totalSelected = useMemo(
-    () =>
-      totalCount(selectedEquipment.sensors) +
-      totalCount(selectedEquipment.effectors) +
-      totalCount(selectedEquipment.combined),
-    [selectedEquipment]
+    () => sensorTotal + effectorTotal - totalCount(selectedEquipment.combined),
+    [sensorTotal, effectorTotal, selectedEquipment],
   );
+
+  const sensorLimitReached = typeof maxSensors === "number" && sensorTotal >= maxSensors;
+  const effectorLimitReached = typeof maxEffectors === "number" && effectorTotal >= maxEffectors;
 
   // ─── Handlers ─────────────────────────────────────────────────────────────
 
@@ -111,6 +123,8 @@ export default function BdaEquipmentSelection({
     category: "sensor" | "effector" | "combined",
     catalogId: string
   ) {
+    if (sensorLimitReached && (category === "sensor" || category === "combined")) return;
+    if (effectorLimitReached && (category === "effector" || category === "combined")) return;
     const current = getQty(selectedEquipment, category, catalogId);
     onUpdateEquipment(setQty(selectedEquipment, category, catalogId, current + 1));
   }
@@ -226,7 +240,7 @@ export default function BdaEquipmentSelection({
                   fovDeg={s.fov_deg}
                   requiresLos={s.requires_los}
                   qty={getQty(selectedEquipment, "sensor", s.catalog_id)}
-                  maxReached={false}
+                  maxReached={sensorLimitReached}
                   onIncrement={() => handleIncrement("sensor", s.catalog_id)}
                   onDecrement={() => handleDecrement("sensor", s.catalog_id)}
                 />
@@ -245,7 +259,7 @@ export default function BdaEquipmentSelection({
                   fovDeg={e.fov_deg}
                   requiresLos={e.requires_los}
                   qty={getQty(selectedEquipment, "effector", e.catalog_id)}
-                  maxReached={false}
+                  maxReached={effectorLimitReached}
                   onIncrement={() => handleIncrement("effector", e.catalog_id)}
                   onDecrement={() => handleDecrement("effector", e.catalog_id)}
                 />
@@ -266,7 +280,7 @@ export default function BdaEquipmentSelection({
                   fovDeg={c.fov_deg}
                   requiresLos={c.requires_los}
                   qty={getQty(selectedEquipment, "combined", c.catalog_id)}
-                  maxReached={false}
+                  maxReached={sensorLimitReached || effectorLimitReached}
                   onIncrement={() => handleIncrement("combined", c.catalog_id)}
                   onDecrement={() => handleDecrement("combined", c.catalog_id)}
                 />

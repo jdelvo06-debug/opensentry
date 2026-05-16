@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 interface Props {
   onScenarioLaunch: (scenarioId: string) => void;
   onCustomMission: () => void;
+  onScenarioBuilder: () => void;
   onBDA: () => void;
   onFeedback: () => void;
   onStudy: () => void;
@@ -97,6 +98,7 @@ const FEATURES = [
 export default function LandingPage({
   onScenarioLaunch,
   onCustomMission,
+  onScenarioBuilder,
   onBDA,
   onFeedback,
   onStudy,
@@ -304,6 +306,14 @@ export default function LandingPage({
           <div className="lp-ctas lp-reveal" ref={addRevealRef}>
             <button className="lp-btn lp-btn--outline" onClick={onCustomMission}>
               CUSTOM MISSION
+            </button>
+            <button
+              className="lp-btn lp-btn--outline"
+              onClick={onScenarioBuilder}
+              style={{ borderColor: "rgba(34,211,238,0.45)", color: "#22d3ee" }}
+            >
+              SCENARIO BUILDER
+              <span className="lp-beta-badge" style={{ background: "rgba(34,211,238,0.13)", color: "#22d3ee" }}>NEW</span>
             </button>
             <button className="lp-btn lp-btn--outline lp-btn--gold" onClick={onBDA}>
               BASE DEFENSE ARCHITECT

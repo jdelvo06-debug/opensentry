@@ -56,6 +56,8 @@ export interface ConnectOptions {
   baseTemplate?: BaseTemplate | null;
   /** When true, placement is scored in debrief (custom mission with PlacementScreen). */
   scorePlacement?: boolean;
+  /** Scenario JSON supplied by ScenarioBuilder instead of loading from /data/scenarios. */
+  customScenario?: Record<string, unknown>;
 }
 
 type MessageHandler = (msg: ServerMessage) => void;
@@ -107,13 +109,20 @@ export function useGameEngine(onMessage: MessageHandler) {
           typeof connectOpts === "string" ? undefined : connectOpts.baseTemplate;
         const scorePlacement =
           typeof connectOpts === "string" ? false : (connectOpts.scorePlacement ?? false);
+        const customScenario =
+          typeof connectOpts === "string" ? undefined : connectOpts.customScenario;
 
-        // Load scenario JSON
-        const scenarioRes = await fetch(
-          `${import.meta.env.BASE_URL}data/scenarios/${scenarioId}.json`,
-        );
-        if (!scenarioRes.ok) throw new Error(`Scenario not found: ${scenarioId}`);
-        const scenarioData = await scenarioRes.json();
+        // Load scenario JSON, or use a ScenarioBuilder-provided scenario directly.
+        let scenarioData: Msg;
+        if (customScenario) {
+          scenarioData = customScenario as Msg;
+        } else {
+          const scenarioRes = await fetch(
+            `${import.meta.env.BASE_URL}data/scenarios/${scenarioId}.json`,
+          );
+          if (!scenarioRes.ok) throw new Error(`Scenario not found: ${scenarioId}`);
+          scenarioData = await scenarioRes.json();
+        }
 
         // Normalize scenario: add missing defaults
         const scenario: ScenarioConfig = {
@@ -153,7 +162,7 @@ export function useGameEngine(onMessage: MessageHandler) {
               ...e,
             }),
           ),
-        };
+        } as ScenarioConfig;
 
         // Load base template + equipment catalog in parallel
         const resolvedBaseId = baseId ?? (placement?.base_id ?? null);
