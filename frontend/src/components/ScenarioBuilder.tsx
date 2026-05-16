@@ -1,12 +1,30 @@
 import React, { useCallback, useMemo, useState } from "react";
-import BdaStepIndicator from "./bda/BdaStepIndicator";
 import BdaBaseSelection from "./bda/BdaBaseSelection";
 import BdaEquipmentSelection from "./bda/BdaEquipmentSelection";
+import BdaPlacement from "./bda/BdaPlacement";
 import WaveComposer, { type WaveDef } from "./WaveComposer";
 import { COLORS } from "./bda/constants";
-import type { BdaStep, PlacedSystem, SelectedEquipment } from "./bda/types";
+import type { PlacedSystem, SelectedEquipment } from "./bda/types";
 import type { BaseTemplate, PlacementConfig } from "../types";
 import { generateScenarioId, saveCustomScenario } from "../utils/customScenarios";
+import { latLngToGameXY } from "../utils/coordinates";
+import {
+  DRONE_TEMPLATES,
+  asDroneType,
+  buildScenarioDrones,
+  computeScenarioDuration,
+  normalizeWaves,
+} from "../utils/scenarioBuilderUtils";
+
+type ScenarioBuilderStep = 1 | 2 | 3 | 4 | 5;
+
+const SCENARIO_BUILDER_STEPS: { num: ScenarioBuilderStep; label: string }[] = [
+  { num: 1, label: "BASE" },
+  { num: 2, label: "EQUIP" },
+  { num: 3, label: "PLACE" },
+  { num: 4, label: "WAVES" },
+  { num: 5, label: "SAVE" },
+];
 
 interface Props {
   onBack: () => void;
@@ -17,67 +35,6 @@ interface Props {
   ) => void;
 }
 
-type DroneType =
-  | "commercial_quad"
-  | "micro"
-  | "fixed_wing"
-  | "improvised"
-  | "improvised_hardened"
-  | "shahed";
-
-interface DroneTemplate {
-  altitude: number;
-  speed: number;
-  rf_emitting: boolean;
-  optimal_effectors: string[];
-  acceptable_effectors: string[];
-}
-
-const DRONE_TEMPLATES: Record<DroneType, DroneTemplate> = {
-  commercial_quad: {
-    altitude: 150,
-    speed: 35,
-    rf_emitting: true,
-    optimal_effectors: ["de_laser", "electronic"],
-    acceptable_effectors: ["electronic", "kinetic", "de_laser"],
-  },
-  micro: {
-    altitude: 80,
-    speed: 25,
-    rf_emitting: true,
-    optimal_effectors: ["electronic", "de_laser"],
-    acceptable_effectors: ["electronic", "de_laser", "kinetic"],
-  },
-  fixed_wing: {
-    altitude: 300,
-    speed: 60,
-    rf_emitting: false,
-    optimal_effectors: ["kinetic", "de_laser"],
-    acceptable_effectors: ["kinetic", "de_laser", "electronic"],
-  },
-  improvised: {
-    altitude: 100,
-    speed: 50,
-    rf_emitting: true,
-    optimal_effectors: ["electronic", "de_laser"],
-    acceptable_effectors: ["electronic", "de_laser", "kinetic"],
-  },
-  improvised_hardened: {
-    altitude: 100,
-    speed: 55,
-    rf_emitting: true,
-    optimal_effectors: ["de_laser", "kinetic"],
-    acceptable_effectors: ["kinetic", "de_laser", "electronic"],
-  },
-  shahed: {
-    altitude: 300,
-    speed: 100,
-    rf_emitting: false,
-    optimal_effectors: ["kinetic"],
-    acceptable_effectors: ["kinetic", "de_laser"],
-  },
-};
-
 const DEFAULT_ROE = [
   "Positive identification required before any engagement",
   "Do not engage tracks classified as FRIENDLY or CIVILIAN",
@@ -86,144 +43,76 @@ const DEFAULT_ROE = [
   "All engagements must occur within the weapon engagement zone (WEZ)",
 ];
 
-const WaveComposerView = WaveComposer as unknown as React.ComponentType<Record<string, unknown>>;
-type ScenarioBuilderPlacedSystem = PlacedSystem;
-
 function totalQty(list: { catalogId: string; qty: number }[]): number {
   return list.reduce((sum, item) => sum + item.qty, 0);
 }
 
-function asNumber(value: unknown, fallback: number): number {
-  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
-}
-
-function asDroneType(value: unknown): DroneType {
-  return typeof value === "string" && value in DRONE_TEMPLATES
-    ? (value as DroneType)
-    : "commercial_quad";
-}
-
-function sectorToBearing(sector: unknown, fallback: number): number {
-  if (typeof sector === "number" && Number.isFinite(sector)) return sector;
-  if (typeof sector !== "string") return fallback;
-
-  const normalized = sector.toLowerCase().trim();
-  const cardinal: Record<string, number> = {
-    n: 90,
-    north: 90,
-    ne: 45,
-    northeast: 45,
-    e: 0,
-    east: 0,
-    se: 315,
-    southeast: 315,
-    s: 270,
-    south: 270,
-    sw: 225,
-    southwest: 225,
-    w: 180,
-    west: 180,
-    nw: 135,
-    northwest: 135,
+function equipmentCatalogCounts(equipment: SelectedEquipment): Map<string, number> {
+  const counts = new Map<string, number>();
+  const add = (catalogId: string, qty: number) => {
+    counts.set(catalogId, (counts.get(catalogId) ?? 0) + qty);
   };
 
-  if (normalized in cardinal) return cardinal[normalized];
-  const parsed = Number.parseFloat(normalized);
-  return Number.isFinite(parsed) ? parsed : fallback;
+  for (const item of equipment.sensors) add(item.catalogId, item.qty);
+  for (const item of equipment.effectors) add(item.catalogId, item.qty);
+  for (const item of equipment.combined) add(item.catalogId, item.qty);
+  return counts;
 }
 
-function headingTowardOrigin(x: number, y: number): number {
-  return (((Math.atan2(-y, -x) * 180) / Math.PI) + 360) % 360;
-}
-
-function expandEquipment(list: { catalogId: string; qty: number }[], radius: number) {
-  const expanded: { catalog_id: string; x: number; y: number; facing_deg: number }[] = [];
-  const total = Math.max(1, totalQty(list));
-  let idx = 0;
-
-  for (const item of list) {
-    for (let i = 0; i < item.qty; i += 1) {
-      const angle = (idx / total) * Math.PI * 2;
-      expanded.push({
-        catalog_id: item.catalogId,
-        x: Number((Math.cos(angle) * radius).toFixed(3)),
-        y: Number((Math.sin(angle) * radius).toFixed(3)),
-        facing_deg: Math.round(((angle * 180) / Math.PI + 360) % 360),
-      });
-      idx += 1;
-    }
+function placedCatalogCounts(systems: PlacedSystem[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const sys of systems) {
+    counts.set(sys.def.id, (counts.get(sys.def.id) ?? 0) + 1);
   }
+  return counts;
+}
 
-  return expanded;
+function catalogCountsMatch(required: Map<string, number>, placed: Map<string, number>): boolean {
+  if (required.size === 0 || required.size !== placed.size) return false;
+
+  for (const [catalogId, qty] of required) {
+    if (placed.get(catalogId) !== qty) return false;
+  }
+  return true;
+}
+
+function emptySelectedEquipment(): SelectedEquipment {
+  return { sensors: [], effectors: [], combined: [] };
 }
 
 function buildPlacement(
   baseTemplate: BaseTemplate,
-  selectedEquipment: SelectedEquipment,
+  systems: PlacedSystem[],
   boundary: number[][],
 ): PlacementConfig {
-  const xs = boundary.map(([x]) => x);
-  const ys = boundary.map(([, y]) => y);
+  const baseLat = baseTemplate.center_lat ?? 32.5;
+  const baseLng = baseTemplate.center_lng ?? 45.5;
+  const finalBoundary = boundary.length ? boundary : baseTemplate.boundary;
+  const xs = finalBoundary.map(([x]) => x);
+  const ys = finalBoundary.map(([, y]) => y);
   const width = xs.length ? Math.max(...xs) - Math.min(...xs) : 0;
   const height = ys.length ? Math.max(...ys) - Math.min(...ys) : 0;
   const maxDim = Math.max(width, height);
   const placementBoundsKm = Math.max(maxDim * 1.5, baseTemplate.placement_bounds_km);
 
-  return {
+  const placement: PlacementConfig = {
     base_id: baseTemplate.id,
-    sensors: expandEquipment(selectedEquipment.sensors, 0.1),
-    effectors: expandEquipment(selectedEquipment.effectors, 0.16),
-    combined: expandEquipment(selectedEquipment.combined, 0.06),
-    boundary: boundary.length ? boundary : baseTemplate.boundary,
+    sensors: [],
+    effectors: [],
+    combined: [],
+    boundary: finalBoundary,
     placement_bounds_km: placementBoundsKm,
   };
-}
 
-function buildScenarioDrones(waves: WaveDef[]): Record<string, unknown>[] {
-  const drones: Record<string, unknown>[] = [];
+  for (const sys of systems) {
+    const { x, y } = latLngToGameXY(sys.lat, sys.lng, baseLat, baseLng);
+    const item = { catalog_id: sys.def.id, x, y, facing_deg: sys.facing_deg };
+    if (sys.def.category === "sensor") placement.sensors.push(item);
+    else if (sys.def.category === "effector") placement.effectors.push(item);
+    else placement.combined.push(item);
+  }
 
-  waves.forEach((wave, waveIdx) => {
-    const data = wave as unknown as Record<string, unknown>;
-    const droneType = asDroneType(data.droneType ?? data.drone_type ?? data.type);
-    const template = DRONE_TEMPLATES[droneType];
-    const count = Math.max(1, Math.round(asNumber(data.count ?? data.qty ?? data.quantity ?? data.droneCount, 1)));
-    const delaySeconds = asNumber(data.delaySeconds ?? data.delay_seconds ?? data.delay, 0);
-    const staggerSeconds = asNumber(data.staggerSeconds ?? data.stagger_seconds ?? data.stagger, 5);
-    const bearingDeg = sectorToBearing(data.spawnSector ?? data.spawn_sector ?? data.sector, waveIdx * 90);
-
-    for (let droneIdx = 0; droneIdx < count; droneIdx += 1) {
-      const offsetDeg = count > 1 ? (droneIdx - (count - 1) / 2) * 8 : 0;
-      const bearingRad = ((bearingDeg + offsetDeg) * Math.PI) / 180;
-      const distanceKm = 4 + ((waveIdx + droneIdx) % 6) * 0.18;
-      const startX = Number((Math.cos(bearingRad) * distanceKm).toFixed(2));
-      const startY = Number((Math.sin(bearingRad) * distanceKm).toFixed(2));
-
-      drones.push({
-        id: `wave-${waveIdx + 1}-${droneIdx + 1}`,
-        drone_type: droneType,
-        start_x: startX,
-        start_y: startY,
-        altitude: template.altitude,
-        speed: template.speed,
-        heading: Math.round(headingTowardOrigin(startX, startY)),
-        behavior: "direct_approach",
-        rf_emitting: template.rf_emitting,
-        spawn_delay: delaySeconds + droneIdx * staggerSeconds,
-        correct_classification: droneType,
-        correct_affiliation: "hostile",
-        optimal_effectors: template.optimal_effectors,
-        acceptable_effectors: template.acceptable_effectors,
-        spawn_variance: {
-          x_range: [-0.6, 0.6],
-          y_range: [-0.6, 0.6],
-          heading_variance: 12,
-          speed_variance: 6,
-        },
-      });
-    }
-  });
-
-  return drones;
+  return placement;
 }
 
 function buildScenarioJson(
@@ -232,11 +121,7 @@ function buildScenarioJson(
   waves: WaveDef[],
 ): Record<string, unknown> {
   const name = scenarioName.trim() || "Custom Scenario";
-  const firstType = asDroneType(
-    ((waves[0] as unknown as Record<string, unknown> | undefined)?.droneType) ??
-      ((waves[0] as unknown as Record<string, unknown> | undefined)?.drone_type) ??
-      ((waves[0] as unknown as Record<string, unknown> | undefined)?.type),
-  );
+  const firstType = asDroneType(normalizeWaves(waves)[0]?.threatGroups[0]?.droneType);
   const firstTemplate = DRONE_TEMPLATES[firstType];
 
   return {
@@ -244,7 +129,7 @@ function buildScenarioJson(
     name,
     description: instructorNotes.trim() || "Custom instructor-built scenario.",
     difficulty: "Custom",
-    duration_seconds: 480,
+    duration_seconds: computeScenarioDuration(waves),
     base_radius_km: 0.1,
     roe_briefing: DEFAULT_ROE,
     engagement_zones: {
@@ -267,6 +152,7 @@ function ScenarioSummary({
   baseTemplate,
   selectedBaseId,
   selectedEquipment,
+  systems,
   boundary,
   waves,
   scenarioName,
@@ -279,6 +165,7 @@ function ScenarioSummary({
   baseTemplate: BaseTemplate;
   selectedBaseId: string;
   selectedEquipment: SelectedEquipment;
+  systems: PlacedSystem[];
   boundary: number[][];
   waves: WaveDef[];
   scenarioName: string;
@@ -290,15 +177,20 @@ function ScenarioSummary({
 }) {
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
 
-  const sensorCount = totalQty(selectedEquipment.sensors) + totalQty(selectedEquipment.combined);
-  const effectorCount = totalQty(selectedEquipment.effectors) + totalQty(selectedEquipment.combined);
-  const canFinalize = waves.length > 0 && scenarioName.trim().length > 0;
+  const sensorCount = systems.filter((sys) => sys.def.category === "sensor" || sys.def.category === "combined").length;
+  const effectorCount = systems.filter((sys) => sys.def.category === "effector" || sys.def.category === "combined").length;
+  const expectedSystems = totalQty(selectedEquipment.sensors) + totalQty(selectedEquipment.effectors) + totalQty(selectedEquipment.combined);
+  const placedSystemsMatchSelection = catalogCountsMatch(
+    equipmentCatalogCounts(selectedEquipment),
+    placedCatalogCounts(systems),
+  );
+  const canFinalize = waves.length > 0 && scenarioName.trim().length > 0 && placedSystemsMatchSelection;
 
   const assemble = useCallback(() => {
     const scenario = buildScenarioJson(scenarioName, instructorNotes, waves);
-    const placement = buildPlacement(baseTemplate, selectedEquipment, boundary);
+    const placement = buildPlacement(baseTemplate, systems, boundary);
     return { scenario, placement };
-  }, [baseTemplate, boundary, instructorNotes, scenarioName, selectedEquipment, waves]);
+  }, [baseTemplate, boundary, instructorNotes, scenarioName, systems, waves]);
 
   const handleSave = useCallback(() => {
     const { scenario } = assemble();
@@ -431,6 +323,7 @@ function ScenarioSummary({
                 <SummaryRow label="Base" value={baseTemplate.name} />
                 <SummaryRow label="Sensors" value={String(sensorCount)} />
                 <SummaryRow label="Effectors" value={String(effectorCount)} />
+                <SummaryRow label="Placed Systems" value={`${systems.length}/${expectedSystems}`} />
                 <SummaryRow label="Waves" value={String(waves.length)} />
               </div>
             </div>
@@ -477,7 +370,7 @@ function ScenarioSummary({
           ← BACK
         </button>
         <div style={{ color: COLORS.muted, fontSize: 13 }}>
-          {canFinalize ? "Ready to save or launch" : "Add at least one wave and scenario name"}
+          {canFinalize ? "Ready to save or launch" : "Place all systems, add at least one wave, and name the scenario"}
         </div>
         <div style={{ width: 96 }} />
       </div>
@@ -531,8 +424,95 @@ function primaryButtonStyle(enabled: boolean): React.CSSProperties {
   };
 }
 
+function ScenarioStepIndicator({
+  currentStep,
+  completedSteps,
+  onStepClick,
+}: {
+  currentStep: ScenarioBuilderStep;
+  completedSteps: Set<ScenarioBuilderStep>;
+  onStepClick: (step: ScenarioBuilderStep) => void;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 0,
+        padding: "12px 16px",
+        background: COLORS.card,
+        borderBottom: `1px solid ${COLORS.border}`,
+      }}
+    >
+      {SCENARIO_BUILDER_STEPS.map((step, i) => {
+        const isActive = step.num === currentStep;
+        const isCompleted = completedSteps.has(step.num);
+        const isClickable = isCompleted && step.num !== currentStep;
+
+        return (
+          <React.Fragment key={step.num}>
+            {i > 0 && (
+              <div
+                style={{
+                  width: 40,
+                  height: 2,
+                  background: completedSteps.has(SCENARIO_BUILDER_STEPS[i - 1].num) ? COLORS.accent : COLORS.border,
+                  margin: "0 4px",
+                }}
+              />
+            )}
+            <button
+              onClick={() => isClickable && onStepClick(step.num)}
+              disabled={!isClickable}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                background: "none",
+                border: "none",
+                cursor: isClickable ? "pointer" : "default",
+                padding: 0,
+              }}
+            >
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: "50%",
+                  background: isActive || isCompleted ? COLORS.accent : COLORS.border,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 700,
+                  fontSize: 13,
+                  color: isActive || isCompleted ? COLORS.bg : COLORS.muted,
+                  fontFamily: "'Inter', sans-serif",
+                }}
+              >
+                {isCompleted && !isActive ? "✓" : step.num}
+              </div>
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: isActive ? 700 : 500,
+                  color: isActive ? COLORS.accent : isCompleted ? COLORS.accent : COLORS.muted,
+                  letterSpacing: 0.5,
+                  fontFamily: "'Inter', sans-serif",
+                }}
+              >
+                {step.label}
+              </span>
+            </button>
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ScenarioBuilder({ onBack, onLaunchScenario }: Props) {
-  const [currentStep, setCurrentStep] = useState<BdaStep>(1);
+  const [currentStep, setCurrentStep] = useState<ScenarioBuilderStep>(1);
 
   // Step 1 state
   const [selectedBaseId, setSelectedBaseId] = useState<string | null>(null);
@@ -547,40 +527,55 @@ export default function ScenarioBuilder({ onBack, onLaunchScenario }: Props) {
   });
 
   // Step 3 state
-  const [waves, setWaves] = useState<WaveDef[]>([]);
+  const [systems, setSystems] = useState<PlacedSystem[]>([]);
 
   // Step 4 state
-  const [scenarioName, setScenarioName] = useState("Custom Scenario");
+  const [waves, setWaves] = useState<WaveDef[]>([]);
+
+  // Step 5 state
+  const [scenarioName, setScenarioName] = useState("");
   const [instructorNotes, setInstructorNotes] = useState("");
 
-  const _placedSystemTypeCheck: ScenarioBuilderPlacedSystem | null = null;
-  void _placedSystemTypeCheck;
-
   const completedSteps = useMemo(() => {
-    const completed = new Set<BdaStep>();
+    const completed = new Set<ScenarioBuilderStep>();
     if (selectedBaseId && baseTemplate) completed.add(1);
-    const totalEquipment =
-      totalQty(selectedEquipment.sensors) +
-      totalQty(selectedEquipment.effectors) +
-      totalQty(selectedEquipment.combined);
+    const selectedCounts = equipmentCatalogCounts(selectedEquipment);
+    const totalEquipment = Array.from(selectedCounts.values()).reduce((sum, qty) => sum + qty, 0);
     if (totalEquipment > 0) completed.add(2);
-    if (waves.length > 0) completed.add(3);
-    if (scenarioName.trim() && waves.length > 0) completed.add(4);
+    if (catalogCountsMatch(selectedCounts, placedCatalogCounts(systems))) completed.add(3);
+    if (waves.length > 0) completed.add(4);
+    if (scenarioName.trim() && waves.length > 0 && catalogCountsMatch(selectedCounts, placedCatalogCounts(systems))) {
+      completed.add(5);
+    }
     return completed;
-  }, [baseTemplate, scenarioName, selectedBaseId, selectedEquipment, waves]);
+  }, [baseTemplate, scenarioName, selectedBaseId, selectedEquipment, systems, waves]);
 
-  const goToStep = useCallback((step: BdaStep) => {
+  const goToStep = useCallback((step: ScenarioBuilderStep) => {
     setCurrentStep(step);
   }, []);
 
   const handleBaseSelect = useCallback((baseId: string, template: BaseTemplate) => {
+    const baseChanged =
+      baseId !== selectedBaseId ||
+      template.id !== baseTemplate?.id ||
+      template.center_lat !== baseTemplate?.center_lat ||
+      template.center_lng !== baseTemplate?.center_lng;
+
     setSelectedBaseId(baseId);
     setBaseTemplate(template);
     setBoundary(template.boundary ?? []);
-  }, []);
+    if (baseChanged) {
+      setSelectedEquipment(emptySelectedEquipment());
+      setSystems([]);
+      setWaves([]);
+      setScenarioName("");
+      setInstructorNotes("");
+    }
+  }, [baseTemplate, selectedBaseId]);
 
   const handleEquipmentChange = useCallback((equipment: SelectedEquipment) => {
     setSelectedEquipment(equipment);
+    setSystems([]);
   }, []);
 
   const handleWavesChange = useCallback((nextWaves: WaveDef[]) => {
@@ -599,7 +594,7 @@ export default function ScenarioBuilder({ onBack, onLaunchScenario }: Props) {
         overflow: "hidden",
       }}
     >
-      <BdaStepIndicator
+      <ScenarioStepIndicator
         currentStep={currentStep}
         completedSteps={completedSteps}
         onStepClick={goToStep}
@@ -620,30 +615,46 @@ export default function ScenarioBuilder({ onBack, onLaunchScenario }: Props) {
           onUpdateEquipment={handleEquipmentChange}
           onBack={() => setCurrentStep(1)}
           onNext={() => setCurrentStep(3)}
+          maxSensors={baseTemplate.max_sensors}
+          maxEffectors={baseTemplate.max_effectors}
         />
       )}
 
       {currentStep === 3 && baseTemplate && (
-        <WaveComposerView
-          waves={waves}
-          onWavesChange={handleWavesChange}
+        <BdaPlacement
+          baseTemplate={baseTemplate}
+          selectedEquipment={selectedEquipment}
+          systems={systems}
+          boundary={boundary}
+          onSystemsChange={setSystems}
+          onBoundaryChange={setBoundary}
           onBack={() => setCurrentStep(2)}
           onNext={() => setCurrentStep(4)}
         />
       )}
 
-      {currentStep === 4 && baseTemplate && selectedBaseId && (
+      {currentStep === 4 && baseTemplate && (
+        <WaveComposer
+          waves={waves}
+          onWavesChange={handleWavesChange}
+          onBack={() => setCurrentStep(3)}
+          onNext={() => setCurrentStep(5)}
+        />
+      )}
+
+      {currentStep === 5 && baseTemplate && selectedBaseId && (
         <ScenarioSummary
           baseTemplate={baseTemplate}
           selectedBaseId={selectedBaseId}
           selectedEquipment={selectedEquipment}
+          systems={systems}
           boundary={boundary.length ? boundary : baseTemplate.boundary}
           waves={waves}
           scenarioName={scenarioName}
           instructorNotes={instructorNotes}
           onScenarioNameChange={setScenarioName}
           onInstructorNotesChange={setInstructorNotes}
-          onBack={() => setCurrentStep(3)}
+          onBack={() => setCurrentStep(4)}
           onLaunchScenario={onLaunchScenario}
         />
       )}

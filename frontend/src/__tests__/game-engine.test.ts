@@ -1585,7 +1585,7 @@ describe('FarmStreet/Robo scoring feedback', () => {
     expect(birdTrack?.tactical_note).toBe('BIRD — FALSE ALARM');
   });
 
-  it('adds the false-alarm note when neutral affiliation is declared after classifying a bird', () => {
+  it('auto-resolves neutral affiliation and false-alarm note when classifying a bird', () => {
     const gs = createGameState(makeScenario(), [], [], null, null, []);
     gs.drones.push(makeDrone({
       id: 'bogey-bird',
@@ -1600,13 +1600,12 @@ describe('FarmStreet/Robo scoring feedback', () => {
     }));
 
     handleIdentify(gs, 'bogey-bird', 'bird', 'unknown', 42);
-    expect(gs.drones[0].tactical_note).toBeNull();
-
-    handleDeclareAffiliation(gs, 'bogey-bird', 'neutral', 45);
-    const state = buildStateMsg(gs, 45, 100);
+    const state = buildStateMsg(gs, 42, 100);
     const birdTrack = state.tracks.find((track: { id: string }) => track.id === 'bogey-bird');
 
+    expect(gs.drones[0].affiliation).toBe('neutral');
     expect(gs.drones[0].tactical_note).toBe('BIRD — FALSE ALARM');
+    expect(birdTrack?.affiliation).toBe('neutral');
     expect(birdTrack?.tactical_note).toBe('BIRD — FALSE ALARM');
   });
 });

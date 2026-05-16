@@ -1017,6 +1017,7 @@ export default function App() {
     overrideScenarioId?: string,
     overrideBaseId?: string,
     overrideBaseTemplate?: BaseTemplate,
+    overrideCustomScenario?: Record<string, unknown>,
   ) => {
     const launchBaseTemplate = overrideBaseTemplate ?? baseTemplate;
     const normalized = launchBaseTemplate
@@ -1067,7 +1068,7 @@ export default function App() {
       placement: normalized.placement,
       baseTemplate: normalized.baseTemplate,
       scorePlacement: true,
-      customScenario: customScenario ?? undefined,
+      customScenario: overrideCustomScenario ?? customScenario ?? undefined,
     });
   };
 
@@ -1098,11 +1099,14 @@ export default function App() {
     );
     setPlacementConfig(placement);
 
+    let launchBaseTemplate: BaseTemplate | undefined;
+
     // Set base template from placement.
     try {
       const loadedBase = await loadBaseTemplateWithBrowserOverride(baseId);
       if (loadedBase) {
         const data = normalizeLoadedBaseTemplate(loadedBase);
+        launchBaseTemplate = data;
         setBaseTemplate(data);
         setMissionBaseCenter({ lat: data.center_lat, lng: data.center_lng, zoom: data.default_zoom });
         setMaxSensors(data.max_sensors);
@@ -1119,7 +1123,15 @@ export default function App() {
       : [];
     setRoeBriefing(roe);
     setRoeScenarioName(String(scenario.name ?? "Custom Scenario"));
-    pendingRoeLaunchRef.current = () => setPhase("equip");
+    pendingRoeLaunchRef.current = () => {
+      handlePlacementConfirm(
+        placement,
+        "custom_built",
+        baseId,
+        launchBaseTemplate,
+        scenario,
+      );
+    };
     setPhase("roe_briefing");
   };
 
