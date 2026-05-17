@@ -114,6 +114,7 @@ UAS and drone contacts are never ATC-authorized — only manned aircraft can rec
 - **💾 Saved custom locations** — Search any location, shape the perimeter you actually want, save it, and get the same boundary back on revisit in both Custom Mission and Base Defense Architect. On the live GitHub Pages site, these saves are browser-local; shared presets still need a curated JSON committed to the repo.
 - **🛠️ Curated perimeter workflow** — New shared presets should come from traced/source-derived aerodrome outlines (`geojson.io` or OSM geometry + `scripts/import_geojson_preset.py`), not runway-buffer ovals. See [docs/adding-base-presets.md](./docs/adding-base-presets.md).
 - **Real-world satellite maps** via Leaflet.js — OpenStreetMap + CartoDB imagery, global coverage
+- **Pre-launch usage tracking gate** — optional internal metrics flow captures unit, optional name/email, and scenario before ROE; data is used only for OpenSentry adoption/improvement metrics and is not sold, shared, or used for marketing
 - **Pre-mission ROE briefing** — review Rules of Engagement before each scenario
 - **ATC coordination mechanic** — UNKNOWN contacts require IFF clearance before engagement
 - **Neutral track labels** — contacts spawn as TRN-### until you identify them
@@ -153,6 +154,10 @@ frontend/src/
   hooks/
     useGameEngine.ts ← 10Hz game loop (browser-native, no WebSocket needed)
   components/       ← All UI components
+  utils/tracking.ts ← Static-site-safe Apps Script usage tracking client
+
+apps-script/
+  tracking/Code.gs  ← Google Apps Script web app that appends usage rows to Sheets
 
 frontend/public/data/
   scenarios/        ← JSON scenario definitions
@@ -281,6 +286,9 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 - [x] **Intercept vector line removed** — straight dashed line to target looked like a second projectile
 
 ### Completed (Unreleased)
+- [x] **Scenario Builder MVP** — users can select a base, choose equipment, place systems, compose multi-threat waves, and launch a browser-local custom mission
+- [x] **Multi-threat Wave Composer** — waves support multiple threat groups with independent UAS type, count, bearing, offset, stagger, altitude, speed, and behavior
+- [x] **Pre-launch usage tracking gate** — captures required unit plus optional name/email and scenario to a Google Sheet through Apps Script; copy states internal metrics only and no sale/share/marketing use
 - [x] **False-alarm scoring workflow fixed** — Bird and weather balloon tracks can be correctly identified/tagged as neutral false alarms without unnecessary ATC coordination or Blue-on-Blue penalties
 - [x] **Track-specific ATC deconfliction scoring** — ATC calls and penalties now apply only to controlled-airspace deconfliction contacts instead of every UNKNOWN-IFF C-UAS track
 - [x] **Swarm Attack false-alarm replayability** — false-alarm timing, position, heading, and wandering behavior are randomized to avoid memorized responses
@@ -289,7 +297,6 @@ No Python backend required. The game engine runs entirely client-side via `useGa
 - [ ] **Preset polygon quality** — 20 curated presets in main, quality varies; many OSM-relation-sourced polygons still need manual tracing or shapely-based processing
 - [ ] **Langley AFB** — script-generated preset exists but polygon still mangled
 - [ ] **After-action replay** — ability to scrub through a completed mission timeline
-- [ ] **Scenario editor** — custom wave composition, threat mix, timing
 - [ ] **Multiplayer co-op** — shared TOC picture
 - [ ] **Instructor dashboard** — remote observation and grading
 - [ ] **Score leaderboards** — requires auth backend (not planned for browser-only mode)

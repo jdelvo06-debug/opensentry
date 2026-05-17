@@ -8,7 +8,21 @@ This project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Scenario Builder MVP** — Users can build browser-local custom scenarios by selecting a base, choosing equipment, placing systems, composing threat waves, reviewing a summary, and launching directly into the simulator.
+- **Multi-threat Wave Composer** — Waves now support multiple threat groups with independent UAS type, count, bearing, offset, stagger, altitude, speed, and behavior; final scenario output still emits standard flat `drones[]` for engine compatibility.
+- **Usage tracking gate** — Before ROE, users can submit required unit plus optional name/email; launches are logged to a Google Sheet through a Google Apps Script web app for internal adoption metrics.
+- **Usage tracking documentation** — Added `docs/usage-tracking.md` and checked in `apps-script/tracking/Code.gs` as the source copy for the Apps Script endpoint.
+
+### Changed
+- **Usage gate privacy copy** — Gate states submitted information is used only for internal usage metrics and is not sold, shared, or used for marketing.
+- **Scenario duration generation** — Custom scenario duration is computed from latest threat group end time plus buffer instead of a hardcoded duration.
+
 ### Fixed
+- **Wave ID collision prevention** — Wave/threat-group IDs now use monotonic counters instead of array-length-derived IDs.
+- **Scenario Builder navigation** — Wave Composer Back button returns to the placement step instead of looping on itself.
+- **Waypoint-path generation** — Generated `waypoint_path` drones now include waypoint arrays.
+- **Base equipment limits** — Scenario Builder equipment selection enforces selected base sensor/effector limits.
 - **False-alarm scoring workflow** — Bird and weather balloon tracks can now be correctly identified/tagged as neutral false alarms without forcing unnecessary ATC coordination or Blue-on-Blue penalties.
 - **Track-specific ATC deconfliction scoring** — ATC calls and penalties now apply only to tracks marked/inferred as controlled-airspace deconfliction contacts, so normal C-UAS tracks no longer create random tower-call tax just because IFF starts UNKNOWN.
 - **Swarm Attack false-alarm replayability** — False-alarm spawns are randomized across timing, position, heading, and wandering behavior to keep the scenario from training memorized responses.

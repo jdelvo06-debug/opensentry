@@ -4,116 +4,172 @@ Copy-paste this into Claude Code when you're ready to continue.
 
 ---
 
-## Status: v1.12.x — Curated Preset Quality Pass + Shared Workflow Cleanup (2026-04-21)
+## Status: OpenSentry MVP Expansion — Scenario Builder + Usage Tracking (2026-05-16/17)
 
-The preset/search/save/load flow is working in both Custom Mission and BDA. The shared preset workflow is now documented and should be treated as authoritative.
+OpenSentry is deployed from `main` to GitHub Pages. The recent work shipped the Scenario Builder MVP, multi-threat Wave Composer, and a lightweight usage tracking gate backed by Google Apps Script + Google Sheets.
 
-### What's Working
+Live site: https://jdelvo06-debug.github.io/opensentry/
 
-- ✅ 19 curated searchable base presets are in `main` and wired through `frontend/public/data/bases/preset-aliases.json`
-- ✅ Custom Mission and BDA now share the same search / preset handoff behavior
-- ✅ Generic custom-location flow works: search → edit perimeter → save → revisit
-- ✅ Live mission handoff uses the edited boundary/center instead of the old Iraq fallback
-- ✅ Mission map pan/zoom no longer snaps back every tick
-- ✅ Infrastructure overlay markers/labels were removed to reduce clutter
-- ✅ 4-sided default perimeter with midpoint add / right-click remove
-- ✅ 62/62 frontend tests passing
+## Current Verification Baseline
 
-### Important Reality Check
+- TypeScript: clean
+- Frontend tests: **102/102 passing** across 7 files
+- Production build: passes
+- Bundle warning: still present; latest observed build around **829 KB minified** with Vite's existing 500 KB warning
+- Apps Script endpoint: verified returning `{"ok":true}`
+- Google Sheet append: verified rows land in `OpenSentry Usage Tracker`
 
-- GitHub Pages is static hosting. Browser users cannot write shared presets back into the repo.
-- On GitHub Pages, ad hoc custom saves are browser-local only.
-- Shared presets for everyone must be curated into git under `frontend/public/data/bases/<base_id>.json`.
+## Recently Shipped
 
-### Authoritative Preset Workflow (Use This)
+### Scenario Builder MVP
 
-1. Start from a real aerodrome boundary:
-   - OSM aerodrome way/relation
-   - or a manual trace in `geojson.io`
-2. Convert/import it into preset format:
-   - preferred: `python3 scripts/import_geojson_preset.py --preset <base_id> --geojson /abs/path/file.geojson`
-3. Simplify carefully while preserving the installation shape
-4. Apply only minimal local edits so runway/support geometry stays inside
-5. Verify visually in-app after `npm test` and `npx vite build`
+Users can now build browser-local custom scenarios:
 
-### Deprecated Workflow (Do Not Default To This)
+1. Select a base
+2. Choose equipment within base limits
+3. Place systems on the BDA map
+4. Compose waves
+5. Review summary
+6. Launch directly into the simulator
 
-- Do **not** create new curated presets by taking a runway midpoint and drawing a blanket buffer/oval around it
-- Do **not** trust `wip/preset-generation-script` output as merge-ready without a traced/source-derived visual pass
-- Do **not** treat GitHub Pages browser saves as shared repo state
-
-### Current Preset Status
-
-Recently reworked or visually checked in this pass:
-- Osan AB
-- Aviano AB
-- Spangdahlem AB
-- McEntire JNGB
-- Shaw AFB
-- Prince Sultan AB
-- Ramstein AB
-- RAF Mildenhall
-- Barksdale AFB
-- Scott AFB
-- Tyndall AFB
-- Kunsan AB
-- Kadena AB
-- Nellis AFB
-- RAF Lakenheath
-- Al Udeid AB
-
-Still worth re-verifying in a future pass:
-- Creech AFB
-- Fort Liberty
-- Lackland AFB
-
-### Branch Status
-
-| Branch | Status | Contents |
-|--------|--------|----------|
-| `main` | Clean, deployed | current shared preset library, save/load fixes, traced-outline docs |
-| `wip/preset-generation-script` | WIP, do not merge blindly | experimental `generate-preset.py`, legacy regenerated polygons |
-
-### What's Next
-
-**Priority 1: Continue curated base verification**
-- Finish visual pass on remaining unreviewed curated presets
-- Add new requested bases using the traced/source-derived workflow
-
-**Priority 2: Add remaining bases**
-- Langley
-- Andersen
-- Incirlik
-- others as requested
-
-**Priority 3: Fix JACKAL trajectory + action wheel size (Issue #1)**
-
-**Priority 4: Code quality**
-- Add CI test step to GitHub Actions
-- Code-split bundle with React.lazy()
-- Investigate stuck bogey in Lone Wolf
-
-### Key Design Decisions
-
-- **4-sided default perimeter** — not 8-sided
-- **Shared presets live in git** — curated JSON is the source of truth for everyone
-- **GitHub Pages custom saves are local only** — not a collaborative database
-- **Prefer traced/source-derived outlines** — not runway bubbles
-- **Never merge PRs without Jeremy's explicit approval**
-
-### Key Files
+Important files:
 
 ```text
-scripts/import_geojson_preset.py  ← imports traced GeoJSON polygons into curated presets
-scripts/generate-preset.py        ← experimental only; not the default workflow
-frontend/public/data/bases/       ← curated preset JSONs + preset-aliases.json
-frontend/src/components/bda/
-  BdaBaseSelection.tsx            ← preset search + loading logic
-  BdaPlacement.tsx                ← placement map with draggable boundary
-docs/adding-base-presets.md       ← authoritative preset authoring guide
-AGENTS.md                         ← current project guide for future coding agents
+frontend/src/components/ScenarioBuilder.tsx
+frontend/src/components/WaveComposer.tsx
+frontend/src/utils/scenarioBuilderUtils.ts
+frontend/src/__tests__/scenario-builder.test.ts
+frontend/src/components/bda/BdaEquipmentSelection.tsx
 ```
+
+### Multi-threat Wave Composer
+
+`WaveDef` now supports:
+
+- `startSeconds`
+- `threatGroups[]`
+
+Each threat group supports:
+
+- UAS type
+- count
+- bearing
+- spawn offset
+- stagger
+- altitude
+- speed
+- behavior
+
+Legacy single-threat wave fields still normalize correctly through `normalizeWave()` / `normalizeThreatGroup()`.
+
+Scenario output still emits standard flat `drones[]`; there is no game-engine schema change.
+
+### Usage Tracking Gate
+
+Before ROE, users see a lightweight usage gate:
+
+- Unit — required
+- Name — optional
+- Email — optional
+
+The gate appears before both:
+
+- Standard scenario launches
+- Scenario Builder custom launches
+
+The gate includes this privacy copy:
+
+> This helps track OpenSentry usage and improve the simulator. Information submitted here is used for internal usage metrics only and is not sold, shared, or used for marketing.
+
+Tracking failure must **not** block launch.
+
+Important files:
+
+```text
+frontend/src/components/UnitGate.tsx
+frontend/src/utils/tracking.ts
+frontend/src/types.ts                ← includes unit_gate phase
+frontend/src/App.tsx                 ← routes launch flow through unit_gate
+apps-script/tracking/Code.gs         ← source copy for Apps Script endpoint
+docs/usage-tracking.md               ← architecture and maintenance notes
+```
+
+## Apps Script / Tracking Notes
+
+The deployed Apps Script `/exec` URL is configured in:
+
+```text
+frontend/src/utils/tracking.ts
+```
+
+The Google Sheet columns are:
+
+- Timestamp
+- Unit
+- Name
+- Email
+- Scenario
+
+Apps Script deployment settings must be:
+
+- Deployment type: Web app
+- Execute as: Me
+- Who has access: Anyone
+
+Known pitfall: `doPost(e)` must be top-level in Apps Script. Do not leave it nested inside `myFunction()`.
+
+The frontend intentionally omits `Content-Type: application/json` on the POST to avoid Apps Script CORS preflight failures.
+
+## Current Docs Updated
+
+- `README.md` — features, architecture, completed/unreleased items
+- `CHANGELOG.md` — Scenario Builder, Wave Composer, usage gate, fixes
+- `docs/usage-tracking.md` — tracking architecture/verification/pitfalls
+- `NEXT-SESSION-PROMPT.md` — this file
+
+## Known Issues / Watch Items
+
+- **Scenario Builder UX** is MVP-level. Jeremy is not fully in love with it yet; expect user feedback to drive simplification or layout changes.
+- **Bundle size warning** persists. Not urgent, but code-splitting remains a future cleanup item.
+- **Preset polygon quality** still varies. Many OSM-sourced/generated polygons need manual tracing or shapely/manual processing.
+- **Langley AFB** script-generated preset exists but polygon is still mangled.
+
+## Next Useful Work
+
+1. Collect user feedback on Scenario Builder MVP.
+2. Improve Scenario Builder UX based on observed friction.
+3. Add a small admin/status doc or dashboard for usage metrics if needed.
+4. Code-split large frontend bundle if the warning becomes painful.
+5. Continue curated base polygon quality pass.
+
+## Commands
+
+From repo root:
+
+```bash
+cd frontend
+npx tsc --noEmit
+npx vitest run
+npm run build
+npm run dev
+```
+
+Deployment:
+
+```bash
+git push origin main
+# GitHub Actions deploys to GitHub Pages
+```
+
+## Ground Rules
+
+- Do not add a backend server unless Jeremy explicitly asks.
+- Keep OpenSentry browser-local/static-site friendly.
+- Do not block mission launch if usage tracking fails.
+- Use `import.meta.env.BASE_URL` for static data paths.
+- No real vendor/program designators unless Jeremy explicitly approves.
+- Read files before edits; make small surgical changes.
 
 ---
 
-*Updated 2026-04-21 after the curated preset quality/documentation pass.*
+*Updated 2026-05-17 after Scenario Builder MVP, multi-threat Wave Composer, usage tracking gate, and documentation refresh.*

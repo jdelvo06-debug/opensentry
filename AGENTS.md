@@ -1,4 +1,4 @@
-# AGENTS.md — OpenSentry Project Guide (Updated 2026-05-10)
+# AGENTS.md — OpenSentry Project Guide (Updated 2026-05-17)
 
 ## What Is This?
 OpenSentry is a **free, browser-based C-UAS training simulator** designed to teach military operators the **DTID kill chain** (Detect → Track → Identify → Defeat). It's built to emulate real-world C-UAS command and control systems. No clearance required — purely training.
@@ -30,12 +30,17 @@ frontend/                   ← React app (the game UI)
     hooks/useGameEngine.ts  ← 10Hz game loop in browser (replaces WebSocket)
     hooks/useWebSocket.ts   ← Legacy hook (kept for local dev with Python backend)
     components/             ← All UI components
+      ScenarioBuilder.tsx   ← Browser-local custom scenario builder shell
+      WaveComposer.tsx      ← Multi-threat wave/threat-group composer
+      UnitGate.tsx          ← Pre-launch usage tracking gate
       bda/                  ← Base Defense Architect v2 (stepper flow)
         BdaStepIndicator.tsx, BdaBaseSelection.tsx, BdaEquipmentSelection.tsx
         BdaPlacement.tsx, BdaExport.tsx
         types.ts, constants.ts, viewshed.ts
         components/         ← BDA sub-components (palette, markers, detail panel, etc.)
     types.ts                ← TypeScript interfaces for all ServerMessage types
+    utils/tracking.ts       ← Apps Script usage tracking client
+    utils/scenarioBuilderUtils.ts ← Pure Scenario Builder helpers + normalization
     __tests__/              ← vitest unit tests for game engine
   public/data/              ← Static JSON data (served on GitHub Pages)
     scenarios/              ← lone_wolf.json, swarm_attack.json, recon_probe.json, tutorial.json, thermopylae.json, free_play.json, apkws_test.json, maul_test.json + index.json
@@ -44,6 +49,9 @@ frontend/                   ← React app (the game UI)
 
 scripts/                    ← preset authoring helpers
   import_geojson_preset.py  ← imports traced GeoJSON polygons into curated presets
+
+apps-script/                ← Google Apps Script source copies
+  tracking/Code.gs          ← Usage tracking web app; appends launch rows to Sheets
 
 src/game/                   ← TypeScript game engine (ported from Python)
   state.ts                  ← All types/interfaces + GameState factory
@@ -134,10 +142,11 @@ Birds and balloons are ambient objects handled exclusively by the ambient traffi
 ---
 
 ## Game Flow
-1. **Main Menu** → 2×2 scenario card grid → LAUNCH → straight into mission (doctrine loadout, no setup)
-2. **CUSTOM MISSION** → Scenario Select → Loadout → Placement → Running → Debrief
+1. **Main Menu** → 2×2 scenario card grid → LAUNCH → usage gate → ROE briefing → mission
+2. **CUSTOM MISSION** → Scenario Select → Loadout → Placement → Usage gate → ROE briefing → Running → Debrief
 3. **BASE DEFENSE ARCHITECT** → Base Selection → Equipment Selection → Placement & Viewshed → Export to Mission
-4. **GitHub Pages deploy** → auto on every `git push origin main`
+4. **Scenario Builder** → Base → Equip → Place → Compose Waves → Review → Usage gate → ROE briefing → Running
+5. **GitHub Pages deploy** → auto on every `git push origin main`
 
 ### Base Defense Architect v2 (Shipped 2026-04-09)
 Unified 4-step flow mirroring Custom Mission's UX pattern:
@@ -147,6 +156,24 @@ Unified 4-step flow mirroring Custom Mission's UX pattern:
 4. **Export** — coverage summary with approach corridor analysis, scenario picker, launch mission or download JSON
 
 The stepper shell (`BaseDefenseArchitect.tsx`, ~120 lines) holds shared state; each step is a focused component in `components/bda/`. Viewshed computation uses Open-Elevation API (SRTM 30m) with 72 rays, 150m steps, and LRU caching.
+
+### Scenario Builder MVP (Shipped 2026-05-16)
+- `ScenarioBuilder.tsx` orchestrates Base → Equip → Place → Wave Composer → Review → Launch.
+- `WaveComposer.tsx` supports multiple threat groups per wave. Each group can set UAS type, count, bearing, offset, stagger, altitude, speed, and behavior.
+- `scenarioBuilderUtils.ts` owns the pure logic: templates, type guards, bearing conversion, scenario duration, drone generation, waypoint generation, and wave/threat-group normalization.
+- The engine still consumes flat `drones[]`; do not change the game-engine scenario schema just to support UI grouping.
+- Legacy single-threat wave fields should continue to normalize through `normalizeWave()` / `normalizeThreatGroup()`.
+- Scenario Builder UX is MVP-level. Expect user feedback and prefer small UX improvements over large rewrites.
+
+### Usage Tracking Gate (Shipped 2026-05-17)
+- `UnitGate.tsx` appears before ROE briefing for standard launches and Scenario Builder launches.
+- Required field: Unit. Optional fields: Name, Email.
+- Privacy copy: information is used for internal usage metrics only and is not sold, shared, or used for marketing.
+- Tracking posts to Google Apps Script through `utils/tracking.ts`, which appends to the `OpenSentry Usage Tracker` Google Sheet.
+- Tracking failure must never block launch. Metrics are useful; training access is mission-critical.
+- Do not add `Content-Type: application/json` to the tracking POST unless browser-tested; omitting it avoids Apps Script CORS preflight issues.
+- Apps Script source copy lives at `apps-script/tracking/Code.gs`; deployed web app must expose top-level `doPost(e)` and be deployed as: Execute as Me, access Anyone.
+- Full notes: `docs/usage-tracking.md`.
 
 ---
 
