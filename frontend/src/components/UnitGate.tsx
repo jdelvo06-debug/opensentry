@@ -98,8 +98,8 @@ export default function UnitGate({ scenarioName, onSubmit, onSkip }: Props) {
             One Quick Thing
           </h2>
           <p style={{ color: "#8b949e", fontSize: 13, marginTop: 8, lineHeight: 1.5 }}>
-            This helps me track who's using the simulator.
-            Nothing to me is shared anywhere else — just internal metrics.
+            This helps track OpenSentry usage and improve the simulator.
+            Information submitted here is used for internal usage metrics only and is not sold, shared, or used for marketing.
           </p>
         </div>
 
