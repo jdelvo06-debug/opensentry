@@ -10,14 +10,28 @@ OpenSentry is a **free, browser-based C-UAS training simulator** designed to tea
 
 ## Project Mapping
 
-Linear is the task board; it does not know local folders by itself.
+Linear is the task board and source of truth; it does not know local folders by itself.
 
 - Linear team: `Opensentry` (`OPE`)
+- Linear project: `OpenSentry Core Roadmap`
+- Linear project URL: `https://linear.app/agent-os-contana-and-alfred/project/opensentry-core-roadmap-8e95c46b7bff`
 - GitHub repo: `jdelvo06-debug/opensentry`
+- GitHub URL: `https://github.com/jdelvo06-debug/opensentry`
 - Local repo path: `/Users/jeremydelvaux/projects/opensentry`
 - Live GitHub Pages URL: `https://jdelvo06-debug.github.io/opensentry/`
+
+Keep separate from **OpenSentry Pixel**:
+
+- Pixel Linear team: `OpenSentry Pixel` (`PIXEL`)
+- Pixel local repo path: `/Users/jeremydelvaux/projects/opensentry-pixel`
+- Pixel work belongs in the Pixel Game chat, not this repo/team.
+
+Rules:
+
 - Work one Linear issue at a time.
-- Before editing, verify this repo path, Git remote, active branch, and clean status.
+- Before creating/moving issues, confirm team key `OPE` and project `OpenSentry Core Roadmap`.
+- Before editing code, verify this repo path, Git remote, active branch, and clean status.
+- Do not mix arcade/OpenSentry Pixel tasks into this project.
 
 ---
 
@@ -265,20 +279,48 @@ pkill -f vite && cd frontend && npm run dev
 
 ## Development Workflow
 
-This project uses Codex subagents for a structured development pipeline:
+Use Linear as the source of truth for original OpenSentry work.
 
-| Agent | Role |
-|-------|------|
-| `planner` | Plans the approach before coding starts |
-| `architect` | High-level design decisions |
-| `code-reviewer` | Reviews code after writing |
-| `security-reviewer` | Security audit pass |
-| `refactor-cleaner` | Cleans dead code and tech debt |
-| `build-error-resolver` | Diagnoses build failures |
+1. Pick or create exactly one issue in Linear team `OPE` / project `OpenSentry Core Roadmap`.
+2. Move it to `In Progress` before implementation.
+3. Create a branch from clean `main`, using the issue key when practical, e.g. `feature/ope-4-scenario-library`.
+4. Keep the branch scoped to that one issue.
+5. Run verification before PR:
+   ```bash
+   cd frontend && npx vitest run
+   cd frontend && npm run build
+   ```
+6. Commit, push, open a PR, then move the Linear issue to `In Review` with a comment summarizing changes and verification.
+7. After merge/deploy, move the Linear issue to `Done`.
 
-**Typical flow:** plan → architect → implement → code-review → security-review → cleanup
+### Seeded Linear Roadmap Issues (2026-05-17)
 
-These are Codex subagent types, not custom-built tools. They run as part of the normal Codex session and are invoked automatically based on the task at hand.
+- `OPE-1` — Audit current OpenSentry baseline and roadmap state
+- `OPE-2` — Improve preset polygon quality workflow
+- `OPE-3` — Polish Scenario Builder MVP flow
+- `OPE-4` — Add browser-local scenario save/load library
+- `OPE-5` — Improve BDA coverage and gap summary
+- `OPE-6` — Create printable base defense planning brief
+- `OPE-7` — Refine EW and interceptor realism test coverage
+- `OPE-8` — Maintain usage tracking and weekly reporting
+
+### Codex Handoff Notes
+
+Codex may be used for implementation, but it must stay inside this repo and follow the Linear issue scope.
+
+Before launching Codex:
+
+- Confirm current directory is `/Users/jeremydelvaux/projects/opensentry`.
+- Confirm `git remote -v` shows `origin` as `https://github.com/jdelvo06-debug/opensentry.git`.
+- Confirm the active Linear issue belongs to `OPE`, not `PIXEL`.
+- Give Codex the issue identifier, acceptance criteria, verification commands, and this `AGENTS.md` context.
+- Do not let Codex create OpenSentry Pixel/arcade work in this repo.
+
+Recommended Codex pattern:
+
+```bash
+codex exec --full-auto "Work on OPE-<n>: <issue title>. Read AGENTS.md first. Stay scoped to this issue. Run cd frontend && npx vitest run and cd frontend && npm run build before finishing. Summarize files changed, verification, and any limitations."
+```
 
 ---
 
