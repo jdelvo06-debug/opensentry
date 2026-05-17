@@ -163,6 +163,7 @@ export default function WaveComposer({ waves, onWavesChange, onBack, onNext }: P
 
   const selectedIndex = normalizedWaves.findIndex((wave) => wave.id === selectedWaveId);
   const selectedWave = selectedIndex >= 0 ? normalizedWaves[selectedIndex] : null;
+  const canContinue = normalizedWaves.length > 0;
 
   const timelineMaxSeconds = useMemo(() => {
     const lastGroupEnd = normalizedWaves.reduce((max, wave) => {
@@ -775,12 +776,13 @@ export default function WaveComposer({ waves, onWavesChange, onBack, onNext }: P
         </button>
         <button
           onClick={onNext}
+          disabled={!canContinue}
           style={{
-            background: COLORS.accent,
+            background: canContinue ? COLORS.accent : COLORS.border,
             border: "none",
             borderRadius: 8,
-            color: COLORS.bg,
-            cursor: "pointer",
+            color: canContinue ? COLORS.bg : COLORS.muted,
+            cursor: canContinue ? "pointer" : "not-allowed",
             fontFamily: "inherit",
             fontWeight: 800,
             padding: "10px 18px",

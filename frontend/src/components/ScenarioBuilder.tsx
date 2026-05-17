@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import BdaBaseSelection from "./bda/BdaBaseSelection";
 import BdaEquipmentSelection from "./bda/BdaEquipmentSelection";
 import BdaPlacement from "./bda/BdaPlacement";
-import WaveComposer, { type WaveDef } from "./WaveComposer";
+import WaveComposer, { createNewWave, type WaveDef } from "./WaveComposer";
 import { COLORS } from "./bda/constants";
 import type { PlacedSystem, SelectedEquipment } from "./bda/types";
 import type { BaseTemplate, PlacementConfig } from "../types";
@@ -148,6 +148,10 @@ function buildScenarioJson(
   };
 }
 
+function defaultScenarioName(baseTemplate: BaseTemplate): string {
+  return `${baseTemplate.name} Custom Mission`;
+}
+
 function ScenarioSummary({
   baseTemplate,
   selectedBaseId,
@@ -184,13 +188,14 @@ function ScenarioSummary({
     equipmentCatalogCounts(selectedEquipment),
     placedCatalogCounts(systems),
   );
-  const canFinalize = waves.length > 0 && scenarioName.trim().length > 0 && placedSystemsMatchSelection;
+  const effectiveScenarioName = scenarioName.trim() || defaultScenarioName(baseTemplate);
+  const canFinalize = waves.length > 0 && placedSystemsMatchSelection;
 
   const assemble = useCallback(() => {
-    const scenario = buildScenarioJson(scenarioName, instructorNotes, waves);
+    const scenario = buildScenarioJson(effectiveScenarioName, instructorNotes, waves);
     const placement = buildPlacement(baseTemplate, systems, boundary);
     return { scenario, placement };
-  }, [baseTemplate, boundary, instructorNotes, scenarioName, systems, waves]);
+  }, [baseTemplate, boundary, effectiveScenarioName, instructorNotes, systems, waves]);
 
   const handleSave = useCallback(() => {
     const { scenario } = assemble();
@@ -260,7 +265,7 @@ function ScenarioSummary({
               <input
                 value={scenarioName}
                 onChange={(e) => onScenarioNameChange(e.target.value)}
-                placeholder="Custom Scenario"
+                placeholder={defaultScenarioName(baseTemplate)}
                 style={{
                   width: "100%",
                   boxSizing: "border-box",
@@ -370,7 +375,7 @@ function ScenarioSummary({
           ← BACK
         </button>
         <div style={{ color: COLORS.muted, fontSize: 13 }}>
-          {canFinalize ? "Ready to save or launch" : "Place all systems, add at least one wave, and name the scenario"}
+          {canFinalize ? "Ready to save or launch" : "Place all selected systems and add at least one wave"}
         </div>
         <div style={{ width: 96 }} />
       </div>
@@ -582,6 +587,11 @@ export default function ScenarioBuilder({ onBack, onLaunchScenario }: Props) {
     setWaves(nextWaves);
   }, []);
 
+  const handlePlacementNext = useCallback(() => {
+    setWaves((currentWaves) => (currentWaves.length > 0 ? currentWaves : [createNewWave()]));
+    setCurrentStep(4);
+  }, []);
+
   return (
     <div
       style={{
@@ -629,7 +639,7 @@ export default function ScenarioBuilder({ onBack, onLaunchScenario }: Props) {
           onSystemsChange={setSystems}
           onBoundaryChange={setBoundary}
           onBack={() => setCurrentStep(2)}
-          onNext={() => setCurrentStep(4)}
+          onNext={handlePlacementNext}
         />
       )}
 
