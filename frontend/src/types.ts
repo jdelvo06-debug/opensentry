@@ -1,4 +1,4 @@
-export type GamePhase = "waiting" | "scenario_select" | "roe_briefing" | "equip" | "plan" | "running" | "debrief" | "study" | "architect" | "scenario_build";
+export type GamePhase = "waiting" | "scenario_select" | "unit_gate" | "roe_briefing" | "equip" | "plan" | "running" | "debrief" | "study" | "architect" | "scenario_build";
 export type DTIDPhase = "detected" | "tracked" | "identified" | "defeated";
 export type Affiliation = "unknown" | "hostile" | "friendly" | "neutral";
 export type ThreatLevel = "green" | "yellow" | "orange" | "red";
