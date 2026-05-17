@@ -8,6 +8,17 @@ OpenSentry is a **free, browser-based C-UAS training simulator** designed to tea
 **Live URL:** https://jdelvo06-debug.github.io/opensentry/
 **Repo:** https://github.com/jdelvo06-debug/opensentry
 
+## Project Mapping
+
+Linear is the task board; it does not know local folders by itself.
+
+- Linear team: `Opensentry` (`OPE`)
+- GitHub repo: `jdelvo06-debug/opensentry`
+- Local repo path: `/Users/jeremydelvaux/projects/opensentry`
+- Live GitHub Pages URL: `https://jdelvo06-debug.github.io/opensentry/`
+- Work one Linear issue at a time.
+- Before editing, verify this repo path, Git remote, active branch, and clean status.
+
 ---
 
 ## Architecture (as of 2026-04-09)
