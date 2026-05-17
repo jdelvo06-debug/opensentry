@@ -166,7 +166,7 @@ The stepper shell (`BaseDefenseArchitect.tsx`, ~120 lines) holds shared state; e
 - Scenario Builder UX is MVP-level. Expect user feedback and prefer small UX improvements over large rewrites.
 
 ### Usage Tracking Gate (Shipped 2026-05-17)
-- `UnitGate.tsx` appears before ROE briefing for standard launches and Scenario Builder launches.
+- `UnitGate.tsx` appears before ROE briefing for main-menu quick-launch scenarios, custom mission launches, and Scenario Builder launches.
 - Local dev hosts (`localhost`, `127.0.0.1`, `[::1]`) bypass the gate automatically so testing does not require repeated form entry.
 - Required field: Unit. Optional fields: Name, Email.
 - Last submitted unit/name/email is stored in browser `localStorage` and prefilled on future live-site launches.

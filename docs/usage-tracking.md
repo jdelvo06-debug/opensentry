@@ -20,9 +20,10 @@ Fields:
 - Name — optional
 - Email — optional
 
-The gate appears for both:
+The gate appears for:
 
-- Standard scenario launches
+- Main-menu quick-launch scenario launches
+- Custom mission launches
 - Scenario Builder custom scenario launches
 
 For developer convenience, the app skips the gate automatically on local development hosts:

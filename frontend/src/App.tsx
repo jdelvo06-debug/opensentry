@@ -1682,7 +1682,7 @@ export default function App() {
 
         connect({ scenarioId, baseId, placement });
       };
-      setPhase("roe_briefing");
+      setPhase(isLocalDevHost(window.location.hostname) ? "roe_briefing" : "unit_gate");
     } catch {
       setPhase("waiting");
     }
