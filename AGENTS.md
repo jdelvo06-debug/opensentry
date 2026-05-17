@@ -167,7 +167,9 @@ The stepper shell (`BaseDefenseArchitect.tsx`, ~120 lines) holds shared state; e
 
 ### Usage Tracking Gate (Shipped 2026-05-17)
 - `UnitGate.tsx` appears before ROE briefing for standard launches and Scenario Builder launches.
+- Local dev hosts (`localhost`, `127.0.0.1`, `[::1]`) bypass the gate automatically so testing does not require repeated form entry.
 - Required field: Unit. Optional fields: Name, Email.
+- Last submitted unit/name/email is stored in browser `localStorage` and prefilled on future live-site launches.
 - Privacy copy: information is used for internal usage metrics only and is not sold, shared, or used for marketing.
 - Tracking posts to Google Apps Script through `utils/tracking.ts`, which appends to the `OpenSentry Usage Tracker` Google Sheet.
 - Tracking failure must never block launch. Metrics are useful; training access is mission-critical.

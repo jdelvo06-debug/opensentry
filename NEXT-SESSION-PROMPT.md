@@ -83,6 +83,8 @@ The gate includes this privacy copy:
 
 Tracking failure must **not** block launch.
 
+Local dev on `localhost`, `127.0.0.1`, and `[::1]` bypasses the gate automatically. Live-site submissions remember the last unit/name/email in browser `localStorage` and prefill future launches.
+
 Important files:
 
 ```text
