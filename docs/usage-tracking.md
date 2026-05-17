@@ -25,6 +25,14 @@ The gate appears for both:
 - Standard scenario launches
 - Scenario Builder custom scenario launches
 
+For developer convenience, the app skips the gate automatically on local development hosts:
+
+- `localhost`
+- `127.0.0.1`
+- `[::1]`
+
+On the live site, the last submitted unit/name/email is saved in browser `localStorage` and prefilled on future launches.
+
 A SKIP path remains available. Tracking is for metrics, not authentication.
 
 ## Data Captured

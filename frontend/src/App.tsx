@@ -26,6 +26,7 @@ import StudyModule from "./components/StudyModule";
 import BaseDefenseArchitect from "./components/BaseDefenseArchitect";
 import ScenarioBuilder from "./components/ScenarioBuilder";
 import UnitGate from "./components/UnitGate";
+import { isLocalDevHost } from "./utils/tracking";
 import { buildDeBeamFromFiringEvent } from "./utils/deEngagement";
 import { buildGenericCustomBase } from "./utils/customLocationBase";
 import {
@@ -995,7 +996,7 @@ export default function App() {
       pendingRoeLaunchRef.current = () => {
         setPhase("equip");
       };
-      setPhase("unit_gate");
+      setPhase(isLocalDevHost(window.location.hostname) ? "roe_briefing" : "unit_gate");
     } catch {
       // If we can't load ROE, skip to equip
       setPhase("equip");
@@ -1133,7 +1134,7 @@ export default function App() {
         scenario,
       );
     };
-    setPhase("unit_gate");
+    setPhase(isLocalDevHost(window.location.hostname) ? "roe_briefing" : "unit_gate");
   };
 
   const handleScenarioBuilder = () => {

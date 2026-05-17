@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { sendTrackingData } from "../utils/tracking";
+import { loadSavedTrackingProfile, saveTrackingProfile, sendTrackingData } from "../utils/tracking";
 
 interface Props {
   scenarioName: string;
@@ -32,9 +32,10 @@ const labelStyle: React.CSSProperties = {
 };
 
 export default function UnitGate({ scenarioName, onSubmit, onSkip }: Props) {
-  const [unit, setUnit] = useState("");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const savedProfile = loadSavedTrackingProfile();
+  const [unit, setUnit] = useState(savedProfile.unit);
+  const [name, setName] = useState(savedProfile.name);
+  const [email, setEmail] = useState(savedProfile.email);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -42,6 +43,8 @@ export default function UnitGate({ scenarioName, onSubmit, onSkip }: Props) {
     e.preventDefault();
 
     const trimmed = unit.trim();
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
     if (!trimmed) {
       setError("Unit is required.");
       return;
@@ -51,10 +54,11 @@ export default function UnitGate({ scenarioName, onSubmit, onSkip }: Props) {
     setError("");
 
     try {
+      saveTrackingProfile({ unit: trimmed, name: trimmedName, email: trimmedEmail });
       await sendTrackingData({
         unit: trimmed,
-        name: name.trim() || undefined,
-        email: email.trim() || undefined,
+        name: trimmedName || undefined,
+        email: trimmedEmail || undefined,
         scenario: scenarioName,
       });
     } catch {

@@ -15,6 +15,7 @@ This project uses [Semantic Versioning](https://semver.org/).
 - **Usage tracking documentation** — Added `docs/usage-tracking.md` and checked in `apps-script/tracking/Code.gs` as the source copy for the Apps Script endpoint.
 
 ### Changed
+- **Usage gate testing quality-of-life** — Local development hosts now bypass the gate automatically, and live-site submissions remember the last unit/name/email in browser localStorage for future prefill.
 - **Usage gate privacy copy** — Gate states submitted information is used only for internal usage metrics and is not sold, shared, or used for marketing.
 - **Scenario duration generation** — Custom scenario duration is computed from latest threat group end time plus buffer instead of a hardcoded duration.
 
