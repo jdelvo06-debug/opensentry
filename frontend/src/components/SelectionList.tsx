@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { EffectorStatus, SensorStatus, TrackData } from "../types";
 
-interface SelectableItem {
+export interface SelectableItem {
   id: string;
   type: "track" | "sensor" | "effector";
   label: string;
@@ -9,6 +9,13 @@ interface SelectableItem {
   color: string;
   icon: string;
 }
+
+export type NearbySelectionIntent =
+  | { type: "none" }
+  | { type: "show-list"; items: SelectableItem[] }
+  | { type: "select-track"; trackId: string }
+  | { type: "open-track-wheel"; trackId: string }
+  | { type: "open-device-wheel"; deviceId: string; deviceType: "sensor" | "effector" };
 
 interface Props {
   items: SelectableItem[];
@@ -28,6 +35,8 @@ const AFFILIATION_COLORS: Record<string, string> = {
   neutral: "#3fb950",
 };
 
+export const NEARBY_SELECTABLE_THRESHOLD_PX = 44;
+
 export function findNearbySelectables(
   screenX: number,
   screenY: number,
@@ -37,7 +46,7 @@ export function findNearbySelectables(
   trackPositionToScreen: (track: TrackData) => { x: number; y: number } | null,
   sensorPositionToScreen: (sensor: SensorStatus) => { x: number; y: number } | null,
   effectorPositionToScreen: (effector: EffectorStatus) => { x: number; y: number } | null,
-  threshold: number = 30,
+  threshold: number = NEARBY_SELECTABLE_THRESHOLD_PX,
 ): SelectableItem[] {
   const items: SelectableItem[] = [];
 
@@ -102,6 +111,30 @@ export function findNearbySelectables(
   }
 
   return items;
+}
+
+export function resolveNearbySelectionIntent(
+  items: SelectableItem[],
+  isRightClick: boolean,
+): NearbySelectionIntent {
+  if (items.length > 1) {
+    return { type: "show-list", items };
+  }
+
+  if (items.length === 1) {
+    const [item] = items;
+    if (item.type === "track") {
+      return isRightClick
+        ? { type: "open-track-wheel", trackId: item.id }
+        : { type: "select-track", trackId: item.id };
+    }
+
+    if (isRightClick) {
+      return { type: "open-device-wheel", deviceId: item.id, deviceType: item.type };
+    }
+  }
+
+  return { type: "none" };
 }
 
 export default function SelectionList({

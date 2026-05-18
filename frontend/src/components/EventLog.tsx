@@ -29,6 +29,9 @@ const AFF_COLOR: Record<string, string> = {
   friendly: "#58a6ff",
 };
 
+export const HOOK_PANEL_GUIDANCE_TEXT = "Left-click: select | Right-click: action wheel";
+export const HOOK_PANEL_EMPTY_TEXT = "NO TRACKS HOOKED — left-click a map marker or use TRACKS list";
+
 function HookCard({ track, onUnhook, onCallATC, onTagFriendly }: { track: TrackData; onUnhook: () => void; onCallATC?: (id: string) => void; onTagFriendly?: (id: string) => void }) {
   const color = AFF_COLOR[track.affiliation] ?? "#8b949e";
   return (
@@ -196,14 +199,14 @@ export default function EventLog({ events, hookedTracks = [], onUnhook, onCallAT
           {hookedTracks.length > 0 && (
             <span style={{ marginLeft: 6, fontSize: 8, color: "#484f58", fontFamily: "'JetBrains Mono', monospace" }}>{hookedTracks.length} hooked</span>
           )}
-          <span style={{ marginLeft: 8, fontSize: 8, color: "#30363d", fontFamily: "'JetBrains Mono', monospace" }}>click track to hook</span>
+          <span style={{ marginLeft: 8, fontSize: 8, color: "#30363d", fontFamily: "'JetBrains Mono', monospace" }}>{HOOK_PANEL_GUIDANCE_TEXT}</span>
         </div>
 
         {/* Cards row */}
         <div ref={cardsScrollRef} style={{ flex: 1, display: "flex", flexDirection: "row", overflowX: "auto", overflowY: "hidden" }}>
           {hookedTracks.length === 0 ? (
             <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ color: "#30363d", fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}>NO TRACKS HOOKED — click a bogey on the map</span>
+              <span style={{ color: "#30363d", fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}>{HOOK_PANEL_EMPTY_TEXT}</span>
             </div>
           ) : (
             hookedTracks.map((t) => (

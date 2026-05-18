@@ -15,7 +15,7 @@ import type { Affiliation, EffectorStatus, EngagementZones, ProtectedAreaInfo, S
 import { gameXYToLatLng } from "../utils/coordinates";
 import RadialActionWheel from "./RadialActionWheel";
 import DeviceWheel from "./DeviceWheel";
-import SelectionList, { findNearbySelectables } from "./SelectionList";
+import SelectionList, { NEARBY_SELECTABLE_THRESHOLD_PX, findNearbySelectables, resolveNearbySelectionIntent } from "./SelectionList";
 import { getActiveCameraSensor, getSensorDisplayLabel } from "./tactical-map-sensors";
 import { getTrackEffectState } from "../utils/trackEffects";
 
@@ -1375,8 +1375,10 @@ export default function TacticalMap({
     [baseLat, baseLng],
   );
 
-  // Disambiguation: check if click is near multiple objects
-  const checkDisambiguation = useCallback(
+  // Map hit-testing: exact marker events are ideal, but managed devices, browser
+  // scaling, or Leaflet vector overlays can make a visually accurate click miss
+  // the marker. Use nearby selectables as a tolerant fallback.
+  const handleNearbySelection = useCallback(
     (screenX: number, screenY: number, isRightClick: boolean): boolean => {
       const toScreen = (obj: { x?: number; y?: number }) =>
         obj.x != null ? gameXYToScreen(obj.x ?? 0, obj.y ?? 0) : null;
@@ -1390,37 +1392,69 @@ export default function TacticalMap({
         (t) => gameXYToScreen(t.x, t.y),
         (s) => toScreen(s),
         (e) => toScreen(e),
-        30,
+        NEARBY_SELECTABLE_THRESHOLD_PX,
       );
 
-      if (items.length > 1) {
-        setSelectionList({ items, screenX, screenY, isRightClick });
-        return true; // disambiguation shown
+      const intent = resolveNearbySelectionIntent(items, isRightClick);
+
+      switch (intent.type) {
+        case "show-list":
+          setBullseyeContextMenu(null);
+          setSelectionList({ items: intent.items, screenX, screenY, isRightClick });
+          return true;
+        case "select-track":
+          setBullseyeContextMenu(null);
+          setSelectionList(null);
+          setWheelState(null);
+          onSelectTrack(intent.trackId);
+          return true;
+        case "open-track-wheel":
+          setBullseyeContextMenu(null);
+          setSelectionList(null);
+          onSelectTrack(intent.trackId);
+          setWheelState({ trackId: intent.trackId, screenX, screenY });
+          return true;
+        case "open-device-wheel":
+          setBullseyeContextMenu(null);
+          setSelectionList(null);
+          setWheelState(null);
+          setDeviceWheelState({
+            deviceId: intent.deviceId,
+            deviceType: intent.deviceType,
+            screenX,
+            screenY,
+          });
+          return true;
+        case "none":
+          return false;
       }
-      return false; // no disambiguation needed
     },
-    [tracks, sensorConfigs, effectors, gameXYToScreen],
+    [tracks, sensorConfigs, effectors, gameXYToScreen, onSelectTrack],
   );
 
-  // Map-level click handler with disambiguation
+  // Map-level click handler with tolerant nearby-track fallback
   const handleMapClick = useCallback(
     (e: L.LeafletMouseEvent) => {
       setBullseyeContextMenu(null);
       const sx = e.originalEvent.clientX;
       const sy = e.originalEvent.clientY;
-      if (!checkDisambiguation(sx, sy, false)) {
+      if (!handleNearbySelection(sx, sy, false)) {
+        setSelectionList(null);
+        setWheelState(null);
         onSelectTrack(null);
       }
     },
-    [checkDisambiguation, onSelectTrack],
+    [handleNearbySelection, onSelectTrack],
   );
 
   const handleMapContextMenu = useCallback(
     (e: L.LeafletMouseEvent) => {
       const sx = e.originalEvent.clientX;
       const sy = e.originalEvent.clientY;
-      // If right-click didn't hit a track/device, show bulls-eye context menu
-      if (!checkDisambiguation(sx, sy, true)) {
+      // If right-click is not near a track/device, show bulls-eye context menu.
+      if (!handleNearbySelection(sx, sy, true)) {
+        setSelectionList(null);
+        setWheelState(null);
         setBullseyeContextMenu({
           x: sx,
           y: sy,
@@ -1428,7 +1462,7 @@ export default function TacticalMap({
         });
       }
     },
-    [checkDisambiguation],
+    [handleNearbySelection],
   );
 
   return (
@@ -1491,6 +1525,7 @@ export default function TacticalMap({
             <Circle
               center={baseCenter}
               radius={engagementZones.detection_range_km * 1000}
+              interactive={false}
               pathOptions={{
                 color: "#4a5568",
                 fillColor: "transparent",
@@ -1503,6 +1538,7 @@ export default function TacticalMap({
             <Circle
               center={baseCenter}
               radius={engagementZones.engagement_range_km * 1000}
+              interactive={false}
               pathOptions={{
                 color: "#3d6b9e",
                 fillColor: "transparent",
@@ -1515,6 +1551,7 @@ export default function TacticalMap({
             <Circle
               center={baseCenter}
               radius={engagementZones.identification_range_km * 1000}
+              interactive={false}
               pathOptions={{
                 color: "#7d5a1a",
                 fillColor: "transparent",
@@ -1531,6 +1568,7 @@ export default function TacticalMap({
         {baseBoundary && baseBoundary.length >= 3 && (
           <Polygon
             positions={baseBoundary.map(([x, y]) => gameXYToLatLng(x, y, baseLat, baseLng))}
+            interactive={false}
             pathOptions={{
               color: baseBreached ? (breachFlash ? "#f85149" : "#d29922") : "#d29922",
               fillColor: baseBreached && breachFlash ? "#f85149" : "#d29922",
@@ -1557,6 +1595,7 @@ export default function TacticalMap({
               <Circle
                 center={paCenter}
                 radius={protectedArea.warning_radius_km * 1000}
+                interactive={false}
                 pathOptions={{
                   color: "#db6d28",
                   fillColor: "#db6d28",
@@ -1585,6 +1624,7 @@ export default function TacticalMap({
               <Circle
                 center={paCenter}
                 radius={protectedArea.radius_km * 1000}
+                interactive={false}
                 pathOptions={{
                   color: baseBreached
                     ? (breachFlash ? "#f85149" : "#bc8cff")
@@ -1622,6 +1662,7 @@ export default function TacticalMap({
             key={`ring-${r}`}
             center={baseCenter}
             radius={r * 1000}
+            interactive={false}
             pathOptions={{
               color: "rgba(48, 54, 61, 0.4)",
               fillColor: "transparent",
@@ -1668,6 +1709,7 @@ export default function TacticalMap({
               <span key={`sensor-ring-${sensor.id}`}>
                 <Polygon
                   positions={points}
+                  interactive={false}
                   pathOptions={{
                     color: style.color,
                     weight: 2,
@@ -1692,6 +1734,7 @@ export default function TacticalMap({
               <Circle
                 center={sPos}
                 radius={rangeKm * 1000}
+                interactive={false}
                 pathOptions={{
                   color: style.color,
                   weight: 2,
@@ -1747,6 +1790,7 @@ export default function TacticalMap({
               <span key={`effector-ring-${eff.id}`}>
                 <Polygon
                   positions={points}
+                  interactive={false}
                   pathOptions={{
                     color: style.color,
                     weight: isApkws ? 3 : 2,
@@ -1760,14 +1804,17 @@ export default function TacticalMap({
                   <>
                     <Polyline
                       positions={[ePos, leftEdge]}
+                      interactive={false}
                       pathOptions={{ color: style.color, weight: 1.5, opacity: 0.9, dashArray: "3,3" }}
                     />
                     <Polyline
                       positions={[ePos, rightEdge]}
+                      interactive={false}
                       pathOptions={{ color: style.color, weight: 1.5, opacity: 0.9, dashArray: "3,3" }}
                     />
                     <Polyline
                       positions={centerLine}
+                      interactive={false}
                       pathOptions={{ color: style.color, weight: 2, opacity: 0.95 }}
                     />
                   </>
@@ -1787,6 +1834,7 @@ export default function TacticalMap({
               <Circle
                 center={ePos}
                 radius={rangeKm * 1000}
+                interactive={false}
                 pathOptions={{
                   color: style.color,
                   weight: 2,
@@ -1965,6 +2013,7 @@ export default function TacticalMap({
             <>
               <Polygon
                 positions={conePoints}
+                interactive={false}
                 pathOptions={{
                   color: "#d29922",
                   fillColor: "#d29922",
@@ -2006,6 +2055,7 @@ export default function TacticalMap({
                   key={`be-ring-${r}`}
                   center={bullseyeCenter}
                   radius={r * 1000}
+                  interactive={false}
                   pathOptions={{
                     color: "rgba(255,255,255,0.75)",
                     fillColor: "transparent",
@@ -2042,6 +2092,7 @@ export default function TacticalMap({
                   <Polyline
                     key={`be-spoke-${deg}`}
                     positions={[bullseyeCenter, endPos]}
+                    interactive={false}
                     pathOptions={{
                       color: "rgba(255,255,255,0.45)",
                       weight: 1,
@@ -2105,6 +2156,7 @@ export default function TacticalMap({
               {track.trail && track.trail.length > 1 && (
                 <Polyline
                   positions={trailToLatLng(track.trail)}
+                  interactive={false}
                   pathOptions={{
                     color,
                     weight: 1,
@@ -2120,6 +2172,7 @@ export default function TacticalMap({
               {!isInterceptor && projectedEnd(track) && (
                 <Polyline
                   positions={[pos, projectedEnd(track)!]}
+                  interactive={false}
                   pathOptions={{
                     color,
                     weight: 1,
@@ -2133,6 +2186,7 @@ export default function TacticalMap({
               {!isInterceptor && speedLeaderEnd(track) && (
                 <Polyline
                   positions={[pos, speedLeaderEnd(track)!]}
+                  interactive={false}
                   pathOptions={{
                     color,
                     weight: 1.5,

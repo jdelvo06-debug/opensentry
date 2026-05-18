@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { resolveNearbySelectionIntent, type SelectableItem } from "../components/SelectionList";
 import { getActiveCameraSensor, getSensorDisplayLabel } from "../components/tactical-map-sensors";
 import type { SensorStatus } from "../types";
 
@@ -15,6 +16,46 @@ function makeSensor(overrides: Partial<SensorStatus> = {}): SensorStatus {
   };
 }
 
+const trackItem: SelectableItem = {
+  id: "track-1",
+  type: "track",
+  label: "TRACK-1",
+  status: "DETECTED",
+  color: "#d29922",
+  icon: "■",
+};
+
+const sensorItem: SelectableItem = {
+  id: "sensor-1",
+  type: "sensor",
+  label: "RADAR-1",
+  status: "ACTIVE",
+  color: "#58a6ff",
+  icon: "◎",
+};
+
+describe("TacticalMap nearby selection intent", () => {
+  it("selects a single nearby track on left-click instead of treating it as empty map", () => {
+    expect(resolveNearbySelectionIntent([trackItem], false)).toEqual({
+      type: "select-track",
+      trackId: "track-1",
+    });
+  });
+
+  it("opens the action wheel for a single nearby track on right-click", () => {
+    expect(resolveNearbySelectionIntent([trackItem], true)).toEqual({
+      type: "open-track-wheel",
+      trackId: "track-1",
+    });
+  });
+
+  it("keeps the disambiguation list for overlapping nearby objects", () => {
+    expect(resolveNearbySelectionIntent([trackItem, sensorItem], false)).toEqual({
+      type: "show-list",
+      items: [trackItem, sensorItem],
+    });
+  });
+});
 describe("TacticalMap helpers", () => {
   it("uses the selected camera id for the active camera cone", () => {
     const sensors = [
