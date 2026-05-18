@@ -291,7 +291,15 @@ Use Linear as the source of truth for original OpenSentry work.
    cd frontend && npm run build
    ```
 6. Commit, push, open a PR, then move the Linear issue to `In Review` with a comment summarizing changes and verification.
-7. After merge/deploy, move the Linear issue to `Done`.
+7. **Stop at PR/In Review. Do not merge to `main` automatically.** Jeremy must explicitly approve the merge with wording such as `merge it`, `merge this PR`, or an equivalent direct instruction.
+8. After Jeremy approves and the PR is merged/deployed, move the Linear issue to `Done`.
+
+Merge discipline:
+
+- Default deliverable for implementation work is a reviewed PR, not a direct `main` merge.
+- If a task looks risky, unclear, or larger than expected, do discovery/planning first and ask before coding.
+- Do not treat passing tests as merge approval. Passing tests means the PR is ready for Jeremy's decision.
+- Docs-only guardrail updates may be committed/pushed when Jeremy asks to update agent instructions, but feature code still stops at PR unless he approves merge.
 
 ### Seeded Linear Roadmap Issues (2026-05-17)
 
