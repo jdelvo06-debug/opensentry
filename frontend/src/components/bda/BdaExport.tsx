@@ -4,6 +4,11 @@ import type { BaseTemplate, PlacementConfig, ScenarioInfo } from "../../types";
 import type { PlacedSystem } from "./types";
 import { COLORS } from "./constants";
 import { latLngToGameXY } from "../../utils/coordinates";
+import {
+  analyzeBdaCoverage,
+  type CoverageStatus,
+  type ReadinessLevel,
+} from "../../utils/bdaCoverageAnalysis";
 
 interface Props {
   baseTemplate: BaseTemplate;
@@ -20,57 +25,6 @@ const CAT_COLORS: Record<string, string> = {
   effector: "#f85149",
   combined: "#bc8cff",
 };
-
-// ─── Coverage status helpers ──────────────────────────────────────────────────
-
-type CoverageStatus = "COVERED" | "PARTIAL" | "GAP";
-
-interface CorridorCoverage {
-  name: string;
-  bearing_deg: number;
-  coveringCount: number;
-  status: CoverageStatus;
-}
-
-function bearingInFov(
-  systemFacing: number,
-  fovDeg: number,
-  corridorBearing: number,
-): boolean {
-  const half = fovDeg / 2;
-  // Normalise difference to [-180, 180]
-  let diff = ((corridorBearing - systemFacing + 540) % 360) - 180;
-  return Math.abs(diff) <= half;
-}
-
-function analyzeCoverage(
-  corridors: BaseTemplate["approach_corridors"],
-  systems: PlacedSystem[],
-): CorridorCoverage[] {
-  return corridors.map((corridor) => {
-    let count = 0;
-    for (const sys of systems) {
-      const isActive = sys.def.category === "sensor" || sys.def.category === "combined";
-      if (!isActive) continue;
-
-      if (sys.def.fov_deg >= 360) {
-        // 360° sensors always cover
-        count++;
-      } else {
-        if (bearingInFov(sys.facing_deg, sys.def.fov_deg, corridor.bearing_deg)) {
-          count++;
-        }
-      }
-    }
-
-    let status: CoverageStatus;
-    if (count === 0) status = "GAP";
-    else if (count === 1) status = "PARTIAL";
-    else status = "COVERED";
-
-    return { name: corridor.name, bearing_deg: corridor.bearing_deg, coveringCount: count, status };
-  });
-}
 
 // ─── PlacementConfig builder ──────────────────────────────────────────────────
 
@@ -124,6 +78,30 @@ function StatusBadge({ status }: { status: CoverageStatus }) {
       }}
     >
       {status}
+    </span>
+  );
+}
+
+function ReadinessBadge({ readiness }: { readiness: ReadinessLevel }) {
+  const colors: Record<ReadinessLevel, string> = {
+    GOOD: COLORS.success,
+    CAUTION: COLORS.warning,
+    "HIGH RISK": COLORS.danger,
+  };
+  return (
+    <span
+      style={{
+        fontSize: 11,
+        fontWeight: 800,
+        letterSpacing: "0.08em",
+        color: colors[readiness],
+        border: `1px solid ${colors[readiness]}`,
+        borderRadius: 999,
+        padding: "3px 8px",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {readiness}
     </span>
   );
 }
@@ -197,11 +175,10 @@ export default function BdaExport({
 
   // ─── Coverage analysis ──────────────────────────────────────────────────────
 
-  const corridorCoverage = baseTemplate.approach_corridors?.length
-    ? analyzeCoverage(baseTemplate.approach_corridors, systems)
-    : [];
+  const coverageSummary = analyzeBdaCoverage(baseTemplate.approach_corridors, systems);
+  const corridorCoverage = coverageSummary.corridors;
 
-  const hasGap = corridorCoverage.some((c) => c.status === "GAP");
+  const hasGap = coverageSummary.readiness === "HIGH RISK";
 
   // ─── Systems summary (group by def.id) ─────────────────────────────────────
 
@@ -327,6 +304,39 @@ export default function BdaExport({
               )}
             </div>
 
+            {/* Coverage readiness */}
+            {corridorCoverage.length > 0 && (
+              <div
+                style={{
+                  background: "rgba(0, 212, 255, 0.06)",
+                  border: `1px solid ${COLORS.border}`,
+                  borderRadius: 6,
+                  padding: "12px 14px",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 8 }}>
+                  <div style={{ fontSize: 11, letterSpacing: "0.12em", color: COLORS.muted, textTransform: "uppercase" }}>
+                    Coverage readiness
+                  </div>
+                  <ReadinessBadge readiness={coverageSummary.readiness} />
+                </div>
+                <div style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.45, marginBottom: 10 }}>
+                  {coverageSummary.headline}
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+                  <div style={{ fontSize: 11, color: COLORS.muted }}>
+                    Layered <span style={{ color: COLORS.success, fontWeight: 700 }}>{coverageSummary.coveredCount}</span>
+                  </div>
+                  <div style={{ fontSize: 11, color: COLORS.muted }}>
+                    Partial <span style={{ color: COLORS.warning, fontWeight: 700 }}>{coverageSummary.partialCount}</span>
+                  </div>
+                  <div style={{ fontSize: 11, color: COLORS.muted }}>
+                    Gaps <span style={{ color: COLORS.danger, fontWeight: 700 }}>{coverageSummary.sensorGapCount + coverageSummary.effectorGapCount}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Approach corridor coverage */}
             {corridorCoverage.length > 0 && (
               <div>
@@ -363,10 +373,10 @@ export default function BdaExport({
                         <StatusBadge status={c.status} />
                       </div>
                       <div style={{ display: "flex", alignItems: "center" }}>
-                        <span style={{ fontSize: 11, color: COLORS.muted, minWidth: 30 }}>
-                          {c.coveringCount}
+                        <span style={{ fontSize: 11, color: COLORS.muted, minWidth: 96 }}>
+                          Detect:{c.sensor.count} / Defeat:{c.effector.count}
                         </span>
-                        <ProgressBar status={c.status} count={c.coveringCount} />
+                        <ProgressBar status={c.status} count={Math.min(c.sensor.count, c.effector.count)} />
                       </div>
                     </div>
                   ))}
@@ -394,9 +404,10 @@ export default function BdaExport({
                   >
                     Coverage Gap Detected
                   </div>
-                  <div style={{ fontSize: 12, color: COLORS.text, opacity: 0.8 }}>
-                    One or more approach corridors have no sensor coverage. Consider adding sensors
-                    or adjusting facing angles before launching.
+                  <div style={{ fontSize: 12, color: COLORS.text, opacity: 0.85, lineHeight: 1.5 }}>
+                    {coverageSummary.recommendations.slice(0, 3).map((rec) => (
+                      <div key={rec}>• {rec}</div>
+                    ))}
                   </div>
                 </div>
               </div>
