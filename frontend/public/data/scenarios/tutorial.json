@@ -126,6 +126,7 @@
       "behavior": "direct_approach",
       "rf_emitting": true,
       "spawn_delay": 5,
+      "atc_required": true,
       "correct_classification": "commercial_quad",
       "correct_affiliation": "hostile",
       "optimal_effectors": [
